@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Search, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { fmtPct, sourceMeta } from '../mock/data';
@@ -67,14 +67,15 @@ export default function AlertsView() {
 
   return (
     <div className="px-8 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('alerts.title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('alerts.subtitle')}</p>
+      <div className="mb-6 flex flex-wrap items-stretch gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('alerts.title')}</h1>
+          <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('alerts.subtitle')}</p>
+        </div>
+        <ThresholdSettings />
       </div>
 
-      <ThresholdSettings />
-
-      <Card padded={false} className="mt-5">
+      <Card padded={false}>
         <div className="p-5 pb-0">
           <SectionTitle>{t('alerts.title')}</SectionTitle>
         </div>
@@ -234,14 +235,15 @@ function ThresholdSettings() {
   const invalid = investigate <= watch;
 
   return (
-    <Card>
-      <SectionTitle hint={t('alerts.settingsHint')}>
-        <span className="flex items-center gap-1.5">
-          <TriangleAlert size={15} className="text-amber-500" />
+    <Card className="flex flex-1 flex-nowrap items-center justify-between gap-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-brame-dark dark:text-gray-100">
+          <TriangleAlert size={15} className="shrink-0 text-amber-500" />
           {t('alerts.settingsTitle')}
-        </span>
-      </SectionTitle>
-      <div className="grid gap-4 sm:grid-cols-2 sm:max-w-md">
+        </div>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('alerts.settingsHint')}</p>
+      </div>
+      <div className="flex shrink-0 flex-nowrap items-start gap-3">
         <PercentField
           label={t('alerts.watchThreshold')}
           value={watch}
@@ -255,7 +257,7 @@ function ThresholdSettings() {
           tone="red"
         />
       </div>
-      {invalid && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{t('alerts.thresholdInvalid')}</p>}
+      {invalid && <p className="w-full text-xs text-red-600 dark:text-red-400">{t('alerts.thresholdInvalid')}</p>}
     </Card>
   );
 }
@@ -271,20 +273,37 @@ function PercentField({
   onChange: (n: number) => void;
   tone: 'amber' | 'red';
 }) {
+  const displayValue = String(Math.round(value * 1000) / 10);
+  // Local text buffer, decoupled from the numeric value while typing —
+  // a controlled number input re-formatting on every keystroke is what
+  // turns "clear the 4, type 8" into a stuck "08" the backspace can't touch.
+  const [raw, setRaw] = useState(displayValue);
+
+  useEffect(() => {
+    setRaw((prev) => (Number(prev) === value * 100 ? prev : displayValue));
+  }, [displayValue, value]);
+
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-brame-dark dark:text-gray-200">
+      <span className="mb-1.5 flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-brame-dark dark:text-gray-200">
         <span className={`h-2 w-2 rounded-full ${tone === 'amber' ? 'bg-amber-400' : 'bg-red-500'}`} />
         {label}
       </span>
-      <div className="relative">
+      <div className="relative w-28">
         <input
           type="number"
           min={0}
           max={100}
           step={0.5}
-          value={Math.round(value * 1000) / 10}
-          onChange={(e) => onChange(Math.max(0, Number(e.target.value)) / 100)}
+          value={raw}
+          onChange={(e) => {
+            const text = e.target.value;
+            setRaw(text);
+            if (text.trim() === '') return;
+            const n = Number(text);
+            if (!Number.isNaN(n)) onChange(Math.max(0, n) / 100);
+          }}
+          onBlur={() => setRaw(displayValue)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100"
         />
         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>

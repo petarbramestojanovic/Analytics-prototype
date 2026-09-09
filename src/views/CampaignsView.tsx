@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   flexRender,
@@ -26,6 +26,7 @@ import {
   SlidersHorizontal,
   Star,
   Unplug,
+  X,
 } from 'lucide-react';
 import { ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { YESTERDAY_ISO, fmtCompact, fmtMetric, fmtPct, sourceMeta } from '../mock/data';
@@ -55,18 +56,57 @@ const statusTone: Record<Campaign['status'], PillTone> = {
 
 const primary = (c: Campaign) => c.sources[c.primarySource];
 
+// Filters are a browser-side preference, same family as alert thresholds
+// (lib/alertSettings.tsx) — persisted so a reload doesn't drop what an admin
+// was just looking at.
+const FILTERS_KEY = 'brame-prototype-campaigns-filters';
+
+interface StoredFilters {
+  q: string;
+  statusFilter: 'all' | Campaign['status'];
+  companyFilter: string;
+  countryFilter: string;
+}
+
+const DEFAULT_FILTERS: StoredFilters = { q: '', statusFilter: 'all', companyFilter: 'all', countryFilter: 'all' };
+
+function readStoredFilters(): StoredFilters {
+  if (typeof window === 'undefined') return DEFAULT_FILTERS;
+  try {
+    const raw = window.localStorage.getItem(FILTERS_KEY);
+    return raw ? { ...DEFAULT_FILTERS, ...JSON.parse(raw) } : DEFAULT_FILTERS;
+  } catch {
+    return DEFAULT_FILTERS;
+  }
+}
+
 export default function CampaignsView() {
   const { role, companyId } = useSession();
   const { t } = useI18n();
   usePageTitle(t('campaigns.title'));
   const { data: allCampaigns, isLoading, isError } = useCampaigns();
-  const [q, setQ] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | Campaign['status']>('all');
-  const [companyFilter, setCompanyFilter] = useState('all');
-  const [countryFilter, setCountryFilter] = useState('all');
+  const [initialFilters] = useState(readStoredFilters);
+  const [q, setQ] = useState(initialFilters.q);
+  const [statusFilter, setStatusFilter] = useState<'all' | Campaign['status']>(initialFilters.statusFilter);
+  const [companyFilter, setCompanyFilter] = useState(initialFilters.companyFilter);
+  const [countryFilter, setCountryFilter] = useState(initialFilters.countryFilter);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [editing, setEditing] = useState<Campaign | null>(null);
+
+  useEffect(() => {
+    window.localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, statusFilter, companyFilter, countryFilter }));
+  }, [q, statusFilter, companyFilter, countryFilter]);
+
+  const filtersActive =
+    q !== '' || statusFilter !== 'all' || companyFilter !== 'all' || countryFilter !== 'all';
+
+  const resetFilters = () => {
+    setQ('');
+    setStatusFilter('all');
+    setCompanyFilter('all');
+    setCountryFilter('all');
+  };
 
   const isAdmin = role === 'brame_admin';
 
@@ -226,7 +266,6 @@ export default function CampaignsView() {
         <SummaryTile
           label={t('campaigns.tile.impressions')}
           value={fmtCompact(live.reduce((a, c) => a + (primary(c)?.totals.impressions ?? 0), 0))}
-          hint={t('campaigns.tile.impressionsHint')}
         />
         <SummaryTile
           label={t('campaigns.tile.awaitingSetup')}
@@ -241,13 +280,12 @@ export default function CampaignsView() {
           value={String(
             scoped.reduce((a, c) => a + (['atk', 'nexd', 'custom'] as const).filter((s) => !c.sources[s]).length, 0)
           )}
-          hint={t('campaigns.tile.noConnectorHint')}
         />
       </div>
 
       <Card padded={false}>
         <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 dark:border-white/10">
-          <div className="relative min-w-56 flex-1">
+          <div className="relative min-w-40 flex-1">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               value={q}
@@ -337,6 +375,17 @@ export default function CampaignsView() {
                 ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 text-xs font-medium text-brame-dark transition-colors hover:bg-gray-50 dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:hover:bg-white/10"
+            >
+              <X size={13} />
+              {t('campaigns.filter.reset')}
+            </button>
+          )}
         </div>
 
         {isLoading ? (
@@ -570,12 +619,13 @@ function RowActions({ campaign, onEdit }: { campaign: Campaign; onEdit: () => vo
   );
 }
 
-function SummaryTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
-    <Card>
-      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</div>
-      <div className="tnum mt-1 text-2xl font-bold text-brame-dark dark:text-white">{value}</div>
-      {hint && <div className="mt-1 text-[11px] leading-snug text-gray-400 dark:text-gray-500">{hint}</div>}
+    <Card padded={false} className="p-3">
+      <div className="truncate text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        {label}
+      </div>
+      <div className="tnum mt-0.5 text-xl font-bold text-brame-dark dark:text-white">{value}</div>
     </Card>
   );
 }
