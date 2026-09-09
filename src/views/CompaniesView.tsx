@@ -10,7 +10,7 @@ import type { Company, CompanyUser } from '../mock/types';
 import InviteUserModal from '../components/InviteUserModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
-import { Button, Card, Pill, SectionTitle, Td, Th } from '../components/primitives';
+import { Button, Card, Pill, Td, Th } from '../components/primitives';
 
 /**
  * Split screen: companies on the left act as a directory, the selected
