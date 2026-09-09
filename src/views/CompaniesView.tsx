@@ -34,6 +34,7 @@ export default function CompaniesView() {
 
   const selectedId = params.get('company') ?? companies?.[0]?.id;
   const selected = companies?.find((c) => c.id === selectedId) ?? companies?.[0];
+  const [invitingAny, setInvitingAny] = useState(false);
 
   if (isLoading || !companies || !selected) {
     return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
@@ -41,10 +42,17 @@ export default function CompaniesView() {
 
   return (
     <div className="px-8 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('companies.title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('companies.subtitle')}</p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('companies.title')}</h1>
+          <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('companies.subtitle')}</p>
+        </div>
+        <Button variant="primary" icon={<UserPlus size={13} />} onClick={() => setInvitingAny(true)}>
+          {t('companies.inviteUser')}
+        </Button>
       </div>
+
+      <InviteUserModal open={invitingAny} onOpenChange={setInvitingAny} />
 
       <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
         <Card padded={false}>
