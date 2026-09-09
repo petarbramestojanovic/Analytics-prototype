@@ -1,0 +1,205 @@
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import { Info } from 'lucide-react';
+
+export function Card({
+  children,
+  className = '',
+  padded = true,
+}: {
+  children: ReactNode;
+  className?: string;
+  padded?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-brame-dark-light dark:shadow-none ${padded ? 'p-5' : ''} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function SectionTitle({
+  children,
+  hint,
+  action,
+}: {
+  children: ReactNode;
+  hint?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="mb-4 flex items-start justify-between gap-4">
+      <div>
+        <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">{children}</h2>
+        {hint && <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{hint}</p>}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+export function Tooltip({ text }: { text: string }) {
+  return (
+    <span className="group relative inline-flex">
+      <Info size={13} className="text-gray-300 transition-colors group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" />
+      {/* normal-case / tracking-normal because these sit inside uppercase,
+          letter-spaced metric labels and would otherwise inherit both. */}
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-52 -translate-x-1/2 rounded-lg bg-brame-dark px-3 py-2 text-xs font-normal normal-case leading-snug tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-black dark:ring-1 dark:ring-white/10">
+        {text}
+      </span>
+    </span>
+  );
+}
+
+const pillTones = {
+  neutral: 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300',
+  teal: 'bg-brame-teal/10 text-brame-teal dark:bg-brame-teal/25 dark:text-brame-turquoise-light',
+  lime: 'bg-brame-lime text-brame-dark dark:bg-brame-lime dark:text-brame-dark',
+  amber: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
+  red: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+  green: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
+  purple: 'bg-brame-purple/10 text-brame-purple dark:bg-brame-purple/25 dark:text-brame-purple-light',
+};
+
+export type PillTone = keyof typeof pillTones;
+
+export function Pill({
+  children,
+  tone = 'neutral',
+  icon,
+  title,
+}: {
+  children: ReactNode;
+  tone?: PillTone;
+  icon?: ReactNode;
+  title?: string;
+}) {
+  return (
+    <span
+      title={title}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${pillTones[tone]}`}
+    >
+      {icon}
+      {children}
+    </span>
+  );
+}
+
+/** Neutral empty state. Used wherever a connector is absent — the RFC is
+ *  explicit that a missing source is blank, never a zero. */
+export function EmptyState({
+  icon,
+  title,
+  body,
+  action,
+}: {
+  icon: ReactNode;
+  title: string;
+  body: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50/60 px-6 py-14 text-center dark:border-white/15 dark:bg-white/5">
+      <div className="mb-3 text-gray-300 dark:text-gray-600">{icon}</div>
+      <h3 className="text-sm font-semibold text-brame-dark dark:text-gray-100">{title}</h3>
+      <p className="mt-1 max-w-md text-sm text-gray-500 dark:text-gray-400">{body}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+interface ButtonProps {
+  children?: ReactNode;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md';
+  icon?: ReactNode;
+  disabled?: boolean;
+  type?: 'button' | 'submit';
+}
+
+// forwardRef so Radix's asChild (DropdownMenuTrigger, DialogTrigger) can
+// clone this as its trigger element without a "function components cannot be
+// given refs" warning.
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { children, onClick, variant = 'secondary', size = 'md', icon, disabled, type = 'button' },
+  ref
+) {
+  const variants = {
+    primary: 'bg-brame-teal text-white hover:bg-brame-teal-dark border-brame-teal',
+    secondary:
+      'bg-white text-brame-dark hover:bg-gray-50 border-gray-300 dark:bg-brame-dark-light dark:text-gray-100 dark:border-white/15 dark:hover:bg-white/10',
+    ghost:
+      'bg-transparent text-gray-600 hover:bg-gray-100 border-transparent dark:text-gray-300 dark:hover:bg-white/10',
+  };
+  return (
+    <button
+      ref={ref}
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center gap-1.5 rounded-lg border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+        variants[variant]
+      } ${size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-sm'}`}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+});
+
+export function Th({
+  children,
+  align = 'left',
+  className = '',
+}: {
+  children?: ReactNode;
+  align?: 'left' | 'right';
+  className?: string;
+}) {
+  return (
+    <th
+      className={`whitespace-nowrap border-b border-gray-200 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:text-gray-400 ${
+        align === 'right' ? 'text-right' : 'text-left'
+      } ${className}`}
+    >
+      {children}
+    </th>
+  );
+}
+
+export function Td({
+  children,
+  align = 'left',
+  className = '',
+}: {
+  children: ReactNode;
+  align?: 'left' | 'right';
+  className?: string;
+}) {
+  return (
+    <td
+      className={`border-b border-gray-100 px-4 py-3 text-sm dark:border-white/5 ${
+        align === 'right' ? 'tnum text-right' : 'text-left'
+      } ${className}`}
+    >
+      {children}
+    </td>
+  );
+}
+
+// forwardRef so react-hook-form's register() can attach its ref — without it
+// RHF still tracks value via onChange, but focus-on-error and native
+// validation hooks silently no-op.
+export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
+  function Input({ className = '', ...props }, ref) {
+    return (
+      <input
+        ref={ref}
+        {...props}
+        className={`w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-brame-dark outline-none placeholder:text-gray-400 focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-brame-turquoise ${className}`}
+      />
+    );
+  }
+);

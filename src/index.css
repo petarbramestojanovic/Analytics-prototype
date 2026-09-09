@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* Tailwind v4 defaults dark: to prefers-color-scheme; this opts into a
+   manually-toggled `.dark` class on <html> instead, driven by ThemeProvider. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brame-teal: #077070;
+  --color-brame-teal-dark: #055555;
+  --color-brame-teal-light: #0a9090;
+  --color-brame-lime: #DFFA96;
+  --color-brame-lime-dark: #c5e070;
+  --color-brame-cream: #FEFFFA;
+  --color-brame-dark: #282929;
+  --color-brame-dark-light: #3a3b3b;
+  --color-brame-turquoise: #40b8b8;
+  --color-brame-turquoise-light: #7dd4d4;
+  --color-brame-purple: #6b5b95;
+  --color-brame-purple-light: #8b7bb5;
+
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FEFFFA;
+  color: #282929;
+  transition: background-color 150ms ease;
+}
+
+.dark body {
+  background-color: #1c1d1d;
+  color: #ececec;
+}
+
+/* Tabular figures everywhere a number is compared vertically in a table or
+   KPI row — otherwise proportional digits make columns visibly ragged. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Native form controls (date pickers, select arrows) don't pick up Tailwind's
+   dark: variant on their own chrome. */
+.dark select,
+.dark input {
+  color-scheme: dark;
+}
+
+/* Themed scrollbars everywhere — every scrollable region (sidebar nav, main
+   content, table overflow, dialogs) inherits this rather than the browser's
+   generic gray, in both themes. Firefox uses scrollbar-color; WebKit/Chromium
+   need the ::-webkit-scrollbar-* pseudo-elements. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #0a9090 transparent;
+}
+
+.dark * {
+  scrollbar-color: #4a4b4b transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #0a9090;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #055555;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: #4a4b4b;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: #5c5d5d;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* The sidebar nav scrolls against a teal background — the default teal thumb
+   above would nearly disappear against it, so it gets a lighter thumb here. */
+.sidebar-scroll {
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.55);
+}
