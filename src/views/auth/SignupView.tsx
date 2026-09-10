@@ -26,7 +26,7 @@ export default function SignupView() {
     setTouched(true);
     if (password !== confirm) return;
     // Prototype: no account is actually created — move straight into the app.
-    navigate('/campaigns');
+    navigate('/overview');
   };
 
   return (

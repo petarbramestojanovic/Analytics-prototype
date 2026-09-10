@@ -11,6 +11,6 @@ import { useSession } from '../lib/session';
  */
 export default function RequireAdmin({ children }: { children: ReactNode }) {
   const { role } = useSession();
-  if (role !== 'brame_admin') return <Navigate to="/campaigns" replace />;
+  if (role !== 'brame_admin') return <Navigate to="/overview" replace />;
   return <>{children}</>;
 }

@@ -19,7 +19,7 @@ export default function LoginView() {
   // simply moves on — the point of this screen is the flow, not the check.
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    navigate('/campaigns');
+    navigate('/overview');
   };
 
   return (

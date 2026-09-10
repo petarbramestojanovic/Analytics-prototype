@@ -22,13 +22,13 @@ export default function ProfileSettingsModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useI18n();
-  const { role, companyId, companyName } = useSession();
+  const { role, companyId, companyName, isInternal } = useSession();
   const { customName, avatarDataUrl, setCustomName, setAvatarDataUrl } = useProfile();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const base = defaultPerson(role, companyId);
   const displayName = customName ?? base.name;
-  const org = role === 'brame_admin' ? t('topbar.brameInternal') : companyName;
+  const org = role === 'sales' ? t('topbar.brameSales') : isInternal ? t('topbar.brameInternal') : companyName;
 
   const {
     register,
@@ -95,7 +95,7 @@ export default function ProfileSettingsModal({
             <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 px-3 py-2 dark:border-white/10">
               <span className="text-sm text-gray-500 dark:text-gray-400">{t('profile.company')}</span>
               <span className="flex items-center gap-1.5">
-                <Pill tone={role === 'brame_admin' ? 'purple' : 'teal'}>{org}</Pill>
+                <Pill tone={isInternal && role !== 'sales' ? 'purple' : 'teal'}>{org}</Pill>
                 <Lock size={11} className="text-gray-300 dark:text-gray-600" />
               </span>
             </div>
