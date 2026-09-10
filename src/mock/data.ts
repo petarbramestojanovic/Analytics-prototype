@@ -1,12 +1,12 @@
 import { eachDayOfInterval, format } from 'date-fns';
 import type {
+  BenchmarkCampaign,
   Campaign,
   Company,
   CompanyUser,
   DailyPoint,
-  DeliveryAttempt,
+  EmailReport,
   MetricKey,
-  ReportSchedule,
   SourceKey,
   SourceMeta,
   SourceSeries,
@@ -195,22 +195,24 @@ function buildSeries(o: SeriesOpts): SourceSeries {
 // Companies
 // ---------------------------------------------------------------------------
 
+/** Industries follow the KPI platform's live taxonomy (11 categories, after the
+ *  2026-06 migrations re-added Food Retail alongside a narrowed Retail). */
 export const companies: Company[] = [
-  { id: 'c-migros', name: 'Migros', campaignCount: 4 },
-  { id: 'c-swisscom', name: 'Swisscom', campaignCount: 2 },
-  { id: 'c-dm', name: 'dm-drogerie markt', campaignCount: 2 },
-  { id: 'c-bmw', name: 'BMW', campaignCount: 2 },
-  { id: 'c-audi', name: 'Audi', campaignCount: 2 },
-  { id: 'c-coop', name: 'Coop', campaignCount: 2 },
-  { id: 'c-lidl', name: 'Lidl', campaignCount: 2 },
-  { id: 'c-denner', name: 'Denner', campaignCount: 2 },
-  { id: 'c-mediamarkt', name: 'MediaMarkt', campaignCount: 2 },
-  { id: 'c-ikea', name: 'IKEA', campaignCount: 2 },
-  { id: 'c-manor', name: 'Manor', campaignCount: 2 },
-  { id: 'c-ubs', name: 'UBS', campaignCount: 2 },
-  { id: 'c-swisslife', name: 'Swiss Life', campaignCount: 2 },
-  { id: 'c-nestle', name: 'Nestlé', campaignCount: 2 },
-  { id: 'c-zalando', name: 'Zalando', campaignCount: 2 },
+  { id: 'c-migros', name: 'Migros', campaignCount: 4, industry: 'Food Retail' },
+  { id: 'c-swisscom', name: 'Swisscom', campaignCount: 2, industry: 'Tech-Telco' },
+  { id: 'c-dm', name: 'dm-drogerie markt', campaignCount: 2, industry: 'Retail' },
+  { id: 'c-bmw', name: 'BMW', campaignCount: 2, industry: 'Automotive' },
+  { id: 'c-audi', name: 'Audi', campaignCount: 2, industry: 'Automotive' },
+  { id: 'c-coop', name: 'Coop', campaignCount: 2, industry: 'Food Retail' },
+  { id: 'c-lidl', name: 'Lidl', campaignCount: 2, industry: 'Food Retail' },
+  { id: 'c-denner', name: 'Denner', campaignCount: 2, industry: 'Food Retail' },
+  { id: 'c-mediamarkt', name: 'MediaMarkt', campaignCount: 2, industry: 'Technical Appliances' },
+  { id: 'c-ikea', name: 'IKEA', campaignCount: 2, industry: 'Retail' },
+  { id: 'c-manor', name: 'Manor', campaignCount: 2, industry: 'Retail' },
+  { id: 'c-ubs', name: 'UBS', campaignCount: 2, industry: 'Finance & Insurance' },
+  { id: 'c-swisslife', name: 'Swiss Life', campaignCount: 2, industry: 'Finance & Insurance' },
+  { id: 'c-nestle', name: 'Nestlé', campaignCount: 2, industry: 'FMCG / CPG' },
+  { id: 'c-zalando', name: 'Zalando', campaignCount: 2, industry: 'eCommerce' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -1048,168 +1050,80 @@ function buildCampaign(s: CampaignSeed): Campaign {
 export const campaigns: Campaign[] = seeds.map(buildCampaign);
 
 // ---------------------------------------------------------------------------
-// Scheduled client reports + delivery log
+// Email reports
+//
+// Deliberately covers every state the view has to render without manual
+// testing: never sent, paused, weekly vs monthly, pdf vs emailBody, and a
+// client with more than one report.
 // ---------------------------------------------------------------------------
 
-export const schedules: ReportSchedule[] = [
+
+export const emailReports: EmailReport[] = [
   {
-    id: 'sch-1',
+    id: 'er-1',
     companyId: 'c-migros',
     companyName: 'Migros',
-    endpoint: 'https://reporting.migros.ch/hooks/brame',
-    cron: '0 8 * * 1',
-    humanSchedule: 'Mondays, 08:00',
-    timezone: 'Europe/Zurich',
+    name: 'Weekly performance summary',
+    recipients: ['petra.lang@migros.ch', 'media-team@migros.ch'],
+    metrics: ['impressions', 'ctr', 'viewability'],
+    cadence: 'weekly',
+    dayOfWeek: 'mon',
+    format: 'emailBody',
     enabled: true,
+    lastSentAt: '2026-09-08T08:00:00+02:00',
   },
   {
-    id: 'sch-2',
+    id: 'er-2',
+    companyId: 'c-migros',
+    companyName: 'Migros',
+    name: 'Monthly exec rollup',
+    recipients: ['ceo-office@migros.ch'],
+    metrics: ['impressions', 'ctr', 'viewability', 'engagementRate'],
+    cadence: 'monthly',
+    format: 'pdf',
+    enabled: true,
+    lastSentAt: '2026-08-01T08:00:00+02:00',
+  },
+  {
+    id: 'er-3',
     companyId: 'c-swisscom',
     companyName: 'Swisscom',
-    endpoint: 'https://api.swisscom.com/media/ingest/brame',
-    cron: '0 7 * * 1-5',
-    humanSchedule: 'Weekdays, 07:00',
-    timezone: 'Europe/Zurich',
+    name: 'Weekly delivery snapshot',
+    recipients: ['kevin.brandt@swisscom.ch'],
+    metrics: ['impressions', 'viewability'],
+    cadence: 'weekly',
+    dayOfWeek: 'fri',
+    format: 'emailBody',
     enabled: true,
+    // Never sent — the schedule was only just created.
+    lastSentAt: null,
   },
   {
-    id: 'sch-3',
+    id: 'er-4',
     companyId: 'c-dm',
     companyName: 'dm-drogerie markt',
-    endpoint: 'https://dm-media.de/partner/brame/weekly',
-    cron: '0 6 1 * *',
-    humanSchedule: '1st of the month, 06:00',
-    timezone: 'Europe/Berlin',
+    name: 'Monthly summary',
+    recipients: ['marketing@dm-drogeriemarkt.de'],
+    metrics: ['impressions', 'ctr'],
+    cadence: 'monthly',
+    format: 'pdf',
+    // Paused — dm asked to pause reporting while their campaign was on hold.
     enabled: false,
+    lastSentAt: '2026-06-01T08:00:00+02:00',
   },
   {
-    id: 'sch-4',
+    id: 'er-5',
     companyId: 'c-bmw',
     companyName: 'BMW',
-    endpoint: 'https://media.bmw.de/hooks/brame',
-    cron: '0 7 * * 1',
-    humanSchedule: 'Mondays, 07:00',
-    timezone: 'Europe/Berlin',
+    name: 'Weekly performance summary',
+    recipients: ['thomas.gerber@bmw.de', 'digital-media@bmw.de'],
+    metrics: ['impressions', 'ctr', 'engagementRate'],
+    cadence: 'weekly',
+    dayOfWeek: 'wed',
+    format: 'pdf',
     enabled: true,
+    lastSentAt: '2026-09-03T08:00:00+02:00',
   },
-  {
-    id: 'sch-5',
-    companyId: 'c-audi',
-    companyName: 'Audi',
-    endpoint: 'https://reporting.audi.de/partner/brame',
-    cron: '0 6 * * 1',
-    humanSchedule: 'Mondays, 06:00',
-    timezone: 'Europe/Berlin',
-    enabled: true,
-  },
-  {
-    id: 'sch-6',
-    companyId: 'c-coop',
-    companyName: 'Coop',
-    endpoint: 'https://api.coop.ch/media/ingest/brame',
-    cron: '0 7 * * 1-5',
-    humanSchedule: 'Weekdays, 07:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-7',
-    companyId: 'c-lidl',
-    companyName: 'Lidl',
-    endpoint: 'https://reporting.lidl.ch/hooks/brame',
-    cron: '0 8 * * 1',
-    humanSchedule: 'Mondays, 08:00',
-    timezone: 'Europe/Zurich',
-    enabled: false,
-  },
-  {
-    id: 'sch-8',
-    companyId: 'c-denner',
-    companyName: 'Denner',
-    endpoint: 'https://media.denner.ch/partner/brame/weekly',
-    cron: '0 6 1 * *',
-    humanSchedule: '1st of the month, 06:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-9',
-    companyId: 'c-mediamarkt',
-    companyName: 'MediaMarkt',
-    endpoint: 'https://api.mediamarkt.ch/ingest/brame',
-    cron: '0 7 * * 1',
-    humanSchedule: 'Mondays, 07:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-10',
-    companyId: 'c-ikea',
-    companyName: 'IKEA',
-    endpoint: 'https://reporting.ikea.com/hooks/brame',
-    cron: '0 8 * * 1-5',
-    humanSchedule: 'Weekdays, 08:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-11',
-    companyId: 'c-manor',
-    companyName: 'Manor',
-    endpoint: 'https://media.manor.ch/partner/brame/weekly',
-    cron: '0 6 1 * *',
-    humanSchedule: '1st of the month, 06:00',
-    timezone: 'Europe/Zurich',
-    enabled: false,
-  },
-  {
-    id: 'sch-12',
-    companyId: 'c-ubs',
-    companyName: 'UBS',
-    endpoint: 'https://api.ubs.com/media/ingest/brame',
-    cron: '0 7 * * 1',
-    humanSchedule: 'Mondays, 07:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-13',
-    companyId: 'c-swisslife',
-    companyName: 'Swiss Life',
-    endpoint: 'https://reporting.swisslife.ch/hooks/brame',
-    cron: '0 8 * * 1',
-    humanSchedule: 'Mondays, 08:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-14',
-    companyId: 'c-nestle',
-    companyName: 'Nestlé',
-    endpoint: 'https://media.nestle.com/partner/brame/weekly',
-    cron: '0 6 1 * *',
-    humanSchedule: '1st of the month, 06:00',
-    timezone: 'Europe/Zurich',
-    enabled: true,
-  },
-  {
-    id: 'sch-15',
-    companyId: 'c-zalando',
-    companyName: 'Zalando',
-    endpoint: 'https://api.zalando.de/media/ingest/brame',
-    cron: '0 7 * * 1-5',
-    humanSchedule: 'Weekdays, 07:00',
-    timezone: 'Europe/Berlin',
-    enabled: false,
-  },
-];
-
-export const deliveries: DeliveryAttempt[] = [
-  { id: 'd-1', scheduleId: 'sch-2', companyName: 'Swisscom', sentAt: '2026-09-08T07:00:04+02:00', status: 'acknowledged', attempts: 1, httpStatus: 200, durationMs: 412 },
-  { id: 'd-2', scheduleId: 'sch-1', companyName: 'Migros', sentAt: '2026-09-08T08:00:02+02:00', status: 'retrying', attempts: 3, httpStatus: 503, durationMs: 30_012 },
-  { id: 'd-3', scheduleId: 'sch-2', companyName: 'Swisscom', sentAt: '2026-09-05T07:00:03+02:00', status: 'acknowledged', attempts: 1, httpStatus: 200, durationMs: 388 },
-  { id: 'd-4', scheduleId: 'sch-1', companyName: 'Migros', sentAt: '2026-09-01T08:00:05+02:00', status: 'acknowledged', attempts: 2, httpStatus: 200, durationMs: 1_204 },
-  { id: 'd-5', scheduleId: 'sch-3', companyName: 'dm-drogerie markt', sentAt: '2026-08-01T06:00:01+02:00', status: 'failed', attempts: 6, httpStatus: 401, durationMs: 220 },
 ];
 
 export const syncRuns: SyncRun[] = [
@@ -1218,6 +1132,45 @@ export const syncRuns: SyncRun[] = [
   { id: 's-3', source: 'nexd', startedAt: '2026-09-08T04:02:00+02:00', durationMs: 41_880, status: 'partial', rowsWritten: 612, campaignsTouched: 3, note: '1 campaign has no NEXD live ID configured' },
   { id: 's-4', source: 'atk', startedAt: '2026-09-07T04:00:00+02:00', durationMs: 79_010, status: 'ok', rowsWritten: 1_388, campaignsTouched: 6 },
 ];
+
+// ---------------------------------------------------------------------------
+// Benchmark pool
+//
+// Benchmarks are computed from the same ~30 campaigns everywhere else in the
+// app uses — no separate synthetic history. That means small buckets (an
+// industry with one company in it) legitimately hit the low-sample floor
+// instead of being padded out to look fuller than the underlying data is.
+// ---------------------------------------------------------------------------
+
+function projectLiveCampaign(c: Campaign): BenchmarkCampaign | null {
+  const series = c.sources[c.primarySource];
+  const impressions = series?.totals.impressions;
+  // No delivered impressions means no flight to benchmark — a scheduled
+  // campaign is not a zero-performing one.
+  if (!series || !impressions) return null;
+
+  const company = companies.find((co) => co.id === c.companyId);
+  return {
+    id: `bm-live-${c.id}`,
+    name: c.name,
+    companyId: c.companyId,
+    companyName: c.companyName,
+    industry: company?.industry ?? 'Other Industries',
+    market: c.salesforce.market,
+    flightStart: c.flightStart,
+    flightEnd: c.flightEnd,
+    activeDays: series.daily.filter((d) => d.impressions > 0).length,
+    impressions,
+    // Absent from a source's totals means that source cannot measure it.
+    ctr: series.totals.ctr ?? null,
+    viewability: series.totals.viewability ?? null,
+    engagementRate: series.totals.engagementRate ?? null,
+  };
+}
+
+export const benchmarkPool: BenchmarkCampaign[] = campaigns
+  .map(projectLiveCampaign)
+  .filter((c): c is BenchmarkCampaign => c !== null);
 
 // ---------------------------------------------------------------------------
 // Formatting

@@ -18,5 +18,7 @@ export const queryKeys = {
   campaign: (id: string) => ['campaigns', id] as const,
   companies: ['companies'] as const,
   users: (companyId?: string) => ['users', companyId ?? 'all'] as const,
-  schedules: ['schedules'] as const,
+  emailReports: ['emailReports'] as const,
+  benchmarks: (dimension: string) => ['benchmarks', dimension] as const,
+  benchmarkGroup: (dimension: string, key: string) => ['benchmarks', dimension, key] as const,
 };

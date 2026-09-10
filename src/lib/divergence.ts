@@ -14,8 +14,8 @@ export interface Thresholds {
   investigate: number;
 }
 
-export type DivergenceTone = 'green' | 'amber' | 'red';
-export type DivergenceRead = 'inLine' | 'watch' | 'investigate';
+type DivergenceTone = 'green' | 'amber' | 'red';
+type DivergenceRead = 'inLine' | 'watch' | 'investigate';
 
 export interface DivergenceRow {
   campaignId: string;
@@ -36,13 +36,13 @@ export interface DivergenceRow {
   cadenceGap: boolean;
 }
 
-export function toneForDelta(absDelta: number, t: Thresholds): DivergenceTone {
+function toneForDelta(absDelta: number, t: Thresholds): DivergenceTone {
   if (absDelta < t.watch) return 'green';
   if (absDelta < t.investigate) return 'amber';
   return 'red';
 }
 
-export function readForDelta(absDelta: number, t: Thresholds): DivergenceRead {
+function readForDelta(absDelta: number, t: Thresholds): DivergenceRead {
   if (absDelta < t.watch) return 'inLine';
   if (absDelta < t.investigate) return 'watch';
   return 'investigate';

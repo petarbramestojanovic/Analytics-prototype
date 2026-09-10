@@ -12,7 +12,7 @@ import type { Campaign } from '../mock/types';
  * mock/types.ts CompanyUser) — that's a permission within one company's data;
  * this is which company's data you're looking at in the first place.
  */
-export type Role = 'brame_admin' | 'company_user';
+export type Role = 'brame_admin' | 'sales' | 'company_user';
 
 interface Session {
   role: Role;
@@ -20,6 +20,20 @@ interface Session {
   companyId: string;
   setCompanyId: (id: string) => void;
   companyName: string;
+  /**
+   * "Sees across all companies." Sales needs the same cross-tenant reach as
+   * Brame staff — benchmarks are meaningless scoped to one client — so this is
+   * the predicate for tenant scoping, column visibility and portfolio filters.
+   */
+  isInternal: boolean;
+  /**
+   * "May open Brame-operational screens." Setup, connectors, cross-company user
+   * management and alert thresholds stay admin-only; sales reads numbers, it
+   * does not configure the pipeline. Kept apart from isInternal because one
+   * check for both would either lock sales out of benchmarks or hand it the
+   * operational surfaces.
+   */
+  isAdmin: boolean;
 }
 
 const Ctx = createContext<Session | null>(null);
@@ -35,6 +49,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       companyId,
       setCompanyId,
       companyName: companies.find((c) => c.id === companyId)?.name ?? '',
+      isInternal: role !== 'company_user',
+      isAdmin: role === 'brame_admin',
     }),
     [role, companyId]
   );
@@ -52,7 +68,7 @@ export function useSession(): Session {
  *  query cache. Archived campaigns stay out of the default list; analytics
  *  are never deleted, so they remain reachable by URL. */
 export function scopeCampaigns(all: Campaign[], role: Role, companyId: string): Campaign[] {
-  const scoped = role === 'brame_admin' ? all : all.filter((c) => c.companyId === companyId);
+  const scoped = role === 'company_user' ? all.filter((c) => c.companyId === companyId) : all;
   return scoped.filter((c) => c.status !== 'archived');
 }
 
@@ -65,6 +81,9 @@ export function scopeCampaigns(all: Campaign[], role: Role, companyId: string): 
 export function defaultPerson(role: Role, companyId: string): { name: string; email: string } {
   if (role === 'brame_admin') {
     return { name: 'Alex Weber', email: 'alex.weber@brame.io' };
+  }
+  if (role === 'sales') {
+    return { name: 'Nadia Brunner', email: 'nadia.brunner@brame.io' };
   }
   const person = users.find((u) => u.companyId === companyId && u.role === 'admin') ?? users.find((u) => u.companyId === companyId);
   return { name: person?.name ?? 'Guest User', email: person?.email ?? '' };

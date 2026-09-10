@@ -9,8 +9,10 @@
 // so the next read picks up the change. There's no real network, so the
 // artificial delay exists only to make loading states demonstrable.
 
-import { campaigns, companies, schedules, users } from './data';
-import type { Campaign, Clicktag, CompanyUser, SourceKey, UserRole } from './types';
+import { benchmarkPool, campaigns, companies, emailReports, users, TODAY } from './data';
+import { groupBenchmarks, overallStats, type BenchmarkGroup, type Dimension, type Stats } from '../lib/benchmarks';
+import type { BenchmarkMetric } from '../lib/benchmarks';
+import type { Campaign, Clicktag, CompanyUser, EmailReport, MetricKey, SourceKey, UserRole } from './types';
 
 const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -116,18 +118,93 @@ export async function deleteUser(userId: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Scheduled reports
+// Email reports — human-readable performance summaries.
 // ---------------------------------------------------------------------------
 
-export async function fetchSchedules() {
+export async function fetchEmailReports(): Promise<EmailReport[]> {
   await delay(200);
-  return [...schedules];
+  return [...emailReports];
 }
 
-export async function setScheduleEnabled(id: string, enabled: boolean) {
+export interface EmailReportInput {
+  companyId: string;
+  companyName: string;
+  name: string;
+  recipients: string[];
+  metrics: MetricKey[];
+  cadence: EmailReport['cadence'];
+  dayOfWeek?: EmailReport['dayOfWeek'];
+  format: EmailReport['format'];
+}
+
+export async function createEmailReport(input: EmailReportInput): Promise<EmailReport> {
+  await delay(300);
+  const report: EmailReport = { id: `er-${Date.now()}`, enabled: true, lastSentAt: null, ...input };
+  emailReports.push(report);
+  return report;
+}
+
+export async function updateEmailReport(id: string, patch: EmailReportInput): Promise<EmailReport> {
+  await delay(300);
+  const report = emailReports.find((r) => r.id === id);
+  if (!report) throw new Error(`Unknown email report ${id}`);
+  Object.assign(report, patch);
+  return report;
+}
+
+export async function deleteEmailReport(id: string): Promise<void> {
+  await delay(250);
+  const idx = emailReports.findIndex((r) => r.id === id);
+  if (idx !== -1) emailReports.splice(idx, 1);
+}
+
+export async function setEmailReportEnabled(id: string, enabled: boolean): Promise<EmailReport> {
   await delay(200);
-  const schedule = schedules.find((s) => s.id === id);
-  if (!schedule) throw new Error(`Unknown schedule ${id}`);
-  schedule.enabled = enabled;
-  return schedule;
+  const report = emailReports.find((r) => r.id === id);
+  if (!report) throw new Error(`Unknown email report ${id}`);
+  report.enabled = enabled;
+  return report;
+}
+
+export async function sendTestEmailReport(id: string): Promise<EmailReport> {
+  await delay(600);
+  const report = emailReports.find((r) => r.id === id);
+  if (!report) throw new Error(`Unknown email report ${id}`);
+  report.lastSentAt = new Date().toISOString();
+  return report;
+}
+
+// ---------------------------------------------------------------------------
+// Benchmarks
+//
+// Grouping and percentiles run server-side in the real platform, so they are
+// done here rather than in the view — the hook receives finished buckets, the
+// same shape a /api/benchmarks response would deliver.
+// ---------------------------------------------------------------------------
+
+interface BenchmarkResponse {
+  groups: BenchmarkGroup[];
+  overall: Record<BenchmarkMetric, Stats | null>;
+  /** Campaigns inside the rolling window, for the summary tiles. */
+  windowCampaignCount: number;
+}
+
+export async function fetchBenchmarks(dimension: Dimension): Promise<BenchmarkResponse> {
+  await delay(350);
+  const groups = groupBenchmarks(benchmarkPool, dimension, TODAY);
+  return {
+    groups,
+    overall: overallStats(benchmarkPool, TODAY),
+    windowCampaignCount: groups.reduce((sum, g) => sum + g.campaignCount, 0),
+  };
+}
+
+export async function fetchBenchmarkGroup(
+  dimension: Dimension,
+  key: string
+): Promise<{ group: BenchmarkGroup; overall: Record<BenchmarkMetric, Stats | null> } | null> {
+  await delay(250);
+  const group = groupBenchmarks(benchmarkPool, dimension, TODAY).find((g) => g.key === key);
+  if (!group) return null;
+  return { group, overall: overallStats(benchmarkPool, TODAY) };
 }

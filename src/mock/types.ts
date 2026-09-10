@@ -140,6 +140,38 @@ export interface Company {
   id: string;
   name: string;
   campaignCount: number;
+  /** Industry taxonomy shared with the KPI platform's `categories` table —
+   *  the grouping dimension behind industry benchmarks. Salesforce-owned in a
+   *  real deployment, which is why it lives on the company and not the campaign. */
+  industry: string;
+}
+
+/**
+ * A campaign reduced to the fields a benchmark needs. Deliberately not the full
+ * `Campaign`: benchmarks read a 12-month rolling history of finished flights,
+ * which is a far larger and much thinner set than the live campaigns the rest
+ * of the app works with. Mirrors the KPI platform's `campaign_totals` row.
+ */
+export interface BenchmarkCampaign {
+  id: string;
+  name: string;
+  companyId: string;
+  companyName: string;
+  industry: string;
+  /** Salesforce's market — the country dimension. */
+  market: string;
+  flightStart: string;
+  flightEnd: string;
+  /** Days with impressions > 0. Under MIN_BENCHMARK_ACTIVE_DAYS the campaign
+   *  still counts toward volume but is left out of averages and percentiles,
+   *  so one first-day snapshot cannot define an industry's benchmark. */
+  activeDays: number;
+  impressions: number;
+  ctr: number | null;
+  viewability: number | null;
+  /** Null when the flight was measured by an adserver alone — engagement is
+   *  unmeasurable there, and null must never be flattened to 0. */
+  engagementRate: number | null;
 }
 
 /** Per-company user role — distinct from the prototype's "Viewing as"
@@ -156,26 +188,26 @@ export interface CompanyUser {
   lastSeen: string;
 }
 
-export interface ReportSchedule {
+/**
+ * A human-readable performance summary sent to people. A company can have
+ * more than one (e.g. a weekly ops summary and a monthly exec rollup), which
+ * is why this is keyed by its own id rather than one-per-company.
+ */
+export interface EmailReport {
   id: string;
   companyId: string;
   companyName: string;
-  endpoint: string;
-  cron: string;
-  humanSchedule: string;
-  timezone: string;
+  name: string;
+  recipients: string[];
+  /** Restricted in the UI to REPORT_METRICS — the four metrics already shown
+   *  on Overview/Campaigns — even though the type allows any MetricKey. */
+  metrics: MetricKey[];
+  cadence: 'weekly' | 'monthly';
+  /** Only meaningful when cadence is 'weekly'; monthly is always the 1st. */
+  dayOfWeek?: 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
+  format: 'pdf' | 'emailBody';
   enabled: boolean;
-}
-
-export interface DeliveryAttempt {
-  id: string;
-  scheduleId: string;
-  companyName: string;
-  sentAt: string;
-  status: 'acknowledged' | 'retrying' | 'failed';
-  attempts: number;
-  httpStatus: number | null;
-  durationMs: number;
+  lastSentAt: string | null;
 }
 
 export interface SyncRun {
