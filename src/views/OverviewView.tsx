@@ -12,7 +12,7 @@ import { DIMENSIONS, LOW_SAMPLE, type BenchmarkGroup, type Dimension } from '../
 import type { Campaign } from '../mock/types';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { useBenchmarks } from '../hooks/useBenchmarks';
-import { Button, Card, EmptyState, Pill, SectionTitle } from '../components/primitives';
+import { Button, Card, EmptyState, ErrorState, LoadingState, Pill, SectionTitle } from '../components/primitives';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 
 const TREND_METRICS: TrendMetric[] = ['impressions', 'ctr', 'viewability'];
@@ -46,7 +46,7 @@ export default function OverviewView() {
   const { t } = useI18n();
   usePageTitle(t('overview.title'));
   const { role, companyId, isInternal } = useSession();
-  const { data: allCampaigns, isLoading, isError } = useCampaigns();
+  const { data: allCampaigns, isLoading, isError, refetch } = useCampaigns();
   const [metric, setMetric] = useState<TrendMetric>('impressions');
 
   const scoped = useMemo(
@@ -68,11 +68,11 @@ export default function OverviewView() {
   };
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   if (isError) {
-    return <div className="px-8 py-16 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>;
+    return <ErrorState label={t('common.loadError')} retryLabel={t('common.retry')} onRetry={() => refetch()} />;
   }
 
   return (
@@ -192,15 +192,17 @@ function TopGroupCard({
   query: ReturnType<typeof useBenchmarks>;
 }) {
   const { t } = useI18n();
-  const { data, isLoading, isError } = query;
+  const { data, isLoading, isError, refetch } = query;
   const top = data ? topByCtr(data.groups) : null;
   const overallCtr = data?.overall.ctr?.avg ?? null;
 
   let body: ReactNode;
   if (isLoading) {
-    body = <p className="text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>;
+    body = <LoadingState label={t('common.loading')} compact />;
   } else if (isError || !data) {
-    body = <p className="text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</p>;
+    body = (
+      <ErrorState label={t('common.loadError')} retryLabel={t('common.retry')} onRetry={() => refetch()} compact />
+    );
   } else if (!top) {
     body = <p className="text-sm text-gray-500 dark:text-gray-400">{t('overview.topNone')}</p>;
   } else {

@@ -10,7 +10,7 @@ import type { Campaign } from '../mock/types';
 import { useI18n } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, EmptyState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
+import { Button, Card, EmptyState, LoadingState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
 
 const PAGE_SIZE = 10;
 
@@ -62,7 +62,7 @@ export default function AlertsView() {
   const pagedRows = rows.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   return (

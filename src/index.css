@@ -108,3 +108,47 @@ body {
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.55);
 }
+
+/* Mobile nav drawer (Radix Dialog). It only renders while open, so there is
+   no earlier "closed" frame for a plain transition to animate from — the
+   entrance has to be a keyframe animation, which always plays from its
+   `from` state regardless of what was on screen before. */
+@keyframes drawer-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-content-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes drawer-content-out {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.drawer-overlay[data-state='open'] {
+  animation: drawer-overlay-in 200ms ease-out;
+}
+
+.drawer-overlay[data-state='closed'] {
+  animation: drawer-overlay-out 150ms ease-in forwards;
+}
+
+.drawer-content[data-state='open'] {
+  animation: drawer-content-in 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-content[data-state='closed'] {
+  animation: drawer-content-out 200ms ease-in forwards;
+}

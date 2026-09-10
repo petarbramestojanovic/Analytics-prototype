@@ -39,7 +39,7 @@ import SourceSwitcher, { FreshnessBar, type SourceTab } from '../components/Sour
 import EditCampaignModal from '../components/EditCampaignModal';
 import { tooltipInt, tooltipIntOnly, useAxisStyle } from '../lib/chart';
 import MetricTile from '../components/MetricTile';
-import { Button, Card, EmptyState, Pill, SectionTitle, TableScroll, Td, Th } from '../components/primitives';
+import { Button, Card, EmptyState, LoadingState, Pill, SectionTitle, TableScroll, Td, Th } from '../components/primitives';
 
 export default function CampaignDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -64,7 +64,7 @@ export default function CampaignDetailView() {
   const activeTab = tab ?? campaign?.primarySource ?? 'atk';
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   if (!campaign) {

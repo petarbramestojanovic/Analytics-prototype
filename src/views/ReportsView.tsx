@@ -14,7 +14,7 @@ import {
 import EmailReportModal from '../components/EmailReportModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, Pill } from '../components/primitives';
+import { Button, Card, LoadingState, Pill, SegmentedControl } from '../components/primitives';
 
 type StatusFilter = 'all' | 'active' | 'paused';
 
@@ -66,7 +66,7 @@ export default function ReportsView() {
   );
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   return (
@@ -110,27 +110,22 @@ export default function ReportsView() {
               </div>
             )}
 
-            <div className="flex h-10 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/5">
-              {(
+            <SegmentedControl
+              value={statusFilter}
+              onChange={setStatusFilter}
+              className="flex h-10 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/5"
+              indicatorClassName="rounded-md bg-white shadow-sm dark:bg-brame-dark-light"
+              itemClassName="flex h-full items-center px-3 text-xs font-medium transition-colors"
+              activeItemClassName="text-brame-dark dark:text-white"
+              inactiveItemClassName="text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100"
+              options={(
                 [
                   ['all', t('reports.filter.all')],
                   ['active', t('reports.active')],
                   ['paused', t('reports.paused')],
                 ] as const
-              ).map(([s, label]) => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`flex h-full items-center rounded-md px-3 text-xs font-medium transition-colors ${
-                    statusFilter === s
-                      ? 'bg-white text-brame-dark shadow-sm dark:bg-brame-dark-light dark:text-white'
-                      : 'text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+              ).map(([value, label]) => ({ value, label }))}
+            />
           </div>
         </Card>
       )}

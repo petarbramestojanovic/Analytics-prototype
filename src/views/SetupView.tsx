@@ -11,7 +11,7 @@ import { sourceMeta } from '../mock/data';
 import AddClicktagModal from '../components/AddClicktagModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, Pill, SectionTitle, Tooltip } from '../components/primitives';
+import { Button, Card, LoadingState, Pill, SectionTitle, Tooltip } from '../components/primitives';
 
 /**
  * RFC §4 rule 4 as a screen. Salesforce owns campaign identity and commercial
@@ -47,7 +47,7 @@ export default function SetupView() {
   const campaign = campaigns?.find((c) => c.id === selectedId) ?? campaigns?.[0];
 
   if (isLoading || !campaign) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   return (

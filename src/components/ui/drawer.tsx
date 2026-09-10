@@ -17,10 +17,10 @@ export function DrawerContent({
 }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 transition-opacity" />
+      <DialogPrimitive.Overlay className="drawer-overlay fixed inset-0 z-40 bg-black/40" />
       <DialogPrimitive.Content
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-full w-72 max-w-[85vw] flex-col bg-brame-teal text-white shadow-xl outline-none',
+          'drawer-content fixed inset-y-0 left-0 z-50 flex h-full w-72 max-w-[85vw] flex-col bg-brame-teal text-white shadow-xl outline-none will-change-transform',
           className
         )}
       >

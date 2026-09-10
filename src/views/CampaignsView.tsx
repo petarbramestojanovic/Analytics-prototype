@@ -45,7 +45,18 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, Pill, TableScroll, Th, Td, type PillTone } from '../components/primitives';
+import {
+  Button,
+  Card,
+  ErrorState,
+  LoadingState,
+  Pill,
+  SegmentedControl,
+  TableScroll,
+  Th,
+  Td,
+  type PillTone,
+} from '../components/primitives';
 
 const statusTone: Record<Campaign['status'], PillTone> = {
   live: 'green',
@@ -84,7 +95,7 @@ export default function CampaignsView() {
   const { role, companyId, isInternal } = useSession();
   const { t } = useI18n();
   usePageTitle(t('campaigns.title'));
-  const { data: allCampaigns, isLoading, isError } = useCampaigns();
+  const { data: allCampaigns, isLoading, isError, refetch } = useCampaigns();
   const [initialFilters] = useState(readStoredFilters);
   const [q, setQ] = useState(initialFilters.q);
   const [statusFilter, setStatusFilter] = useState<'all' | Campaign['status']>(initialFilters.statusFilter);
@@ -325,28 +336,23 @@ export default function CampaignsView() {
             </div>
           )}
 
-          <div className="flex h-10 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/5">
-            {(
+          <SegmentedControl
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className="flex h-10 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/5"
+            indicatorClassName="rounded-md bg-white shadow-sm dark:bg-brame-dark-light"
+            itemClassName="flex h-full items-center px-3 text-xs font-medium transition-colors"
+            activeItemClassName="text-brame-dark dark:text-white"
+            inactiveItemClassName="text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100"
+            options={(
               [
                 ['all', t('campaigns.filter.all')],
                 ['live', t('campaigns.filter.live')],
                 ['scheduled', t('campaigns.filter.scheduled')],
                 ['ended', t('campaigns.filter.ended')],
               ] as const
-            ).map(([s, label]) => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`flex h-full items-center rounded-md px-3 text-xs font-medium transition-colors ${
-                  statusFilter === s
-                    ? 'bg-white text-brame-dark shadow-sm dark:bg-brame-dark-light dark:text-white'
-                    : 'text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+            ).map(([value, label]) => ({ value, label }))}
+          />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -374,22 +380,32 @@ export default function CampaignsView() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {filtersActive && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 text-xs font-medium text-brame-dark transition-colors hover:bg-gray-50 dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:hover:bg-white/10"
-            >
-              <X size={13} />
-              {t('campaigns.filter.reset')}
-            </button>
-          )}
+          <div
+            className={`grid transition-[grid-template-columns] duration-300 ease-out ${
+              filtersActive ? 'grid-cols-[1fr]' : 'grid-cols-[0fr]'
+            }`}
+          >
+            <div className="min-w-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={resetFilters}
+                tabIndex={filtersActive ? 0 : -1}
+                aria-hidden={!filtersActive}
+                className={`inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 text-xs font-medium text-brame-dark transition-[opacity,background-color] duration-200 hover:bg-gray-50 dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:hover:bg-white/10 ${
+                  filtersActive ? 'opacity-100 delay-150' : 'opacity-0'
+                }`}
+              >
+                <X size={13} />
+                {t('campaigns.filter.reset')}
+              </button>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="px-4 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>
+          <LoadingState label={t('common.loading')} />
         ) : isError ? (
-          <div className="px-4 py-16 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
+          <ErrorState label={t('common.loadError')} retryLabel={t('common.retry')} onRetry={() => refetch()} />
         ) : (
           <>
             <TableScroll>

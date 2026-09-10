@@ -16,7 +16,7 @@ import {
 } from '../lib/benchmarks';
 import { useBenchmarkGroup } from '../hooks/useBenchmarks';
 import type { BenchmarkCampaign } from '../mock/types';
-import { Button, Card, EmptyState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
+import { Button, Card, EmptyState, LoadingState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
 import MetricTile from '../components/MetricTile';
 
 function isDimension(v: string | undefined): v is Dimension {
@@ -48,7 +48,7 @@ export default function BenchmarkDetailView() {
   const backTo = `/benchmarks?dimension=${dimension}&metric=${metric}`;
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   if (!data) {

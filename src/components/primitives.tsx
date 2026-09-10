@@ -1,5 +1,13 @@
-import { forwardRef, useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from 'react';
-import { Info } from 'lucide-react';
+import {
+  forwardRef,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from 'react';
+import { AlertCircle, Info, Loader2 } from 'lucide-react';
 import { cn } from '../lib/cn';
 
 export function Card({
@@ -116,6 +124,41 @@ export function EmptyState({
   );
 }
 
+/** Shared loading placeholder, same visual language as EmptyState. */
+export function LoadingState({ label, compact = false }: { label: string; compact?: boolean }) {
+  return (
+    <div className={cn('flex flex-col items-center justify-center gap-2 text-center', compact ? 'py-6' : 'py-16')}>
+      <Loader2 size={compact ? 18 : 22} className="animate-spin text-gray-300 dark:text-gray-600" />
+      <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+    </div>
+  );
+}
+
+/** Shared error placeholder, same visual language as EmptyState. */
+export function ErrorState({
+  label,
+  retryLabel,
+  onRetry,
+  compact = false,
+}: {
+  label: string;
+  retryLabel?: string;
+  onRetry?: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className={cn('flex flex-col items-center justify-center gap-2 text-center', compact ? 'py-6' : 'py-16')}>
+      <AlertCircle size={compact ? 18 : 22} className="text-red-300 dark:text-red-500/60" />
+      <span className="text-sm text-red-600 dark:text-red-400">{label}</span>
+      {onRetry && retryLabel && (
+        <Button size="sm" variant="secondary" onClick={onRetry}>
+          {retryLabel}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 interface ButtonProps {
   children?: ReactNode;
   onClick?: () => void;
@@ -210,6 +253,83 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     );
   }
 );
+
+/**
+ * A tab-style toggle (status filters, the "Viewing as" tenant switcher,
+ * EN/DE) with a background pill that slides to the clicked option instead of
+ * the selection just repainting in place. Works for flex or grid tracks of
+ * any option count/width — the pill's position and size are measured off the
+ * active button's own box via ResizeObserver, not hardcoded percentages.
+ */
+export function SegmentedControl<T extends string>({
+  value,
+  onChange,
+  options,
+  groupLabel,
+  className = '',
+  indicatorClassName = '',
+  itemClassName = '',
+  activeItemClassName = '',
+  inactiveItemClassName = '',
+}: {
+  value: T;
+  onChange: (value: T) => void;
+  options: readonly { value: T; label: ReactNode }[];
+  groupLabel?: string;
+  className?: string;
+  indicatorClassName?: string;
+  itemClassName?: string;
+  activeItemClassName?: string;
+  inactiveItemClassName?: string;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [rect, setRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const measure = () => {
+      const active = track.querySelector<HTMLElement>(`[data-seg-value="${CSS.escape(value)}"]`);
+      if (!active) return;
+      setRect({ left: active.offsetLeft, top: active.offsetTop, width: active.offsetWidth, height: active.offsetHeight });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, [value]);
+
+  return (
+    <div ref={trackRef} role="group" aria-label={groupLabel} className={cn('relative', className)}>
+      {rect && (
+        <div
+          aria-hidden
+          className={cn(
+            'pointer-events-none absolute left-0 top-0 transition-[transform,width,height] duration-200 ease-out',
+            indicatorClassName
+          )}
+          style={{ transform: `translate(${rect.left}px, ${rect.top}px)`, width: rect.width, height: rect.height }}
+        />
+      )}
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          data-seg-value={opt.value}
+          aria-pressed={value === opt.value}
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            'relative z-10',
+            itemClassName,
+            value === opt.value ? activeItemClassName : inactiveItemClassName
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 /**
  * Standardized horizontal-scroll wrapper for every wide data table, with a

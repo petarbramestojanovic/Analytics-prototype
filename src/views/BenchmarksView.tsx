@@ -27,7 +27,7 @@ import {
   type Trend,
 } from '../lib/benchmarks';
 import { useBenchmarks } from '../hooks/useBenchmarks';
-import { Card, EmptyState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
+import { Card, EmptyState, ErrorState, LoadingState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 
 type SortKey = 'group' | 'campaigns' | 'impressions' | 'avg' | 'p50' | 'p75' | 'p90';
@@ -69,7 +69,7 @@ export default function BenchmarksView() {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; desc: boolean }>({ key: 'impressions', desc: true });
 
-  const { data, isLoading, isError } = useBenchmarks(dimension);
+  const { data, isLoading, isError, refetch } = useBenchmarks(dimension);
 
   const rows = useMemo(() => {
     const groups = data?.groups ?? [];
@@ -112,11 +112,11 @@ export default function BenchmarksView() {
   );
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   if (isError || !data) {
-    return <div className="px-8 py-16 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>;
+    return <ErrorState label={t('common.loadError')} retryLabel={t('common.retry')} onRetry={() => refetch()} />;
   }
 
   const metricLabel = t(`metric.${metric}.label`);

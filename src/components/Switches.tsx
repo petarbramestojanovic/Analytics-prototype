@@ -1,30 +1,24 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../lib/theme';
 import { useI18n, type Locale } from '../lib/i18n';
+import { SegmentedControl } from './primitives';
+
+const LOCALES: readonly Locale[] = ['en', 'de'];
 
 export function LanguageSwitch({ compact = false }: { compact?: boolean }) {
   const { locale, setLocale, t } = useI18n();
   return (
-    <div
-      role="group"
-      aria-label={t('topbar.language')}
+    <SegmentedControl
+      value={locale}
+      onChange={setLocale}
+      groupLabel={t('topbar.language')}
       className={`flex items-center gap-0.5 rounded-full border border-gray-200 bg-white p-0.5 dark:border-white/10 dark:bg-white/5 ${compact ? '' : ''}`}
-    >
-      {(['en', 'de'] as const).map((l: Locale) => (
-        <button
-          key={l}
-          onClick={() => setLocale(l)}
-          aria-pressed={locale === l}
-          className={`rounded-full px-2 py-1 text-xs font-semibold transition-colors ${
-            locale === l
-              ? 'bg-brame-teal text-white'
-              : 'text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100'
-          }`}
-        >
-          {l.toUpperCase()}
-        </button>
-      ))}
-    </div>
+      indicatorClassName="rounded-full bg-brame-teal"
+      itemClassName="rounded-full px-2 py-1 text-xs font-semibold transition-colors"
+      activeItemClassName="text-white"
+      inactiveItemClassName="text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100"
+      options={LOCALES.map((l) => ({ value: l, label: l.toUpperCase() }))}
+    />
   );
 }
 

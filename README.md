@@ -186,7 +186,7 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 | `src/mock/store.ts` | The "mock API" — async functions with artificial latency that read/mutate the arrays in `data.ts`. What `src/hooks/*` calls instead of importing data directly |
 | `src/hooks/useCampaigns.ts` | `useCampaigns`, `useCampaign`, `useUpdateCampaign`, clicktag mutations |
 | `src/hooks/useCompanies.ts` | `useCompanies`, `useUsers`, invite/role/delete mutations |
-| `src/hooks/useSchedules.ts` | `useSchedules`, enable/disable mutation |
+| `src/hooks/useEmailReports.ts` | `useEmailReports`, enable/disable mutation |
 | `src/components/ui/` | Radix primitives, shadcn-style: `dialog`, `dropdown-menu`, `select`, `alert-dialog` |
 | `src/components/EditCampaignModal.tsx` | Name, status, **primary source**, language — the quick-edit path |
 | `src/components/InviteUserModal.tsx` | Add a user to a company with a role |

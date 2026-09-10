@@ -27,7 +27,7 @@ import { useCampaigns } from '../hooks/useCampaigns';
 import { useAlertThresholds } from '../lib/alertSettings';
 import { computePortfolioAlerts } from '../lib/divergence';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { Pill } from './primitives';
+import { Pill, SegmentedControl } from './primitives';
 import { LanguageSwitch, ThemeToggleButton } from './Switches';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Drawer, DrawerContent } from './ui/drawer';
@@ -373,27 +373,22 @@ function SidebarContent({
             {/* Three scopes no longer fit side by side at the minimum
                 sidebar width, so this is a 3-col grid rather than a flex
                 row — same active styling as before. */}
-            <div className="grid grid-cols-3 gap-0.5 rounded-lg bg-brame-teal-dark/60 p-0.5">
-              {(
+            <SegmentedControl
+              value={role}
+              onChange={setRole}
+              className="grid grid-cols-3 gap-0.5 rounded-lg bg-brame-teal-dark/60 p-0.5"
+              indicatorClassName="rounded-md bg-brame-lime"
+              itemClassName="truncate px-1.5 py-1 text-xs font-medium transition-colors"
+              activeItemClassName="text-brame-dark"
+              inactiveItemClassName="text-white/70 hover:text-white"
+              options={(
                 [
                   ['brame_admin', t('viewingAs.brame')],
                   ['sales', t('viewingAs.sales')],
                   ['company_user', t('viewingAs.client')],
                 ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  onClick={() => setRole(value)}
-                  className={`truncate rounded-md px-1.5 py-1 text-xs font-medium transition-colors ${
-                    role === value
-                      ? 'bg-brame-lime text-brame-dark'
-                      : 'text-white/70 hover:text-white'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+              ).map(([value, label]) => ({ value, label }))}
+            />
             {role === 'company_user' ? (
               <select
                 value={companyId}

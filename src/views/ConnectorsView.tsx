@@ -1,10 +1,11 @@
-import { CheckCircle2, CircleAlert, Radio, RotateCw, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle2, CircleAlert, Loader2, Radio, RotateCw, XCircle } from 'lucide-react';
 import { fmtInt, syncRuns } from '../mock/data';
 import type { SourceKey, SyncRun } from '../mock/types';
 import { useI18n, useFormatters } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useCampaigns } from '../hooks/useCampaigns';
-import { Button, Card, Pill, SectionTitle, TableScroll, Td, Th, type PillTone } from '../components/primitives';
+import { Button, Card, LoadingState, Pill, SectionTitle, TableScroll, Td, Th, type PillTone } from '../components/primitives';
 
 const statusIcon: Record<SyncRun['status'], { icon: typeof CheckCircle2; tone: PillTone }> = {
   ok: { icon: CheckCircle2, tone: 'green' },
@@ -21,6 +22,12 @@ export default function ConnectorsView() {
   usePageTitle(t('connectors.title'));
   const { fmtTime, relativeTime } = useFormatters();
   const { data: campaigns, isLoading } = useCampaigns();
+  const [running, setRunning] = useState(false);
+
+  const runAllNow = () => {
+    setRunning(true);
+    setTimeout(() => setRunning(false), 1400);
+  };
 
   const sourceLabels: Record<SourceKey | 'salesforce', string> = {
     atk: t('connectors.source.atk'),
@@ -37,7 +44,7 @@ export default function ConnectorsView() {
   });
 
   if (isLoading) {
-    return <div className="px-8 py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</div>;
+    return <LoadingState label={t('common.loading')} />;
   }
 
   return (
@@ -98,8 +105,13 @@ export default function ConnectorsView() {
           <SectionTitle
             hint={t('connectors.historyHint')}
             action={
-              <Button size="sm" icon={<RotateCw size={12} />}>
-                {t('connectors.runAllNow')}
+              <Button
+                size="sm"
+                icon={running ? <Loader2 size={12} className="animate-spin" /> : <RotateCw size={12} />}
+                disabled={running}
+                onClick={runAllNow}
+              >
+                {running ? t('connectors.running') : t('connectors.runAllNow')}
               </Button>
             }
           >
