@@ -45,7 +45,7 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, Pill, Th, Td, type PillTone } from '../components/primitives';
+import { Button, Card, Pill, TableScroll, Th, Td, type PillTone } from '../components/primitives';
 
 const statusTone: Record<Campaign['status'], PillTone> = {
   live: 'green',
@@ -81,7 +81,7 @@ function readStoredFilters(): StoredFilters {
 }
 
 export default function CampaignsView() {
-  const { role, companyId } = useSession();
+  const { role, companyId, isInternal } = useSession();
   const { t } = useI18n();
   usePageTitle(t('campaigns.title'));
   const { data: allCampaigns, isLoading, isError } = useCampaigns();
@@ -108,14 +108,12 @@ export default function CampaignsView() {
     setCountryFilter('all');
   };
 
-  const isAdmin = role === 'brame_admin';
-
   const scoped = useMemo(
     () => (allCampaigns ? scopeCampaigns(allCampaigns, role, companyId) : []),
     [allCampaigns, role, companyId]
   );
 
-  // Company/country are admin-only cuts across the whole portfolio — a
+  // Company/country are internal-only cuts across the whole portfolio — a
   // client is already scoped to one company by scopeCampaigns above, so
   // narrowing further by company would be pointless for them.
   const companyOptions = useMemo(
@@ -132,14 +130,14 @@ export default function CampaignsView() {
       scoped.filter(
         (c) =>
           (statusFilter === 'all' || c.status === statusFilter) &&
-          (!isAdmin || companyFilter === 'all' || c.companyId === companyFilter) &&
-          (!isAdmin || countryFilter === 'all' || c.salesforce.market === countryFilter)
+          (!isInternal || companyFilter === 'all' || c.companyId === companyFilter) &&
+          (!isInternal || countryFilter === 'all' || c.salesforce.market === countryFilter)
       ),
-    [scoped, statusFilter, isAdmin, companyFilter, countryFilter]
+    [scoped, statusFilter, isInternal, companyFilter, countryFilter]
   );
 
   const live = scoped.filter((c) => c.status === 'live');
-  const showCompany = role === 'brame_admin';
+  const showCompany = isInternal;
 
   const columns = useMemo<ColumnDef<Campaign>[]>(() => {
     const cols: ColumnDef<Campaign>[] = [
@@ -253,11 +251,11 @@ export default function CampaignsView() {
   });
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('campaigns.title')}</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {role === 'brame_admin' ? t('campaigns.subtitleAdmin') : t('campaigns.subtitleClient')}
+          {isInternal ? t('campaigns.subtitleAdmin') : t('campaigns.subtitleClient')}
         </p>
       </div>
 
@@ -295,7 +293,7 @@ export default function CampaignsView() {
             />
           </div>
 
-          {isAdmin && (
+          {isInternal && (
             <div className="w-56">
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
                 <SelectTrigger />
@@ -311,7 +309,7 @@ export default function CampaignsView() {
             </div>
           )}
 
-          {isAdmin && (
+          {isInternal && (
             <div className="w-36">
               <Select value={countryFilter} onValueChange={setCountryFilter}>
                 <SelectTrigger />
@@ -394,7 +392,7 @@ export default function CampaignsView() {
           <div className="px-4 py-16 text-center text-sm text-red-600 dark:text-red-400">{t('common.loadError')}</div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <TableScroll>
               <table className="w-full">
                 <thead>
                   {table.getHeaderGroups().map((hg) => (
@@ -456,7 +454,7 @@ export default function CampaignsView() {
                   )}
                 </tbody>
               </table>
-            </div>
+            </TableScroll>
 
             <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-white/10">
               <span className="text-xs text-gray-500 dark:text-gray-400">

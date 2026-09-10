@@ -4,7 +4,7 @@ import type { SourceKey, SyncRun } from '../mock/types';
 import { useI18n, useFormatters } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useCampaigns } from '../hooks/useCampaigns';
-import { Button, Card, Pill, SectionTitle, Td, Th, type PillTone } from '../components/primitives';
+import { Button, Card, Pill, SectionTitle, TableScroll, Td, Th, type PillTone } from '../components/primitives';
 
 const statusIcon: Record<SyncRun['status'], { icon: typeof CheckCircle2; tone: PillTone }> = {
   ok: { icon: CheckCircle2, tone: 'green' },
@@ -41,13 +41,13 @@ export default function ConnectorsView() {
   }
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('connectors.title')}</h1>
         <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('connectors.subtitle')}</p>
       </div>
 
-      <div className="mb-5 grid gap-4 lg:grid-cols-3">
+      <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {coverage.map((c) => {
           const pct = c.total ? c.withData / c.total : 0;
           return (
@@ -106,7 +106,7 @@ export default function ConnectorsView() {
             {t('connectors.historyTitle')}
           </SectionTitle>
         </div>
-        <div className="overflow-x-auto px-5 pb-5">
+        <TableScroll className="px-5 pb-5">
           <table className="w-full">
             <thead>
               <tr>
@@ -143,7 +143,7 @@ export default function ConnectorsView() {
               })}
             </tbody>
           </table>
-        </div>
+        </TableScroll>
       </Card>
     </div>
   );

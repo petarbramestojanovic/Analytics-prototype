@@ -51,13 +51,13 @@ export default function SetupView() {
   }
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('setup.title')}</h1>
         <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('setup.subtitle')}</p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]">
         <Card padded={false}>
           <div className="space-y-2 border-b border-gray-200 p-3 dark:border-white/10">
             <div className="relative">
@@ -174,7 +174,7 @@ function SalesforcePanel({ campaign }: { campaign: Campaign }) {
         </span>
       </SectionTitle>
 
-      <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+      <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
         {rows.map(([k, v]) => (
           <div
             key={k}
@@ -261,7 +261,7 @@ function AppOwnedPanel({ campaign }: { campaign: Campaign }) {
         </span>
       </SectionTitle>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="block sm:col-span-2">
           <span className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
             {t('setup.app.primarySource')}

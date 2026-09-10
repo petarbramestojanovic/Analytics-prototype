@@ -10,7 +10,7 @@ import type { Company, CompanyUser } from '../mock/types';
 import InviteUserModal from '../components/InviteUserModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
-import { Button, Card, Pill, Td, Th } from '../components/primitives';
+import { Button, Card, Pill, TableScroll, Td, Th } from '../components/primitives';
 
 /**
  * Split screen: companies on the left act as a directory, the selected
@@ -41,7 +41,7 @@ export default function CompaniesView() {
   }
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('companies.title')}</h1>
@@ -54,7 +54,7 @@ export default function CompaniesView() {
 
       <InviteUserModal open={invitingAny} onOpenChange={setInvitingAny} />
 
-      <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
         <Card padded={false}>
           <div className="border-b border-gray-200 p-3 dark:border-white/10">
             <div className="relative">
@@ -67,7 +67,7 @@ export default function CompaniesView() {
               />
             </div>
           </div>
-          <div className="max-h-[70vh] overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto lg:max-h-[70vh]">
             {filtered.length === 0 && (
               <p className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 {t('companies.noMatches')}
@@ -158,7 +158,7 @@ function CompanyDetail({
         </Button>
       </div>
 
-      <div className="overflow-x-auto p-5">
+      <TableScroll className="p-5">
         {isLoading ? (
           <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
         ) : (
@@ -237,7 +237,7 @@ function CompanyDetail({
             </tbody>
           </table>
         )}
-      </div>
+      </TableScroll>
 
       <InviteUserModal companyId={company.id} companyName={company.name} open={inviting} onOpenChange={setInviting} />
       <ConfirmDialog

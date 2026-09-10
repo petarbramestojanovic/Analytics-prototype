@@ -1,5 +1,6 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Info } from 'lucide-react';
+import { cn } from '../lib/cn';
 
 export function Card({
   children,
@@ -69,16 +70,22 @@ export function Pill({
   tone = 'neutral',
   icon,
   title,
+  className = '',
 }: {
   children: ReactNode;
   tone?: PillTone;
   icon?: ReactNode;
   title?: string;
+  className?: string;
 }) {
   return (
     <span
       title={title}
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${pillTones[tone]}`}
+      className={cn(
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium',
+        pillTones[tone],
+        className
+      )}
     >
       {icon}
       {children}
@@ -203,3 +210,49 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     );
   }
 );
+
+/**
+ * Standardized horizontal-scroll wrapper for every wide data table, with a
+ * fade affordance on whichever edge still has content to scroll toward —
+ * without it, a table cut off at a card's edge on a narrow viewport reads as
+ * "that's all the columns" rather than "scroll for more".
+ */
+export function TableScroll({ children, className = '' }: { children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => {
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+    update();
+    el.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [children]);
+
+  return (
+    <div className="relative">
+      <div ref={ref} className={`overflow-x-auto ${className}`}>
+        {children}
+      </div>
+      <div
+        className={`pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white to-transparent transition-opacity dark:from-brame-dark-light ${
+          canScrollLeft ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+      <div
+        className={`pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent transition-opacity dark:from-brame-dark-light ${
+          canScrollRight ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+    </div>
+  );
+}

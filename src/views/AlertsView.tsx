@@ -10,7 +10,7 @@ import type { Campaign } from '../mock/types';
 import { useI18n } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, EmptyState, Pill, SectionTitle, Td, Th, Tooltip } from '../components/primitives';
+import { Button, Card, EmptyState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
 
 const PAGE_SIZE = 10;
 
@@ -66,8 +66,8 @@ export default function AlertsView() {
   }
 
   return (
-    <div className="px-8 py-6">
-      <div className="mb-6 flex flex-wrap items-stretch gap-4">
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mb-6 flex flex-col items-stretch gap-4 lg:flex-row lg:flex-wrap">
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('alerts.title')}</h1>
           <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('alerts.subtitle')}</p>
@@ -129,7 +129,7 @@ export default function AlertsView() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto px-5">
+                <TableScroll className="px-5">
                   <table className="w-full">
                     <thead>
                       <tr>
@@ -151,7 +151,7 @@ export default function AlertsView() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableScroll>
 
                 <div className="flex items-center justify-between p-5 pt-4">
                   <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -235,7 +235,7 @@ function ThresholdSettings() {
   const invalid = investigate <= watch;
 
   return (
-    <Card className="flex flex-1 flex-nowrap items-center justify-between gap-4">
+    <Card className="flex flex-1 flex-col items-start gap-4 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-brame-dark dark:text-gray-100">
           <TriangleAlert size={15} className="shrink-0 text-amber-500" />
@@ -243,7 +243,7 @@ function ThresholdSettings() {
         </div>
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('alerts.settingsHint')}</p>
       </div>
-      <div className="flex shrink-0 flex-nowrap items-start gap-3">
+      <div className="flex shrink-0 flex-wrap items-start gap-3">
         <PercentField
           label={t('alerts.watchThreshold')}
           value={watch}
