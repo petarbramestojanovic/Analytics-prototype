@@ -187,22 +187,41 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 | `src/hooks/useCampaigns.ts` | `useCampaigns`, `useCampaign`, `useUpdateCampaign`, clicktag mutations |
 | `src/hooks/useCompanies.ts` | `useCompanies`, `useUsers`, invite/role/delete mutations |
 | `src/hooks/useEmailReports.ts` | `useEmailReports`, enable/disable mutation |
-| `src/components/ui/` | Radix primitives, shadcn-style: `dialog`, `dropdown-menu`, `select`, `alert-dialog` |
+| `src/hooks/useBenchmarks.ts` | Grouped benchmark stats by dimension (industry/client/market) for the Benchmarks views |
+| `src/hooks/useMediaQuery.ts` | Responsive-breakpoint hook used for layout/sidebar behaviour |
+| `src/components/ui/` | Radix primitives, shadcn-style: `dialog`, `dropdown-menu`, `select`, `alert-dialog`, `drawer` |
 | `src/components/EditCampaignModal.tsx` | Name, status, **primary source**, language — the quick-edit path |
 | `src/components/InviteUserModal.tsx` | Add a user to a company with a role |
 | `src/components/AddClicktagModal.tsx` / `ConfirmDialog.tsx` | Add-clicktag form; shared delete/remove confirmation |
+| `src/components/EmailReportModal.tsx` | Create/edit a scheduled email report — recipients, metrics, cadence |
+| `src/components/ProfileSettingsModal.tsx` | Demo "logged in as" profile editor |
 | `src/components/SourceSwitcher.tsx` | Primary-source strip, Compare tab, per-source freshness |
 | `src/components/Layout.tsx` | Resizable/collapsible sidebar, topbar with refresh/dark/language switches |
 | `src/components/Switches.tsx` | Shared `LanguageSwitch` / `ThemeToggleButton`, reused on auth pages |
+| `src/components/MetricTile.tsx` | The KPI tile reused across Overview, Campaigns, and Benchmarks |
+| `src/components/Avatar.tsx` | User initials/avatar chip, used on Companies and the account menu |
+| `src/components/primitives.tsx` | Shared `Button`/`Card`/`Pill`/`Table`/`Empty`/`Error`/`LoadingState`/`SectionTitle`/`Tooltip`/`SegmentedControl` building blocks |
+| `src/components/RequireAdmin.tsx` / `RequireInternal.tsx` | Route guards — redirect `company_user` / non-internal roles away from gated pages |
+| `src/views/OverviewView.tsx` | Portfolio landing dashboard — KPI tiles, trend chart, role-aware highlight cards |
 | `src/views/CampaignsView.tsx` | TanStack Table: sort, search, column visibility, pagination |
 | `src/views/CampaignDetailView.tsx` | Per-source analytics and the Compare overlay |
+| `src/views/BenchmarksView.tsx` / `BenchmarkDetailView.tsx` | Cross-client ranking vs. portfolio average, percentiles, trend, shareable per-dimension URLs |
 | `src/views/SetupView.tsx` | Salesforce-owned vs app-owned field ownership, incl. primary source |
 | `src/views/ConnectorsView.tsx` | Connector coverage and sync history |
 | `src/views/ReportsView.tsx` | Scheduled report pushes and delivery log |
 | `src/views/CompaniesView.tsx` | Per-company user list — invite, role change, remove |
+| `src/views/AlertsView.tsx` | Portfolio-wide divergence watchlist with editable thresholds |
 | `src/views/auth/` | Login, signup, forgot/reset password, shared `AuthLayout` |
 | `src/lib/session.tsx` | Stands in for Supabase Auth + row-level security scoping |
 | `src/lib/theme.tsx` | Dark-mode context, persisted, toggles a `.dark` class on `<html>` |
 | `src/lib/i18n.tsx` | Language context + `t()` + locale-aware date/time formatters |
 | `src/lib/translations.ts` | The EN/DE dictionary |
 | `src/lib/queryClient.ts` | TanStack Query client + query key registry |
+| `src/lib/profile.tsx` | Demo "logged in as" profile state |
+| `src/lib/alertSettings.tsx` | Watch/Investigate threshold settings, persisted to `localStorage` |
+| `src/lib/divergence.ts` | Shared delta/tone (in line / watch / investigate) calculation, used by both the Compare tab and the Alerts page |
+| `src/lib/benchmarks.ts` | Dimensions, metrics, and percentile/grouping logic behind the Benchmarks views |
+| `src/lib/overview.ts` | Builds the Overview page's summary/trend data |
+| `src/lib/reportMetrics.ts` | The metric list offered when building a scheduled email report |
+| `src/lib/chart.ts` | Shared chart color/axis-style helpers, dark-mode aware |
+| `src/lib/usePageTitle.ts` | Sets the browser tab title per route |

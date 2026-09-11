@@ -1186,7 +1186,7 @@ export const fmtCompact = (n: number) => {
 
 export const fmtPct = (n: number, decimals = 1) => `${(n * 100).toFixed(decimals)}%`;
 
-export const fmtSeconds = (n: number) => `${n.toFixed(1)}s`;
+const fmtSeconds = (n: number) => `${n.toFixed(1)}s`;
 
 export function fmtMetric(metric: MetricKey, value: number | undefined): string {
   if (value == null) return '—';

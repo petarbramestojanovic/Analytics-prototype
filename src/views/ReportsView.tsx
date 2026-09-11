@@ -14,7 +14,7 @@ import {
 import EmailReportModal from '../components/EmailReportModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, LoadingState, Pill, SegmentedControl } from '../components/primitives';
+import { Button, Card, LoadingState, Pill, SegmentedControl, Switch } from '../components/primitives';
 
 type StatusFilter = 'all' | 'active' | 'paused';
 
@@ -254,20 +254,12 @@ function EmailReportRow({
           <Button size="sm" icon={<Trash2 size={12} />} onClick={onDelete}>
             {t('common.remove')}
           </Button>
-          <button
-            onClick={() => setEnabled.mutate({ id: report.id, enabled: !enabled })}
+          <Switch
+            checked={enabled}
+            onChange={(next) => setEnabled.mutate({ id: report.id, enabled: next })}
             disabled={setEnabled.isPending}
-            className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:opacity-60 ${
-              enabled ? 'bg-brame-teal' : 'bg-gray-300 dark:bg-white/15'
-            }`}
-            aria-label={enabled ? t('reports.paused') : t('reports.active')}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
-                enabled ? 'left-[22px]' : 'left-0.5'
-              }`}
-            />
-          </button>
+            label={enabled ? t('reports.paused') : t('reports.active')}
+          />
         </div>
       </div>
     </Card>

@@ -5,7 +5,7 @@
 
 export type SourceKey = 'atk' | 'nexd' | 'custom';
 
-export type ConnectorState = 'connected' | 'not_configured';
+type ConnectorState = 'connected' | 'not_configured';
 
 /** Which metrics a platform actually measures. Drives what each source's UI
  *  renders — a source never shows an empty tile for something it cannot see. */
@@ -49,7 +49,7 @@ export interface SourceSeries {
   daily: DailyPoint[];
 }
 
-export interface PageStep {
+interface PageStep {
   page: string;
   label: string;
   views: number;
@@ -57,7 +57,7 @@ export interface PageStep {
   exits: number;
 }
 
-export interface CtaRow {
+interface CtaRow {
   id: string;
   label: string;
   destination: string;
@@ -66,14 +66,14 @@ export interface CtaRow {
   ctr: number;
 }
 
-export interface DeviceRow {
+interface DeviceRow {
   device: 'Mobile' | 'Tablet' | 'Desktop';
   impressions: number;
   viewability: number;
   engagementRate: number;
 }
 
-export interface CreativeRow {
+interface CreativeRow {
   id: string;
   name: string;
   format: string;
@@ -83,7 +83,7 @@ export interface CreativeRow {
   ctaClicks: number;
 }
 
-export interface UtmRow {
+interface UtmRow {
   source: string;
   medium: string;
   campaign: string;
@@ -97,7 +97,7 @@ export interface Clicktag {
   url: string;
 }
 
-export type CampaignStatus = 'live' | 'scheduled' | 'ended' | 'archived';
+type CampaignStatus = 'live' | 'scheduled' | 'ended' | 'archived';
 
 export interface Campaign {
   /** Our UUID stays the primary key (RFC §5). */

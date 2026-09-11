@@ -8,6 +8,7 @@ import { ThemeProvider } from './lib/theme';
 import { LanguageProvider } from './lib/i18n';
 import { ProfileProvider } from './lib/profile';
 import { AlertSettingsProvider } from './lib/alertSettings';
+import { NotificationSettingsProvider } from './lib/notificationSettings';
 import { queryClient } from './lib/queryClient';
 import OverviewView from './views/OverviewView';
 import CampaignsView from './views/CampaignsView';
@@ -18,6 +19,8 @@ import BenchmarkDetailView from './views/BenchmarkDetailView';
 import SetupView from './views/SetupView';
 import ConnectorsView from './views/ConnectorsView';
 import CompaniesView from './views/CompaniesView';
+import ClientsView from './views/ClientsView';
+import CompanyDetailView from './views/CompanyDetailView';
 import AlertsView from './views/AlertsView';
 import LoginView from './views/auth/LoginView';
 import SignupView from './views/auth/SignupView';
@@ -32,7 +35,8 @@ export default function App() {
           <SessionProvider>
             <ProfileProvider>
               <AlertSettingsProvider>
-                <Routes>
+                <NotificationSettingsProvider>
+                  <Routes>
                   {/* Auth pages render outside the dashboard shell — no sidebar, no
                       tenant scope, since nobody is signed in yet. */}
                   <Route path="/login" element={<LoginView />} />
@@ -93,6 +97,22 @@ export default function App() {
                             }
                           />
                           <Route
+                            path="/admin/clients"
+                            element={
+                              <RequireAdmin>
+                                <ClientsView />
+                              </RequireAdmin>
+                            }
+                          />
+                          <Route
+                            path="/admin/clients/:id"
+                            element={
+                              <RequireAdmin>
+                                <CompanyDetailView />
+                              </RequireAdmin>
+                            }
+                          />
+                          <Route
                             path="/admin/alerts"
                             element={
                               <RequireAdmin>
@@ -105,7 +125,8 @@ export default function App() {
                       </Layout>
                     }
                   />
-                </Routes>
+                  </Routes>
+                </NotificationSettingsProvider>
               </AlertSettingsProvider>
             </ProfileProvider>
           </SessionProvider>

@@ -167,13 +167,16 @@ interface ButtonProps {
   icon?: ReactNode;
   disabled?: boolean;
   type?: 'button' | 'submit';
+  /** HTML `form` attribute — lets a button outside a `<form>` (e.g. in a
+   *  fixed dialog footer) still submit it, via its id. */
+  form?: string;
 }
 
 // forwardRef so Radix's asChild (DropdownMenuTrigger, DialogTrigger) can
 // clone this as its trigger element without a "function components cannot be
 // given refs" warning.
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { children, onClick, variant = 'secondary', size = 'md', icon, disabled, type = 'button' },
+  { children, onClick, variant = 'secondary', size = 'md', icon, disabled, type = 'button', form },
   ref
 ) {
   const variants = {
@@ -187,6 +190,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       type={type}
+      form={form}
       onClick={onClick}
       disabled={disabled}
       className={`inline-flex items-center gap-1.5 rounded-lg border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -198,6 +202,39 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
+
+/** Shared on/off toggle — same visual as the Reports enable/disable switch,
+ *  pulled out so Notifications/Preferences rows don't hand-roll it again. */
+export function Switch({
+  checked,
+  onChange,
+  disabled,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      disabled={disabled}
+      aria-pressed={checked}
+      aria-label={label}
+      className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:opacity-60 ${
+        checked ? 'bg-brame-teal' : 'bg-gray-300 dark:bg-white/15'
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+          checked ? 'left-[22px]' : 'left-0.5'
+        }`}
+      />
+    </button>
+  );
+}
 
 export function Th({
   children,

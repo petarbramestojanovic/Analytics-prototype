@@ -17,6 +17,7 @@ import {
   Settings2,
   ShieldCheck,
   UserCog,
+  Users,
 } from 'lucide-react';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { companies } from '../mock/data';
@@ -47,6 +48,7 @@ const salesNav = [{ to: '/benchmarks', key: 'nav.benchmarks', icon: BarChart3 }]
 const adminNav = [
   { to: '/admin/setup', key: 'nav.setup', icon: Settings2 },
   { to: '/admin/connectors', key: 'nav.connectors', icon: Cable },
+  { to: '/admin/clients', key: 'nav.clients', icon: Users },
   { to: '/admin/companies', key: 'nav.companies', icon: Building2 },
   { to: '/admin/alerts', key: 'nav.alerts', icon: BellRing },
 ];

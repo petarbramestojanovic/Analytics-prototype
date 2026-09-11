@@ -1,21 +1,18 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart3, LayoutDashboard, Radio, Trophy } from 'lucide-react';
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts';
 import { fmtCompact, fmtMetric } from '../mock/data';
-import { useI18n, useFormatters } from '../lib/i18n';
+import { useI18n } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useSession, scopeCampaigns } from '../lib/session';
-import { CHART_COLORS, useAxisStyle } from '../lib/chart';
-import { buildOverviewSummary, type TrendMetric } from '../lib/overview';
+import { buildOverviewSummary, TREND_METRICS, type TrendMetric } from '../lib/overview';
 import { DIMENSIONS, LOW_SAMPLE, type BenchmarkGroup, type Dimension } from '../lib/benchmarks';
 import type { Campaign } from '../mock/types';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { useBenchmarks } from '../hooks/useBenchmarks';
 import { Button, Card, EmptyState, ErrorState, LoadingState, Pill, SectionTitle } from '../components/primitives';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-
-const TREND_METRICS: TrendMetric[] = ['impressions', 'ctr', 'viewability'];
+import TrendChart from '../components/TrendChart';
 
 /** A client sees no cross-tenant benchmarks, so "top performer" here is
  *  ranked within their own campaigns instead of a portfolio-wide group. */
@@ -345,52 +342,3 @@ function LiveCampaignRow({ campaign }: { campaign: Campaign }) {
   );
 }
 
-function TrendChart({
-  daily,
-  metric,
-}: {
-  daily: { date: string; impressions: number; ctr: number | null; viewability: number | null }[];
-  metric: TrendMetric;
-}) {
-  const { t } = useI18n();
-  const { fmtDate, fmtDateLong } = useFormatters();
-  const { axis, grid, tooltipStyle } = useAxisStyle();
-  const isPercent = metric !== 'impressions';
-
-  return (
-    <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={daily}>
-          <defs>
-            <linearGradient id="gTrend" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={CHART_COLORS.teal} stopOpacity={0.28} />
-              <stop offset="100%" stopColor={CHART_COLORS.teal} stopOpacity={0.02} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-          <XAxis dataKey="date" tickFormatter={fmtDate} tick={axis} tickLine={false} />
-          <YAxis
-            tickFormatter={isPercent ? (v: number) => `${(v * 100).toFixed(1)}%` : fmtCompact}
-            tick={axis}
-            tickLine={false}
-            axisLine={false}
-          />
-          <RTooltip
-            formatter={(v: unknown) => [typeof v === 'number' ? fmtMetric(metric, v) : '—', t(`metric.${metric}.label`)]}
-            labelFormatter={(l) => fmtDateLong(String(l))}
-            contentStyle={tooltipStyle}
-          />
-          <Area
-            type="monotone"
-            dataKey={metric}
-            name={t(`metric.${metric}.label`)}
-            stroke={CHART_COLORS.teal}
-            strokeWidth={2}
-            fill="url(#gTrend)"
-            connectNulls={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}

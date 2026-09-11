@@ -9,13 +9,14 @@ export type Locale = 'en' | 'de';
 
 type Dict = Record<string, string>;
 
-export const en: Dict = {
+const en: Dict = {
   // Common
   'common.appName': 'BRAME',
   'common.appSubtitle': 'Analytics',
   'common.prototypeBadge': 'Prototype · mock data',
   'common.save': 'Save',
   'common.cancel': 'Cancel',
+  'common.close': 'Close',
   'common.saving': 'Saving…',
   'common.edit': 'Edit',
   'common.remove': 'Remove',
@@ -44,11 +45,12 @@ export const en: Dict = {
   'nav.sectionInternal': 'Brame internal',
   'nav.overview': 'Overview',
   'nav.campaigns': 'Campaigns',
-  'nav.reports': 'Scheduled reports',
+  'nav.reports': 'Reports',
   'nav.benchmarks': 'Benchmarks',
   'nav.setup': 'Campaign setup',
-  'nav.connectors': 'Connectors & sync',
-  'nav.companies': 'Clients & users',
+  'nav.connectors': 'Connectors',
+  'nav.companies': 'Users',
+  'nav.clients': 'Clients',
   'nav.alerts': 'Alerts',
   'nav.expand': 'Expand sidebar',
   'nav.collapse': 'Collapse sidebar',
@@ -67,7 +69,7 @@ export const en: Dict = {
 
   // Profile settings modal
   'profile.title': 'Profile settings',
-  'profile.subtitle': 'How you appear in this prototype session.',
+  'profile.subtitle': 'Your account, preferences and security for this prototype session.',
   'profile.uploadPhoto': 'Upload photo',
   'profile.removePhoto': 'Remove',
   'profile.name': 'Display name',
@@ -75,6 +77,36 @@ export const en: Dict = {
   'profile.company': 'Belongs to',
   'profile.companyHelp':
     'Set by your account, not editable here — matches whichever scope the "Viewing as" switcher is previewing.',
+  'profile.tabs.profile': 'Profile',
+  'profile.tabs.preferences': 'Preferences',
+  'profile.tabs.notifications': 'Notifications',
+  'profile.tabs.security': 'Security',
+  'profile.preferences.theme': 'Theme',
+  'profile.preferences.themeHint': 'Light or dark mode for this browser.',
+  'profile.preferences.language': 'Language',
+  'profile.preferences.languageHint': 'Applies to all menus, tables and dates.',
+  'profile.preferences.appliesHere': 'Preferences apply immediately and are remembered on this device.',
+  'profile.notifications.emailDigest': 'Weekly email digest',
+  'profile.notifications.emailDigestHint': 'A Monday summary of portfolio performance.',
+  'profile.notifications.alertBreach': 'Alert threshold breaches',
+  'profile.notifications.alertBreachHint': 'Notify me when a campaign crosses into Watch or Investigate.',
+  'profile.notifications.reportDelivery': 'Scheduled report delivery',
+  'profile.notifications.reportDeliveryHint': 'Notify me when one of my scheduled reports sends.',
+  'profile.notifications.demoNote': 'Demo only — no emails are actually sent in this prototype.',
+  'profile.security.password': 'Password',
+  'profile.security.currentPassword': 'Current password',
+  'profile.security.newPassword': 'New password',
+  'profile.security.confirmPassword': 'Confirm new password',
+  'profile.security.passwordHint':
+    'Not available in this prototype — there is no backend yet to authenticate against.',
+  'profile.security.sessions': 'Active sessions',
+  'profile.security.sessionsHint': 'Devices currently signed in to this account.',
+  'profile.security.thisDevice': 'This device',
+  'profile.security.logOutSession': 'Log out',
+  'profile.security.logOutAll': 'Log out of all sessions',
+  'profile.security.logOutAllConfirmTitle': 'Log out everywhere?',
+  'profile.security.logOutAllConfirmBody':
+    'This signs you out of every device, including this one, and returns you to the login screen.',
 
   // Topbar
   'topbar.brameInternal': 'Brame internal',
@@ -197,6 +229,8 @@ export const en: Dict = {
   'overview.trendTitle': 'Trend',
   'overview.trendHint': "Daily totals across every campaign's own primary source, over the last 90 days.",
   'overview.trendEmpty': 'No daily data in this window yet.',
+  'trend.gapNote':
+    "Gaps mark days when no active campaign's primary source measured this metric — not a real zero.",
   'overview.topTitle': 'Top performers',
   'overview.topHint': 'Best CTR in each dimension, among groups with at least 3 active days.',
   'overview.topOf': 'Top {{dimension}}',
@@ -408,7 +442,7 @@ export const en: Dict = {
   'setup.app.addClicktag': 'Add clicktag',
 
   // Connectors view
-  'connectors.title': 'Connectors & sync',
+  'connectors.title': 'Connectors',
   'connectors.subtitle':
     'Each analytics platform needs a connector to pull its numbers in. Where one is missing, those campaigns render blank in the dashboard rather than showing zero.',
   'connectors.primaryFor': 'Primary for {{count}} campaign(s)',
@@ -519,7 +553,7 @@ export const en: Dict = {
   'benchmarkDetail.tier.belowAvg': 'Below average',
 
   // Reports view
-  'reports.title': 'Email reports',
+  'reports.title': 'Reports',
   'reports.subtitle': 'Human-readable performance summaries, sent to people rather than a system.',
   'reports.search': 'Search reports, clients or recipients…',
   'reports.filter.allClients': 'All clients',
@@ -561,10 +595,25 @@ export const en: Dict = {
   'reports.email.editTitle': 'Edit email report',
   'reports.email.createTitle': 'New email report',
 
+  // Clients view (directory → ClientDetailView profile page)
+  'clients.title': 'Clients',
+  'clients.subtitle': 'Every client\'s full profile — campaigns, performance and scheduled reports in one place.',
+  'clients.search': 'Search by name, industry or market…',
+  'clients.noMatches': 'No clients match that search.',
+  'clients.directoryRow': '{{industry}} · {{campaigns}} campaigns · {{live}} live',
+  'clients.filter.live': 'Live campaigns filter',
+  'clients.filter.all': 'All clients',
+  'clients.filter.liveOnly': 'Has live campaigns',
+  'clients.filter.reset': 'Reset filters',
+  'clients.sort.name': 'Name (A–Z)',
+  'clients.sort.campaigns': 'Most campaigns',
+  'clients.sort.live': 'Most live campaigns',
+  'clients.sort.ctr': 'Top CTR',
+
   // Companies view
   'companies.search': 'Search clients…',
   'companies.noMatches': 'No clients match that search.',
-  'companies.title': 'Clients & users',
+  'companies.title': 'Users',
   'companies.subtitle':
     "A user belongs to one client and sees only that client's campaigns. The scope is enforced in the database, so it holds regardless of what the interface requests.",
   'companies.isolatedTenant': 'Isolated tenant',
@@ -587,6 +636,27 @@ export const en: Dict = {
   'companies.removeConfirmBody':
     'They will immediately lose access to {{company}}\'s campaigns and reports. This cannot be undone here.',
 
+  // Company detail page
+  'companyDetail.back': 'Clients',
+  'companyDetail.notFoundTitle': 'Client not found',
+  'companyDetail.notFoundBody': "This client does not exist in the prototype's mock data.",
+  'companyDetail.backToClients': 'Back to clients',
+  'companyDetail.alertsTitle': 'Alerts',
+  'companyDetail.alertsHint': 'Campaigns whose sources currently disagree beyond threshold.',
+  'companyDetail.alertsEmpty': 'All sources are in line for this client.',
+  'companyDetail.manageAlerts': 'View all alerts',
+  'companyDetail.trendTitle': 'Performance trend',
+  'companyDetail.trendHint': "Daily totals across this client's own primary sources, over the last 90 days.",
+  'companyDetail.campaignsTitle': 'Campaigns',
+  'companyDetail.campaignsHint': 'Every campaign booked for this client.',
+  'companyDetail.campaignsEmpty': 'No campaigns yet for this client.',
+  'companyDetail.usersTitle': 'Users',
+  'companyDetail.reportsTitle': 'Scheduled reports',
+  'companyDetail.reportsHint': 'Email reports this client receives.',
+  'companyDetail.reportsEmpty': 'No scheduled reports for this client yet.',
+  'companyDetail.manageReports': 'Manage in Reports',
+  'companyDetail.recipients': 'recipient(s)',
+
   // Invite user modal
   'invite.title': 'Invite user',
   'invite.subtitle': 'Add someone to {{company}}. They see only this client\'s data.',
@@ -604,13 +674,14 @@ export const en: Dict = {
   'invite.roleViewer': 'Viewer — read-only access',
 };
 
-export const de: Dict = {
+const de: Dict = {
   // Common
   'common.appName': 'BRAME',
   'common.appSubtitle': 'Analytics',
   'common.prototypeBadge': 'Prototyp · Testdaten',
   'common.save': 'Speichern',
   'common.cancel': 'Abbrechen',
+  'common.close': 'Schließen',
   'common.saving': 'Speichert…',
   'common.edit': 'Bearbeiten',
   'common.remove': 'Entfernen',
@@ -639,11 +710,12 @@ export const de: Dict = {
   'nav.sectionInternal': 'Brame intern',
   'nav.overview': 'Übersicht',
   'nav.campaigns': 'Kampagnen',
-  'nav.reports': 'Geplante Berichte',
+  'nav.reports': 'Berichte',
   'nav.benchmarks': 'Benchmarks',
   'nav.setup': 'Kampagnen-Setup',
-  'nav.connectors': 'Konnektoren & Sync',
-  'nav.companies': 'Kunden & Nutzer',
+  'nav.connectors': 'Konnektoren',
+  'nav.companies': 'Nutzer',
+  'nav.clients': 'Kunden',
   'nav.alerts': 'Warnungen',
   'nav.expand': 'Seitenleiste ausklappen',
   'nav.collapse': 'Seitenleiste einklappen',
@@ -664,7 +736,7 @@ export const de: Dict = {
 
   // Profile settings modal
   'profile.title': 'Profileinstellungen',
-  'profile.subtitle': 'Wie Sie in dieser Prototyp-Sitzung erscheinen.',
+  'profile.subtitle': 'Ihr Konto, Ihre Einstellungen und Sicherheit für diese Prototyp-Sitzung.',
   'profile.uploadPhoto': 'Foto hochladen',
   'profile.removePhoto': 'Entfernen',
   'profile.name': 'Anzeigename',
@@ -672,6 +744,37 @@ export const de: Dict = {
   'profile.company': 'Gehört zu',
   'profile.companyHelp':
     'Durch Ihr Konto festgelegt, hier nicht bearbeitbar — entspricht dem Bereich, den der Schalter „Ansicht als" gerade zeigt.',
+  'profile.tabs.profile': 'Profil',
+  'profile.tabs.preferences': 'Einstellungen',
+  'profile.tabs.notifications': 'Benachrichtigungen',
+  'profile.tabs.security': 'Sicherheit',
+  'profile.preferences.theme': 'Erscheinungsbild',
+  'profile.preferences.themeHint': 'Heller oder dunkler Modus für diesen Browser.',
+  'profile.preferences.language': 'Sprache',
+  'profile.preferences.languageHint': 'Gilt für alle Menüs, Tabellen und Daten.',
+  'profile.preferences.appliesHere': 'Einstellungen wirken sofort und werden auf diesem Gerät gespeichert.',
+  'profile.notifications.emailDigest': 'Wöchentliche E-Mail-Zusammenfassung',
+  'profile.notifications.emailDigestHint': 'Eine Montags-Übersicht der Portfolio-Performance.',
+  'profile.notifications.alertBreach': 'Überschreitung von Alarmschwellen',
+  'profile.notifications.alertBreachHint':
+    'Benachrichtigen, wenn eine Kampagne in „Beobachten" oder „Prüfen" wechselt.',
+  'profile.notifications.reportDelivery': 'Versand geplanter Berichte',
+  'profile.notifications.reportDeliveryHint': 'Benachrichtigen, wenn einer meiner geplanten Berichte versendet wird.',
+  'profile.notifications.demoNote': 'Nur Demo — in diesem Prototyp werden keine E-Mails versendet.',
+  'profile.security.password': 'Passwort',
+  'profile.security.currentPassword': 'Aktuelles Passwort',
+  'profile.security.newPassword': 'Neues Passwort',
+  'profile.security.confirmPassword': 'Neues Passwort bestätigen',
+  'profile.security.passwordHint':
+    'In diesem Prototyp nicht verfügbar — es gibt noch kein Backend zur Authentifizierung.',
+  'profile.security.sessions': 'Aktive Sitzungen',
+  'profile.security.sessionsHint': 'Geräte, die derzeit bei diesem Konto angemeldet sind.',
+  'profile.security.thisDevice': 'Dieses Gerät',
+  'profile.security.logOutSession': 'Abmelden',
+  'profile.security.logOutAll': 'Von allen Sitzungen abmelden',
+  'profile.security.logOutAllConfirmTitle': 'Überall abmelden?',
+  'profile.security.logOutAllConfirmBody':
+    'Dies meldet Sie auf allen Geräten ab, einschließlich diesem, und führt zurück zum Anmeldebildschirm.',
 
   // Topbar
   'topbar.brameInternal': 'Brame intern',
@@ -796,6 +899,8 @@ export const de: Dict = {
   'overview.trendTitle': 'Verlauf',
   'overview.trendHint': 'Tagessummen über die primäre Quelle jeder Kampagne, der letzten 90 Tage.',
   'overview.trendEmpty': 'Noch keine Tagesdaten in diesem Zeitraum.',
+  'trend.gapNote':
+    'Lücken kennzeichnen Tage, an denen keine aktive Kampagne über ihre primäre Quelle diese Kennzahl gemessen hat — kein echter Nullwert.',
   'overview.topTitle': 'Top-Performer',
   'overview.topHint': 'Beste CTR je Dimension, unter Gruppen mit mindestens 3 aktiven Tagen.',
   'overview.topOf': 'Top {{dimension}}',
@@ -1008,7 +1113,7 @@ export const de: Dict = {
   'setup.app.addClicktag': 'Clicktag hinzufügen',
 
   // Connectors view
-  'connectors.title': 'Konnektoren & Sync',
+  'connectors.title': 'Konnektoren',
   'connectors.subtitle':
     'Jede Analytics-Plattform benötigt einen Konnektor, um ihre Zahlen abzurufen. Fehlt einer, werden die betroffenen Kampagnen im Dashboard leer angezeigt statt mit null.',
   'connectors.primaryFor': 'Primärquelle für {{count}} Kampagne(n)',
@@ -1121,7 +1226,7 @@ export const de: Dict = {
   'benchmarkDetail.tier.belowAvg': 'Unter Durchschnitt',
 
   // Reports view
-  'reports.title': 'E-Mail-Berichte',
+  'reports.title': 'Berichte',
   'reports.subtitle': 'Menschenlesbare Leistungszusammenfassungen, an Personen statt an ein System gesendet.',
   'reports.search': 'Berichte, Kunden oder Empfänger suchen…',
   'reports.filter.allClients': 'Alle Kunden',
@@ -1164,10 +1269,25 @@ export const de: Dict = {
   'reports.email.editTitle': 'E-Mail-Bericht bearbeiten',
   'reports.email.createTitle': 'Neuer E-Mail-Bericht',
 
+  // Clients view (directory → ClientDetailView profile page)
+  'clients.title': 'Kunden',
+  'clients.subtitle': 'Das vollständige Profil jedes Kunden — Kampagnen, Performance und geplante Berichte an einem Ort.',
+  'clients.search': 'Nach Name, Branche oder Markt suchen…',
+  'clients.noMatches': 'Keine Kunden entsprechen dieser Suche.',
+  'clients.directoryRow': '{{industry}} · {{campaigns}} Kampagnen · {{live}} live',
+  'clients.filter.live': 'Filter für Live-Kampagnen',
+  'clients.filter.all': 'Alle Kunden',
+  'clients.filter.liveOnly': 'Mit Live-Kampagnen',
+  'clients.filter.reset': 'Filter zurücksetzen',
+  'clients.sort.name': 'Name (A–Z)',
+  'clients.sort.campaigns': 'Meiste Kampagnen',
+  'clients.sort.live': 'Meiste Live-Kampagnen',
+  'clients.sort.ctr': 'Beste CTR',
+
   // Companies view
   'companies.search': 'Kunden suchen…',
   'companies.noMatches': 'Keine Kunden entsprechen dieser Suche.',
-  'companies.title': 'Kunden & Nutzer',
+  'companies.title': 'Nutzer',
   'companies.subtitle':
     'Ein Nutzer gehört zu einem Kunden und sieht nur dessen Kampagnen. Der Zugriff wird in der Datenbank erzwungen und gilt unabhängig davon, was die Oberfläche anfragt.',
   'companies.isolatedTenant': 'Isolierter Mandant',
@@ -1189,6 +1309,27 @@ export const de: Dict = {
   'companies.removeConfirmTitle': '{{name}} entfernen?',
   'companies.removeConfirmBody':
     'Der Zugriff auf die Kampagnen und Berichte von {{company}} wird sofort entzogen. Dies kann hier nicht rückgängig gemacht werden.',
+
+  // Company detail page
+  'companyDetail.back': 'Kunden',
+  'companyDetail.notFoundTitle': 'Kunde nicht gefunden',
+  'companyDetail.notFoundBody': 'Dieser Kunde existiert nicht in den Testdaten des Prototyps.',
+  'companyDetail.backToClients': 'Zurück zu Kunden',
+  'companyDetail.alertsTitle': 'Warnungen',
+  'companyDetail.alertsHint': 'Kampagnen, deren Quellen derzeit über dem Schwellenwert voneinander abweichen.',
+  'companyDetail.alertsEmpty': 'Alle Quellen stimmen für diesen Kunden überein.',
+  'companyDetail.manageAlerts': 'Alle Warnungen ansehen',
+  'companyDetail.trendTitle': 'Performance-Verlauf',
+  'companyDetail.trendHint': 'Tagessummen über die primären Quellen dieses Kunden, der letzten 90 Tage.',
+  'companyDetail.campaignsTitle': 'Kampagnen',
+  'companyDetail.campaignsHint': 'Alle für diesen Kunden gebuchten Kampagnen.',
+  'companyDetail.campaignsEmpty': 'Noch keine Kampagnen für diesen Kunden.',
+  'companyDetail.usersTitle': 'Nutzer',
+  'companyDetail.reportsTitle': 'Geplante Berichte',
+  'companyDetail.reportsHint': 'E-Mail-Berichte, die dieser Kunde erhält.',
+  'companyDetail.reportsEmpty': 'Noch keine geplanten Berichte für diesen Kunden.',
+  'companyDetail.manageReports': 'In Berichten verwalten',
+  'companyDetail.recipients': 'Empfänger',
 
   // Invite user modal
   'invite.title': 'Nutzer einladen',

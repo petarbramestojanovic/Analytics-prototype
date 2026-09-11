@@ -10,6 +10,7 @@ import type { Campaign } from '../mock/types';
 const TREND_WINDOW_DAYS = 90;
 
 export type TrendMetric = 'impressions' | 'ctr' | 'viewability';
+export const TREND_METRICS: TrendMetric[] = ['impressions', 'ctr', 'viewability'];
 
 interface DailyAggregatePoint {
   date: string;
