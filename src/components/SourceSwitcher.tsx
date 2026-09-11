@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Radio, RefreshCw, Rows3, Star, Unplug } from 'lucide-react';
 import type { Campaign, SourceKey } from '../mock/types';
 import { YESTERDAY_ISO, sourceMeta } from '../mock/data';
@@ -11,6 +12,11 @@ export type SourceTab = SourceKey | 'compare';
  * others are checks you switch into. Nothing here adds two sources together,
  * and the tab strip is deliberately the loudest thing on the page so nobody
  * reads a number without knowing who counted it.
+ *
+ * The active fill is a single indicator sliding behind the tabs (measured off
+ * the active tab's own box, same technique as SegmentedControl in
+ * primitives.tsx) rather than each button repainting its own background —
+ * so switching sources reads as a moving selection, not an instant swap.
  */
 export default function SourceSwitcher({
   campaign,
@@ -27,8 +33,34 @@ export default function SourceSwitcher({
     ...(['atk', 'nexd', 'custom'] as SourceKey[]).filter((s) => s !== campaign.primarySource),
   ];
 
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [rect, setRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const measure = () => {
+      const el = track.querySelector<HTMLElement>(`[data-source-tab="${CSS.escape(active)}"]`);
+      if (!el) return;
+      setRect({ left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, [active]);
+
+  const indicatorTone = active === 'compare' ? 'bg-brame-purple' : 'bg-brame-teal';
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div ref={trackRef} className="relative flex flex-wrap items-center gap-2">
+      {rect && (
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute left-0 top-0 rounded-xl shadow-sm transition-[transform,width,height,background-color] duration-200 ease-out ${indicatorTone}`}
+          style={{ transform: `translate(${rect.left}px, ${rect.top}px)`, width: rect.width, height: rect.height }}
+        />
+      )}
       {order.map((key) => {
         const meta = sourceMeta(campaign, key);
         const isPrimary = key === campaign.primarySource;
@@ -38,14 +70,15 @@ export default function SourceSwitcher({
         return (
           <button
             key={key}
+            data-source-tab={key}
             onClick={() => onChange(key)}
             aria-pressed={isActive}
             aria-label={`${meta.fullLabel}${isPrimary ? ` — ${t('source.primarySource')}` : ` — ${t('source.check')}`}${
               missing ? `, ${t('source.noConnector')}` : ''
             }`}
-            className={`group flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-all ${
+            className={`group relative z-10 flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors ${
               isActive
-                ? 'border-brame-teal bg-brame-teal text-white shadow-sm'
+                ? 'border-transparent'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-brame-dark-light dark:hover:border-white/20 dark:hover:bg-white/5'
             }`}
           >
@@ -84,12 +117,13 @@ export default function SourceSwitcher({
       <div className="mx-1 h-8 w-px bg-gray-200 dark:bg-white/10" />
 
       <button
+        data-source-tab="compare"
         onClick={() => onChange('compare')}
         aria-pressed={active === 'compare'}
         aria-label={t('source.compare')}
-        className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${
+        className={`relative z-10 flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors ${
           active === 'compare'
-            ? 'border-brame-purple bg-brame-purple text-white shadow-sm'
+            ? 'border-transparent'
             : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-brame-dark-light dark:hover:border-white/20 dark:hover:bg-white/5'
         }`}
       >
