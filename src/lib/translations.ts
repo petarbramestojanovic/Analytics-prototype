@@ -27,6 +27,7 @@ const en: Dict = {
   'common.refreshing': 'Refreshing…',
   'common.required': 'Required.',
   'common.invalidEmail': 'Enter a valid email address.',
+  'common.exportCsv': 'Export CSV',
 
   // Data table (TanStack Table)
   'table.showingRange': '{{from}}–{{to}} of {{total}}',
@@ -692,6 +693,7 @@ const de: Dict = {
   'common.refreshing': 'Aktualisiert…',
   'common.required': 'Pflichtfeld.',
   'common.invalidEmail': 'Bitte eine gültige E-Mail-Adresse eingeben.',
+  'common.exportCsv': 'CSV exportieren',
 
   // Data table (TanStack Table)
   'table.showingRange': '{{from}}–{{to}} von {{total}}',

@@ -7,8 +7,9 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from 'react';
-import { AlertCircle, Info, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Info, Loader2, Search } from 'lucide-react';
 import { cn } from '../lib/cn';
+import { useI18n } from '../lib/i18n';
 
 export function Card({
   children,
@@ -411,5 +412,115 @@ export function TableScroll({ children, className = '' }: { children: ReactNode;
         }`}
       />
     </div>
+  );
+}
+
+/** Shared filter-bar search box — the `<Search icon> + <input>` combo that
+ *  used to be hand-copied into every list view's toolbar. Purely controlled,
+ *  no internal debounce, so swapping it in never changes filtering behavior. */
+export function SearchInput({
+  value,
+  onChange,
+  placeholder,
+  className = '',
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn('relative min-w-40 flex-1', className)}>
+      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
+      />
+    </div>
+  );
+}
+
+/**
+ * Slice-and-footer pagination, extracted from the identical implementation
+ * that ClientsView and AlertsView each hand-rolled. `usePagination` (see
+ * src/hooks/usePagination.ts) owns the page/slice math; this renders the
+ * "showing X-Y of Z" footer + prev/next controls against whatever page state
+ * it's handed — including a TanStack Table instance's own pagination state,
+ * so CampaignsView can reuse the same footer without adopting the hook.
+ */
+export function Pagination({
+  page,
+  pageCount,
+  from,
+  to,
+  total,
+  onPageChange,
+}: {
+  page: number;
+  pageCount: number;
+  from: number;
+  to: number;
+  total: number;
+  onPageChange: (page: number) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-gray-500 dark:text-gray-400">
+        {t('table.showingRange', { from, to, total })}
+      </span>
+      <div className="flex items-center gap-1">
+        <Button
+          size="sm"
+          icon={<ChevronLeft size={13} />}
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 0}
+        >
+          {t('table.previous')}
+        </Button>
+        <Button size="sm" onClick={() => onPageChange(page + 1)} disabled={page >= pageCount - 1}>
+          {t('table.next')}
+          <ChevronRight size={13} />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** Sortable column header — a clickable `Th` with a direction chevron,
+ *  extracted from the near-identical version each of Benchmarks/Clients/
+ *  Alerts hand-rolled. Generic over any sort-key type so callers keep
+ *  their own comparator logic; this only owns the toggle affordance. */
+export function SortableTh<K extends string>({
+  children,
+  col,
+  active,
+  desc,
+  onToggle,
+  align = 'left',
+}: {
+  children: ReactNode;
+  col: K;
+  active: boolean;
+  desc: boolean;
+  onToggle: (col: K) => void;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <Th align={align}>
+      <button
+        onClick={() => onToggle(col)}
+        className="inline-flex items-center gap-1 hover:text-brame-dark dark:hover:text-gray-200"
+      >
+        {children}
+        {active ? (
+          desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />
+        ) : (
+          <ArrowUpDown size={11} className="text-gray-300 dark:text-gray-600" />
+        )}
+      </button>
+    </Th>
   );
 }
