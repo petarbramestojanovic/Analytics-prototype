@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, ChevronLeft, ChevronRight, Radio, Search, X } from 'lucide-react';
+import { Building2, ChevronRight, Radio, X } from 'lucide-react';
 import { fmtMetric } from '../mock/data';
 import { useI18n } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { buildOverviewSummary } from '../lib/overview';
 import { useCompanies } from '../hooks/useCompanies';
 import { useCampaigns } from '../hooks/useCampaigns';
-import { Button, Card, LoadingState, SegmentedControl } from '../components/primitives';
+import { usePagination } from '../hooks/usePagination';
+import { Card, LoadingState, Pagination, SearchInput, SegmentedControl } from '../components/primitives';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 
 const PAGE_SIZE = 10;
@@ -58,7 +59,6 @@ export default function ClientsView() {
   const [q, setQ] = useState(initialFilters.q);
   const [liveFilter, setLiveFilter] = useState<LiveFilter>(initialFilters.liveFilter);
   const [sortBy, setSortBy] = useState<SortBy>(initialFilters.sortBy);
-  const [page, setPage] = useState(0);
 
   useEffect(() => {
     window.localStorage.setItem(FILTERS_KEY, JSON.stringify({ q, liveFilter, sortBy }));
@@ -127,13 +127,12 @@ export default function ClientsView() {
     });
   }, [companies, q, liveFilter, sortBy, statsByCompany]);
 
+  const { page, setPage, pageCount, paged, from, to } = usePagination(filtered, PAGE_SIZE);
+
   // A new search/filter narrows the result set, so the previously selected
   // page may no longer exist — always land back on page 1 rather than an
   // empty page.
-  useEffect(() => setPage(0), [q, liveFilter, sortBy]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paged = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  useEffect(() => setPage(0), [q, liveFilter, sortBy, setPage]);
 
   return (
     <div
@@ -147,15 +146,7 @@ export default function ClientsView() {
 
       <Card padded={false} className="flex flex-1 flex-col overflow-hidden">
         <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 p-3 dark:border-white/10">
-          <div className="relative min-w-40 max-w-sm flex-1">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t('clients.search')}
-              className="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-            />
-          </div>
+          <SearchInput value={q} onChange={setQ} placeholder={t('clients.search')} className="max-w-sm" />
 
           <SegmentedControl
             value={liveFilter}
@@ -269,23 +260,8 @@ export default function ClientsView() {
               })}
             </div>
 
-            <div className="flex shrink-0 items-center justify-between border-t border-gray-200 px-4 py-2 dark:border-white/10">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {t('table.showingRange', {
-                  from: filtered.length === 0 ? 0 : page * PAGE_SIZE + 1,
-                  to: Math.min((page + 1) * PAGE_SIZE, filtered.length),
-                  total: filtered.length,
-                })}
-              </span>
-              <div className="flex items-center gap-1">
-                <Button size="sm" icon={<ChevronLeft size={13} />} onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
-                  {t('table.previous')}
-                </Button>
-                <Button size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= pageCount - 1}>
-                  {t('table.next')}
-                  <ChevronRight size={13} />
-                </Button>
-              </div>
+            <div className="shrink-0 border-t border-gray-200 px-4 py-2 dark:border-white/10">
+              <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPageChange={setPage} />
             </div>
           </>
         )}

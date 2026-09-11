@@ -1,16 +1,19 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Building2, KeyRound, MoreHorizontal, Search, ShieldCheck, ShieldOff, Trash2, UserPlus } from 'lucide-react';
+import { Building2, KeyRound, MoreHorizontal, ShieldCheck, ShieldOff, Trash2, UserPlus } from 'lucide-react';
 import { useI18n } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useCompanies } from '../hooks/useCompanies';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { useUsers, useUpdateUserRole, useDeleteUser } from '../hooks/useCompanies';
+import { usePagination } from '../hooks/usePagination';
 import type { Company, CompanyUser } from '../mock/types';
 import InviteUserModal from '../components/InviteUserModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
-import { Button, Card, LoadingState, Pill, TableScroll, Td, Th } from '../components/primitives';
+import { Button, Card, LoadingState, Pagination, Pill, SearchInput, TableScroll, Td, Th } from '../components/primitives';
+
+const PAGE_SIZE = 10;
 
 /**
  * Split screen: companies on the left act as a directory, the selected
@@ -31,6 +34,8 @@ export default function CompaniesView() {
     () => (companies ?? []).filter((c) => !q || c.name.toLowerCase().includes(q.toLowerCase())),
     [companies, q]
   );
+  const { page, setPage, pageCount, paged, from, to } = usePagination(filtered, PAGE_SIZE);
+  useEffect(() => setPage(0), [q, setPage]);
 
   const selectedId = params.get('company') ?? companies?.[0]?.id;
   const selected = companies?.find((c) => c.id === selectedId) ?? companies?.[0];
@@ -57,15 +62,7 @@ export default function CompaniesView() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
         <Card padded={false}>
           <div className="border-b border-gray-200 p-3 dark:border-white/10">
-            <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t('companies.search')}
-                className="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-              />
-            </div>
+            <SearchInput value={q} onChange={setQ} placeholder={t('companies.search')} />
           </div>
           <div className="max-h-64 overflow-y-auto lg:max-h-[70vh]">
             {filtered.length === 0 && (
@@ -73,7 +70,7 @@ export default function CompaniesView() {
                 {t('companies.noMatches')}
               </p>
             )}
-            {filtered.map((company) => {
+            {paged.map((company) => {
               const campaignCount = allCampaigns?.filter((c) => c.companyId === company.id).length ?? 0;
               const userCount = allUsers?.filter((u) => u.companyId === company.id).length ?? 0;
               const active = company.id === selected.id;
@@ -110,6 +107,11 @@ export default function CompaniesView() {
               );
             })}
           </div>
+          {filtered.length > 0 && (
+            <div className="border-t border-gray-200 p-3 dark:border-white/10">
+              <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPageChange={setPage} />
+            </div>
+          )}
         </Card>
 
         <CompanyDetail

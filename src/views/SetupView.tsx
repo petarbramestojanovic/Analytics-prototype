@@ -1,17 +1,20 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Cloud, Lock, Pencil, Plus, RotateCw, Save, Search, Star, Trash2 } from 'lucide-react';
+import { Cloud, Lock, Pencil, Plus, RotateCw, Save, Star, Trash2 } from 'lucide-react';
 import { fmtCompact } from '../mock/data';
 import type { Campaign, SourceKey } from '../mock/types';
 import { useI18n, useFormatters } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { useUpdateCampaign, useRemoveClicktag } from '../hooks/useCampaigns';
+import { usePagination } from '../hooks/usePagination';
 import { sourceMeta } from '../mock/data';
 import AddClicktagModal from '../components/AddClicktagModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, LoadingState, Pill, SectionTitle, Tooltip } from '../components/primitives';
+import { Button, Card, LoadingState, Pagination, Pill, SearchInput, SectionTitle, Tooltip } from '../components/primitives';
+
+const PAGE_SIZE = 10;
 
 /**
  * RFC §4 rule 4 as a screen. Salesforce owns campaign identity and commercial
@@ -42,6 +45,8 @@ export default function SetupView() {
       ),
     [campaigns, q, companyFilter]
   );
+  const { page, setPage, pageCount, paged, from, to } = usePagination(filtered, PAGE_SIZE);
+  useEffect(() => setPage(0), [q, companyFilter, setPage]);
 
   const selectedId = params.get('campaign') ?? campaigns?.[0]?.id;
   const campaign = campaigns?.find((c) => c.id === selectedId) ?? campaigns?.[0];
@@ -51,8 +56,8 @@ export default function SetupView() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6">
+    <div className="px-4 py-6 pb-3 sm:px-6 lg:px-8">
+      <div className="mb-5">
         <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('setup.title')}</h1>
         <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('setup.subtitle')}</p>
       </div>
@@ -60,15 +65,7 @@ export default function SetupView() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]">
         <Card padded={false}>
           <div className="space-y-2 border-b border-gray-200 p-3 dark:border-white/10">
-            <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t('campaigns.search')}
-                className="w-full rounded-lg border border-gray-300 py-1.5 pl-8 pr-2.5 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-              />
-            </div>
+            <SearchInput value={q} onChange={setQ} placeholder={t('campaigns.search')} />
             <Select value={companyFilter} onValueChange={setCompanyFilter}>
               <SelectTrigger />
               <SelectContent>
@@ -81,13 +78,13 @@ export default function SetupView() {
               </SelectContent>
             </Select>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div>
             {filtered.length === 0 && (
               <p className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                 {t('campaigns.noMatches')}
               </p>
             )}
-            {filtered.map((c) => (
+            {paged.map((c) => (
               <button
                 key={c.id}
                 onClick={() => setParams({ campaign: c.id })}
@@ -109,6 +106,11 @@ export default function SetupView() {
               </button>
             ))}
           </div>
+          {filtered.length > 0 && (
+            <div className="border-t border-gray-200 p-3 dark:border-white/10">
+              <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPageChange={setPage} />
+            </div>
+          )}
         </Card>
 
         {/* Keyed by campaign id so switching the selected campaign remounts

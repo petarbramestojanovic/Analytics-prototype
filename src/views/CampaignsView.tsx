@@ -15,13 +15,11 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
+  Download,
   ExternalLink,
   MoreHorizontal,
   Pencil,
   Radio,
-  Search,
   Settings2,
   SlidersHorizontal,
   Star,
@@ -36,6 +34,7 @@ import { useI18n, useFormatters } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useTheme } from '../lib/theme';
 import { useCampaigns } from '../hooks/useCampaigns';
+import { exportToCsv } from '../lib/exportCsv';
 import EditCampaignModal from '../components/EditCampaignModal';
 import {
   DropdownMenu,
@@ -50,7 +49,9 @@ import {
   Card,
   ErrorState,
   LoadingState,
+  Pagination,
   Pill,
+  SearchInput,
   SegmentedControl,
   TableScroll,
   Th,
@@ -149,6 +150,21 @@ export default function CampaignsView() {
 
   const live = scoped.filter((c) => c.status === 'live');
   const showCompany = isInternal;
+
+  const exportRows = () =>
+    exportToCsv(
+      'campaigns.csv',
+      table.getFilteredRowModel().rows.map((r) => r.original),
+      [
+        { key: 'name', header: t('campaigns.col.campaign') },
+        { key: 'companyName', header: t('campaigns.col.company') },
+        { key: 'market', header: t('campaigns.col.country'), format: (c) => c.salesforce.market },
+        { key: 'primarySource', header: t('campaigns.col.primarySource'), format: (c) => sourceMeta(c, c.primarySource).label },
+        { key: 'impressions', header: t('campaigns.col.impressions'), format: (c) => primary(c)?.totals.impressions ?? '—' },
+        { key: 'viewability', header: t('campaigns.col.viewability'), format: (c) => (primary(c) ? fmtMetric('viewability', primary(c)!.totals.viewability) : '—') },
+        { key: 'status', header: 'Status', format: (c) => t(`status.${c.status}`) },
+      ]
+    );
 
   const columns = useMemo<ColumnDef<Campaign>[]>(() => {
     const cols: ColumnDef<Campaign>[] = [
@@ -263,11 +279,16 @@ export default function CampaignsView() {
 
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('campaigns.title')}</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {isInternal ? t('campaigns.subtitleAdmin') : t('campaigns.subtitleClient')}
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('campaigns.title')}</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {isInternal ? t('campaigns.subtitleAdmin') : t('campaigns.subtitleClient')}
+          </p>
+        </div>
+        <Button variant="primary" icon={<Download size={13} />} onClick={exportRows} disabled={rows.length === 0}>
+          {t('common.exportCsv')}
+        </Button>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -294,15 +315,7 @@ export default function CampaignsView() {
 
       <Card padded={false}>
         <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 dark:border-white/10">
-          <div className="relative min-w-40 flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t('campaigns.search')}
-              className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-            />
-          </div>
+          <SearchInput value={q} onChange={setQ} placeholder={t('campaigns.search')} />
 
           {isInternal && (
             <div className="w-56">
@@ -472,26 +485,15 @@ export default function CampaignsView() {
               </table>
             </TableScroll>
 
-            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 dark:border-white/10">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {t('table.showingRange', {
-                  from: rows.length === 0 ? 0 : table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1,
-                  to: Math.min(
-                    (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                    rows.length
-                  ),
-                  total: rows.length,
-                })}
-              </span>
-              <div className="flex items-center gap-1">
-                <Button size="sm" icon={<ChevronLeft size={13} />} onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-                  {t('table.previous')}
-                </Button>
-                <Button size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-                  {t('table.next')}
-                  <ChevronRight size={13} />
-                </Button>
-              </div>
+            <div className="border-t border-gray-200 px-4 py-3 dark:border-white/10">
+              <Pagination
+                page={table.getState().pagination.pageIndex}
+                pageCount={table.getPageCount()}
+                from={rows.length === 0 ? 0 : table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
+                to={Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, rows.length)}
+                total={rows.length}
+                onPageChange={(p) => table.setPageIndex(p)}
+              />
             </div>
           </>
         )}

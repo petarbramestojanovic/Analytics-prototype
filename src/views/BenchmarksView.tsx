@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowUp, ArrowUpDown, BarChart3, Minus, Search, TrendingDown, TrendingUp } from 'lucide-react';
+import { BarChart3, Download, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -27,10 +27,29 @@ import {
   type Trend,
 } from '../lib/benchmarks';
 import { useBenchmarks } from '../hooks/useBenchmarks';
-import { Card, EmptyState, ErrorState, LoadingState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
+import { usePagination } from '../hooks/usePagination';
+import { exportToCsv } from '../lib/exportCsv';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Pagination,
+  Pill,
+  SearchInput,
+  SectionTitle,
+  SegmentedControl,
+  SortableTh,
+  TableScroll,
+  Td,
+  Th,
+  Tooltip,
+} from '../components/primitives';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 
 type SortKey = 'group' | 'campaigns' | 'impressions' | 'avg' | 'p50' | 'p75' | 'p90';
+const PAGE_SIZE = 10;
 
 function isDimension(v: string | null): v is Dimension {
   return v !== null && (DIMENSIONS as string[]).includes(v);
@@ -99,6 +118,28 @@ export default function BenchmarksView() {
     });
   }, [data, q, sort, metric]);
 
+  const toggleSort = (key: SortKey) => setSort((prev) => ({ key, desc: prev.key === key ? !prev.desc : true }));
+
+  const { page, setPage, pageCount, paged: pagedRows, from, to } = usePagination(rows, PAGE_SIZE);
+
+  useEffect(() => setPage(0), [q, sort, dimension, metric, setPage]);
+
+  const exportRows = () =>
+    exportToCsv(
+      `benchmarks-${dimension}.csv`,
+      rows,
+      [
+        { key: 'displayName', header: t('benchmarks.col.group') },
+        { key: 'campaignCount', header: t('benchmarks.col.campaigns') },
+        { key: 'impressions', header: t('benchmarks.col.impressions') },
+        { key: 'avg', header: t('benchmarks.col.avg'), format: (g) => (g.stats[metric] ? fmtMetric(metric, g.stats[metric]!.avg) : '—') },
+        { key: 'p50', header: t('benchmarks.col.p50'), format: (g) => (g.stats[metric] ? fmtMetric(metric, g.stats[metric]!.p50) : '—') },
+        { key: 'p75', header: t('benchmarks.col.p75'), format: (g) => (g.stats[metric] ? fmtMetric(metric, g.stats[metric]!.p75) : '—') },
+        { key: 'p90', header: t('benchmarks.col.p90'), format: (g) => (g.stats[metric] ? fmtMetric(metric, g.stats[metric]!.p90) : '—') },
+        { key: 'trend', header: t('benchmarks.col.trend'), format: (g) => t(`benchmarks.trend.${g.trend}`) },
+      ]
+    );
+
   const overall = data?.overall[metric] ?? null;
 
   const chartData = useMemo(
@@ -123,9 +164,14 @@ export default function BenchmarksView() {
 
   return (
     <div className="px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('benchmarks.title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('benchmarks.subtitle')}</p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('benchmarks.title')}</h1>
+          <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('benchmarks.subtitle')}</p>
+        </div>
+        <Button variant="primary" icon={<Download size={13} />} onClick={exportRows} disabled={rows.length === 0}>
+          {t('common.exportCsv')}
+        </Button>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -151,15 +197,7 @@ export default function BenchmarksView() {
           you know what it was grouped by. */}
       <Card padded={false} className="mb-5">
         <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 dark:border-white/10">
-          <div className="relative min-w-56 flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t('benchmarks.search')}
-              className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-            />
-          </div>
+          <SearchInput value={q} onChange={setQ} placeholder={t('benchmarks.search')} className="min-w-56" />
 
           <div className="w-56">
             <Select value={metric} onValueChange={(v) => setParam('metric', v)}>
@@ -174,22 +212,16 @@ export default function BenchmarksView() {
             </Select>
           </div>
 
-          <div className="flex h-10 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/5">
-            {DIMENSIONS.map((d) => (
-              <button
-                key={d}
-                onClick={() => setParam('dimension', d)}
-                aria-pressed={dimension === d}
-                className={`flex h-full items-center rounded-md px-3 text-xs font-medium transition-colors ${
-                  dimension === d
-                    ? 'bg-white text-brame-dark shadow-sm dark:bg-brame-dark-light dark:text-white'
-                    : 'text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100'
-                }`}
-              >
-                {t(`benchmarks.dimension.${d}`)}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            value={dimension}
+            onChange={(d) => setParam('dimension', d)}
+            className="flex h-10 items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-white/5"
+            indicatorClassName="rounded-md bg-white shadow-sm dark:bg-brame-dark-light"
+            itemClassName="flex h-full items-center rounded-md px-3 text-xs font-medium transition-colors"
+            activeItemClassName="text-brame-dark dark:text-white"
+            inactiveItemClassName="text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100"
+            options={DIMENSIONS.map((d) => ({ value: d, label: t(`benchmarks.dimension.${d}`) }))}
+          />
         </div>
       </Card>
 
@@ -220,32 +252,32 @@ export default function BenchmarksView() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-white/10">
-                    <SortableTh sort={sort} setSort={setSort} col="group">
+                    <SortableTh col="group" active={sort.key === 'group'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.group')}
                     </SortableTh>
-                    <SortableTh sort={sort} setSort={setSort} col="campaigns" align="right">
+                    <SortableTh col="campaigns" align="right" active={sort.key === 'campaigns'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.campaigns')}
                     </SortableTh>
-                    <SortableTh sort={sort} setSort={setSort} col="impressions" align="right">
+                    <SortableTh col="impressions" align="right" active={sort.key === 'impressions'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.impressions')}
                     </SortableTh>
-                    <SortableTh sort={sort} setSort={setSort} col="avg" align="right">
+                    <SortableTh col="avg" align="right" active={sort.key === 'avg'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.avg')}
                     </SortableTh>
-                    <SortableTh sort={sort} setSort={setSort} col="p50" align="right">
+                    <SortableTh col="p50" align="right" active={sort.key === 'p50'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.p50')}
                     </SortableTh>
-                    <SortableTh sort={sort} setSort={setSort} col="p75" align="right">
+                    <SortableTh col="p75" align="right" active={sort.key === 'p75'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.p75')}
                     </SortableTh>
-                    <SortableTh sort={sort} setSort={setSort} col="p90" align="right">
+                    <SortableTh col="p90" align="right" active={sort.key === 'p90'} desc={sort.desc} onToggle={toggleSort}>
                       {t('benchmarks.col.p90')}
                     </SortableTh>
                     <Th>{t('benchmarks.col.trend')}</Th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((g) => (
+                  {pagedRows.map((g) => (
                     <GroupRow key={g.key} group={g} dimension={dimension} metric={metric} />
                   ))}
                   {rows.length === 0 && (
@@ -258,6 +290,11 @@ export default function BenchmarksView() {
                 </tbody>
               </table>
             </TableScroll>
+            {rows.length > 0 && (
+              <div className="border-t border-gray-200 p-4 dark:border-white/10">
+                <Pagination page={page} pageCount={pageCount} from={from} to={to} total={rows.length} onPageChange={setPage} />
+              </div>
+            )}
           </Card>
         </>
       )}
@@ -279,40 +316,6 @@ function SummaryTile({ label, value, hint }: { label: string; value: string; hin
   );
 }
 
-function SortableTh({
-  children,
-  col,
-  sort,
-  setSort,
-  align = 'left',
-}: {
-  children: React.ReactNode;
-  col: SortKey;
-  sort: { key: SortKey; desc: boolean };
-  setSort: (s: { key: SortKey; desc: boolean }) => void;
-  align?: 'left' | 'right';
-}) {
-  const active = sort.key === col;
-  return (
-    <Th align={align}>
-      <button
-        onClick={() => setSort({ key: col, desc: active ? !sort.desc : true })}
-        className="inline-flex items-center gap-1 hover:text-brame-dark dark:hover:text-gray-200"
-      >
-        {children}
-        {active ? (
-          sort.desc ? (
-            <ArrowDown size={11} />
-          ) : (
-            <ArrowUp size={11} />
-          )
-        ) : (
-          <ArrowUpDown size={11} className="text-gray-300 dark:text-gray-600" />
-        )}
-      </button>
-    </Th>
-  );
-}
 
 function GroupRow({
   group,

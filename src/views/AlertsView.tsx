@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Search, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { Download, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { fmtPct, sourceMeta } from '../mock/data';
 import { useCampaigns } from '../hooks/useCampaigns';
 import { useSession } from '../lib/session';
@@ -9,8 +9,23 @@ import { computePortfolioAlerts, type DivergenceRow } from '../lib/divergence';
 import type { Campaign } from '../mock/types';
 import { useI18n } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
+import { usePagination } from '../hooks/usePagination';
+import { exportToCsv } from '../lib/exportCsv';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, EmptyState, LoadingState, Pill, SectionTitle, TableScroll, Td, Th, Tooltip } from '../components/primitives';
+import {
+  Button,
+  Card,
+  EmptyState,
+  LoadingState,
+  Pagination,
+  Pill,
+  SearchInput,
+  SectionTitle,
+  TableScroll,
+  Td,
+  Th,
+  Tooltip,
+} from '../components/primitives';
 
 const PAGE_SIZE = 10;
 
@@ -28,7 +43,6 @@ export default function AlertsView() {
   const thresholds = useAlertThresholds();
   const [q, setQ] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
-  const [page, setPage] = useState(0);
 
   const isAdmin = role === 'brame_admin';
 
@@ -57,9 +71,24 @@ export default function AlertsView() {
     });
   }, [allRows, campaignsById, companyFilter, isAdmin, q]);
 
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount - 1);
-  const pagedRows = rows.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
+  const { page: currentPage, setPage, pageCount, paged: pagedRows, from, to } = usePagination(rows, PAGE_SIZE);
+
+  useEffect(() => setPage(0), [q, companyFilter, setPage]);
+
+  const exportRows = () =>
+    exportToCsv(
+      'alerts.csv',
+      rows,
+      [
+        { key: 'campaignName', header: t('alerts.col.campaign') },
+        { key: 'companyName', header: t('alerts.col.company') },
+        { key: 'baseline', header: 'Baseline', format: (r) => (campaignsById.get(r.campaignId) ? sourceMeta(campaignsById.get(r.campaignId)!, r.baseline).label : r.baseline) },
+        { key: 'check', header: t('alerts.col.comparing'), format: (r) => (campaignsById.get(r.campaignId) ? sourceMeta(campaignsById.get(r.campaignId)!, r.check).label : r.check) },
+        { key: 'metric', header: t('alerts.col.metric'), format: (r) => t(`metric.${r.metric}.label`) },
+        { key: 'delta', header: t('alerts.col.delta'), format: (r) => fmtPct(r.delta, 1) },
+        { key: 'read', header: t('alerts.col.read'), format: (r) => t(`detail.read.${r.read}`) },
+      ]
+    );
 
   if (isLoading) {
     return <LoadingState label={t('common.loading')} />;
@@ -77,7 +106,15 @@ export default function AlertsView() {
 
       <Card padded={false}>
         <div className="p-5 pb-0">
-          <SectionTitle>{t('alerts.title')}</SectionTitle>
+          <SectionTitle
+            action={
+              <Button variant="primary" icon={<Download size={13} />} onClick={exportRows} disabled={rows.length === 0}>
+                {t('common.exportCsv')}
+              </Button>
+            }
+          >
+            {t('alerts.title')}
+          </SectionTitle>
         </div>
 
         {allRows.length === 0 ? (
@@ -87,28 +124,11 @@ export default function AlertsView() {
         ) : (
           <>
             <div className="flex flex-wrap items-center gap-3 p-5 pb-4">
-              <div className="relative min-w-56 flex-1">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  value={q}
-                  onChange={(e) => {
-                    setQ(e.target.value);
-                    setPage(0);
-                  }}
-                  placeholder={t('alerts.search')}
-                  className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-                />
-              </div>
+              <SearchInput value={q} onChange={setQ} placeholder={t('alerts.search')} className="min-w-56" />
 
               {isAdmin && (
                 <div className="w-56">
-                  <Select
-                    value={companyFilter}
-                    onValueChange={(v) => {
-                      setCompanyFilter(v);
-                      setPage(0);
-                    }}
-                  >
+                  <Select value={companyFilter} onValueChange={setCompanyFilter}>
                     <SelectTrigger />
                     <SelectContent>
                       <SelectItem value="all">{t('campaigns.filter.allCompanies')}</SelectItem>
@@ -153,32 +173,8 @@ export default function AlertsView() {
                   </table>
                 </TableScroll>
 
-                <div className="flex items-center justify-between p-5 pt-4">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('table.showingRange', {
-                      from: currentPage * PAGE_SIZE + 1,
-                      to: Math.min((currentPage + 1) * PAGE_SIZE, rows.length),
-                      total: rows.length,
-                    })}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="sm"
-                      icon={<ChevronLeft size={13} />}
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                      disabled={currentPage === 0}
-                    >
-                      {t('table.previous')}
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                      disabled={currentPage >= pageCount - 1}
-                    >
-                      {t('table.next')}
-                      <ChevronRight size={13} />
-                    </Button>
-                  </div>
+                <div className="p-5 pt-4">
+                  <Pagination page={currentPage} pageCount={pageCount} from={from} to={to} total={rows.length} onPageChange={setPage} />
                 </div>
               </>
             )}

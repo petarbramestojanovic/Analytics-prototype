@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Clock, Mail, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Clock, Mail, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { EmailReport } from '../mock/types';
 import { REPORT_METRICS } from '../lib/reportMetrics';
 import { useSession } from '../lib/session';
@@ -14,7 +14,7 @@ import {
 import EmailReportModal from '../components/EmailReportModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
-import { Button, Card, LoadingState, Pill, SegmentedControl, Switch } from '../components/primitives';
+import { Button, Card, LoadingState, Pill, SearchInput, SegmentedControl, Switch } from '../components/primitives';
 
 type StatusFilter = 'all' | 'active' | 'paused';
 
@@ -84,15 +84,7 @@ export default function ReportsView() {
       {scopedEmailReports.length > 0 && (
         <Card padded={false} className="mb-5">
           <div className="flex flex-wrap items-center gap-3 p-4">
-            <div className="relative min-w-56 flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t('reports.search')}
-                className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
-              />
-            </div>
+            <SearchInput value={q} onChange={setQ} placeholder={t('reports.search')} className="min-w-56" />
 
             {isInternal && (
               <div className="w-56">
