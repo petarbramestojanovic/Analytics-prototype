@@ -445,7 +445,7 @@ function RankedBars({
           )}
           {/* fill here is what Recharts uses to color the tooltip's item text;
               the per-Cell fill below only affects each bar's own paint. */}
-          <Bar dataKey="value" fill={CHART_COLORS.teal} radius={[0, 4, 4, 0]} barSize={18}>
+          <Bar dataKey="value" fill={CHART_COLORS.teal} radius={[0, 4, 4, 0]} barSize={18} isAnimationActive={false}>
             {data.map((d) => (
               <Cell
                 key={d.key}

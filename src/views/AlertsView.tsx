@@ -231,29 +231,31 @@ function ThresholdSettings() {
   const invalid = investigate <= watch;
 
   return (
-    <Card className="flex flex-1 flex-col items-start gap-4 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-brame-dark dark:text-gray-100">
-          <TriangleAlert size={15} className="shrink-0 text-amber-500" />
-          {t('alerts.settingsTitle')}
+    <Card className="flex flex-1 flex-col gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-brame-dark dark:text-gray-100">
+            <TriangleAlert size={15} className="shrink-0 text-amber-500" />
+            {t('alerts.settingsTitle')}
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('alerts.settingsHint')}</p>
         </div>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('alerts.settingsHint')}</p>
+        <div className="flex shrink-0 flex-wrap items-start gap-3">
+          <PercentField
+            label={t('alerts.watchThreshold')}
+            value={watch}
+            onChange={setWatch}
+            tone="amber"
+          />
+          <PercentField
+            label={t('alerts.investigateThreshold')}
+            value={investigate}
+            onChange={setInvestigate}
+            tone="red"
+          />
+        </div>
       </div>
-      <div className="flex shrink-0 flex-wrap items-start gap-3">
-        <PercentField
-          label={t('alerts.watchThreshold')}
-          value={watch}
-          onChange={setWatch}
-          tone="amber"
-        />
-        <PercentField
-          label={t('alerts.investigateThreshold')}
-          value={investigate}
-          onChange={setInvestigate}
-          tone="red"
-        />
-      </div>
-      {invalid && <p className="w-full text-xs text-red-600 dark:text-red-400">{t('alerts.thresholdInvalid')}</p>}
+      {invalid && <p className="text-xs text-red-600 dark:text-red-400">{t('alerts.thresholdInvalid')}</p>}
     </Card>
   );
 }

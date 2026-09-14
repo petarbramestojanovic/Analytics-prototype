@@ -256,7 +256,14 @@ function CampaignRow({
   return (
     <tr className="border-b border-gray-100 last:border-0 hover:bg-gray-50 dark:border-white/5 dark:hover:bg-white/5">
       <Td>
-        <span className="font-medium text-brame-dark dark:text-gray-100">{campaign.name}</span>
+        <Link
+          to={`/campaigns/${campaign.id.replace(/^bm-live-/, '')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-brame-dark hover:text-brame-teal hover:underline dark:text-gray-100 dark:hover:text-brame-turquoise-light"
+        >
+          {campaign.name}
+        </Link>
         {excluded && (
           <span className="ml-2 inline-flex align-middle">
             <Pill

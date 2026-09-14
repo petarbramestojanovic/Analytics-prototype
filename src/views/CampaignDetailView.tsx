@@ -215,7 +215,7 @@ function SourceView({
 }) {
   const { t } = useI18n();
   const { fmtDate, fmtDateLong } = useFormatters();
-  const { axis, grid, tooltipStyle } = useAxisStyle();
+  const { axis, grid, tooltipStyle, cursorFill } = useAxisStyle();
   const { role } = useSession();
   const meta = sourceMeta(campaign, source);
   const series = campaign.sources[source];
@@ -427,7 +427,7 @@ function SourceView({
                 <CartesianGrid strokeDasharray="3 3" stroke={grid} horizontal={false} />
                 <XAxis type="number" tickFormatter={fmtCompact} tick={axis} tickLine={false} axisLine={false} />
                 <YAxis type="category" dataKey="device" tick={axis} tickLine={false} axisLine={false} width={60} />
-                <RTooltip formatter={tooltipIntOnly} contentStyle={tooltipStyle} />
+                <RTooltip cursor={{ fill: cursorFill }} formatter={tooltipIntOnly} contentStyle={tooltipStyle} />
                 <Bar dataKey="impressions" name={t('detail.legendImpressions')} fill="#077070" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
