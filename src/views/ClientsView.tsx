@@ -207,14 +207,14 @@ export default function ClientsView() {
           </div>
         ) : (
           <>
-            <div className="flex flex-1 flex-col divide-y divide-gray-100 overflow-hidden dark:divide-white/5">
+            <div className="flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-white/5">
               {paged.map((company) => {
                 const stats = statsByCompany.get(company.id);
                 return (
                   <Link
                     key={company.id}
                     to={`/admin/clients/${company.id}`}
-                    className="flex flex-1 items-center gap-4 px-5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="flex h-16 items-center gap-4 px-5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
                   >
                     <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500">
                       <Building2 size={16} />
