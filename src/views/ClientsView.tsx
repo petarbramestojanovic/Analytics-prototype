@@ -12,6 +12,10 @@ import { Card, LoadingState, Pagination, SearchInput, SegmentedControl } from '.
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../components/ui/select';
 
 const PAGE_SIZE = 10;
+// The Layout shell's sticky topbar (Layout.tsx) is a fixed 57px — subtracting
+// it here lets the card fill the rest of the viewport instead of leaving
+// blank space below a short last page.
+const TOPBAR_HEIGHT = 57;
 
 type LiveFilter = 'all' | 'live';
 type SortBy = 'name' | 'campaigns' | 'live' | 'ctr';
@@ -131,14 +135,17 @@ export default function ClientsView() {
   useEffect(() => setPage(0), [q, liveFilter, sortBy, setPage]);
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6">
+    <div
+      className="flex flex-col px-4 py-6 sm:px-6 lg:px-8"
+      style={{ height: `calc(100vh - ${TOPBAR_HEIGHT}px)` }}
+    >
+      <div className="mb-6 shrink-0">
         <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{t('clients.title')}</h1>
         <p className="mt-1 max-w-3xl text-sm text-gray-500 dark:text-gray-400">{t('clients.subtitle')}</p>
       </div>
 
-      <Card padded={false}>
-        <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 dark:border-white/10">
+      <Card padded={false} className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 p-4 dark:border-white/10">
           <SearchInput value={q} onChange={setQ} placeholder={t('clients.search')} className="max-w-sm" />
 
           <SegmentedControl
@@ -191,12 +198,16 @@ export default function ClientsView() {
         </div>
 
         {isLoading ? (
-          <LoadingState label={t('common.loading')} />
+          <div className="flex flex-1 items-center justify-center">
+            <LoadingState label={t('common.loading')} />
+          </div>
         ) : filtered.length === 0 ? (
-          <p className="px-5 py-12 text-center text-sm text-gray-500 dark:text-gray-400">{t('clients.noMatches')}</p>
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400">{t('clients.noMatches')}</p>
+          </div>
         ) : (
           <>
-            <div className="divide-y divide-gray-100 dark:divide-white/5">
+            <div className="flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-white/5">
               {paged.map((company) => {
                 const stats = statsByCompany.get(company.id);
                 return (
@@ -249,7 +260,7 @@ export default function ClientsView() {
               })}
             </div>
 
-            <div className="border-t border-gray-200 px-4 py-3 dark:border-white/10">
+            <div className="shrink-0 border-t border-gray-200 px-4 py-3 dark:border-white/10">
               <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPageChange={setPage} />
             </div>
           </>
