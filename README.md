@@ -4,7 +4,7 @@ A clickable UI prototype of the analytics platform described in
 `RFC-analytics-platform.pdf`, built to test the concept with a business
 stakeholder before any backend work starts.
 
-**Frontend only.** All numbers are mock data generated in `src/mock/data.ts`.
+**Frontend only.** All numbers are mock data generated in `src/api/mock/data.ts`.
 Nothing talks to a database, and nothing here decides how the three analytics
 sources get reconciled — that is deliberately left to the backend discussion.
 
@@ -83,7 +83,7 @@ Compare tab's default baseline immediately — no refresh needed.
   again, also persisted).
 - **Editable data** — campaigns, clicktags, and per-company users are no
   longer static. Edits go through TanStack Query mutations against an
-  in-memory mock store (`src/mock/store.ts`) — they persist across navigation
+  in-memory mock store (`src/api/mock/store.ts`) — they persist across navigation
   within the session, and reset on a hard reload since there's still no
   backend. See "Stack" below for how this is wired.
 
@@ -97,7 +97,7 @@ own state and TanStack Query already cover.
 |---|---|---|
 | Build tool | Vite + React + TypeScript | Matches the RFC directly |
 | Routing | React Router v7 | Auth pages outside the shell, admin routes inside it |
-| Server state | TanStack Query | Wraps the mock store's async functions (`src/hooks/*`) — cache, invalidation-on-mutate, loading states, and the topbar's manual "Refresh data" button all come from this, not hand-rolled state |
+| Server state | TanStack Query | Wraps the mock store's async functions (`src/features/*/api`) — cache, invalidation-on-mutate, loading states, and the topbar's manual "Refresh data" button all come from this, not hand-rolled state |
 | Tables | TanStack Table | Campaigns list: sortable columns, global search, column visibility, pagination |
 | Charts | Recharts | Unchanged from the original build |
 | Styling | Tailwind CSS | Unchanged |
@@ -121,28 +121,30 @@ own state and TanStack Query already cover.
 
 Two independent axes, kept deliberately separate:
 
-- **Tenant scope** (`role` in `src/lib/session.tsx`: `brame_admin` vs
-  `company_user` + `companyId`) — *which company's data*. This is what the
-  "Viewing as" switcher demonstrates, standing in for Supabase Auth + RLS.
-- **Per-company role** (`CompanyUser.role`: `admin` vs `viewer`, managed on
-  the Companies & users screen) — a permission *within* one company's data,
-  for that company's own team members.
+- **Tenant scope** (`seatCategory` in `src/features/session`: `admin` / `brame`
+  see every tenant, `agency` / `client` see only their own) — *which data*.
+  This is what the "Viewing as" switcher demonstrates, standing in for
+  Supabase Auth + RLS.
+- **Seat role** (`SeatMember.role`: `admin` vs `viewer`, managed on the Seats
+  and Users screens) — whether someone can manage their *own seat's* members
+  and API keys. It never widens or narrows which data they see.
 
 Enforcement, not just hidden nav:
-- `/admin/setup`, `/admin/connectors`, `/admin/companies` are wrapped in
-  `RequireAdmin` — a `company_user` hitting any of them by URL is redirected
-  to `/campaigns`, not just kept from seeing the link.
-- `CampaignDetailView` checks `campaign.companyId` against the current
-  tenant scope for a `company_user` and renders the same "not found" state
-  used for a truly missing campaign — mirroring what a real row-level
-  security policy does (the row doesn't exist for you), rather than a
-  "you don't have access" message that would itself confirm the campaign
-  exists.
+- Every route in `src/app/routes.tsx` declares an access level (`everyone`,
+  `seatAdmin`, `internal`, `admin`, defined in
+  `src/features/session/access.ts`). `RequireAccess` redirects a seat that
+  lacks it to `/overview`, and the sidebar hides sections by the same levels,
+  so a link is never shown for a page that would bounce you.
+- The campaign detail page checks the campaign against the current tenant
+  scope (`canSeeCampaign`) and renders the same "not found" state used for a
+  truly missing campaign — mirroring what a real row-level security policy
+  does (the row doesn't exist for you), rather than a "you don't have
+  access" message that would itself confirm the campaign exists.
 - Editing a campaign (including primary source) and the Setup page stay
   admin-only regardless of a client's own Admin/Viewer role — that's a
   Brame-operational decision in the RFC's model, not a client permission.
 
-Scheduled reports remain visible to `company_user` — the RFC has clients
+Scheduled reports remain visible to client seats — the RFC has clients
 receiving their own report deliveries, so that page is scoped by company
 rather than hidden entirely.
 
@@ -158,8 +160,8 @@ table renders.
 
 Karsten, on the comparison sources: *"we define thresholds... have alerts in place."* `/admin/alerts` is a portfolio-wide, standing list of every campaign currently over threshold — every primary source checked against every other reporting source, across all campaigns, not one at a time inside Compare.
 
-- **One set of thresholds, everywhere.** `src/lib/divergence.ts` holds the delta/tone computation; both the Alerts page and each campaign's own Compare tab call the same functions, so a campaign can't read "in line" in one place and "investigate" in the other.
-- **Thresholds are editable** on the Alerts page itself (Watch / Investigate, as percentages), persisted like theme/language (`src/lib/alertSettings.tsx` — a browser-side setting, not a mock-store record; see the file's comment for why).
+- **One set of thresholds, everywhere.** `src/features/campaigns/lib/divergence.ts` holds the delta/tone computation; both the Alerts page and each campaign's own Compare tab call the same functions, so a campaign can't read "in line" in one place and "investigate" in the other.
+- **Thresholds are editable** on the Alerts page itself (Watch / Investigate, as percentages), persisted like theme/language (`src/features/alerts/AlertThresholdsProvider.tsx` — a browser-side setting, not a mock-store record; see the file's comment for why).
 - **Sidebar badge** on the Alerts nav item shows the current investigate-severity count, computed the same way as the page.
 - Admin-only, same as Setup/Connectors/Companies — Karsten's framing was internal monitoring, not something shown to clients.
 
@@ -179,49 +181,17 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 
 ## Structure
 
+The codebase is organised by feature, with a shared UI kit underneath —
+see **[ARCHITECTURE.md](ARCHITECTURE.md)** for the folder layout, the rules
+that keep it that way (enforced by ESLint), and where to put new code.
+
 | Path | What it is |
 |---|---|
-| `src/mock/types.ts` | Shapes mirroring the RFC's `app` / `analytics` / `external` schemas |
-| `src/mock/data.ts` | Deterministic mock generator, per-source metric definitions |
-| `src/mock/store.ts` | The "mock API" — async functions with artificial latency that read/mutate the arrays in `data.ts`. What `src/hooks/*` calls instead of importing data directly |
-| `src/hooks/useCampaigns.ts` | `useCampaigns`, `useCampaign`, `useUpdateCampaign`, clicktag mutations |
-| `src/hooks/useCompanies.ts` | `useCompanies`, `useUsers`, invite/role/delete mutations |
-| `src/hooks/useEmailReports.ts` | `useEmailReports`, enable/disable mutation |
-| `src/hooks/useBenchmarks.ts` | Grouped benchmark stats by dimension (industry/client/market) for the Benchmarks views |
-| `src/hooks/useMediaQuery.ts` | Responsive-breakpoint hook used for layout/sidebar behaviour |
-| `src/components/ui/` | Radix primitives, shadcn-style: `dialog`, `dropdown-menu`, `select`, `alert-dialog`, `drawer` |
-| `src/components/EditCampaignModal.tsx` | Name, status, **primary source**, language — the quick-edit path |
-| `src/components/InviteUserModal.tsx` | Add a user to a company with a role |
-| `src/components/AddClicktagModal.tsx` / `ConfirmDialog.tsx` | Add-clicktag form; shared delete/remove confirmation |
-| `src/components/EmailReportModal.tsx` | Create/edit a scheduled email report — recipients, metrics, cadence |
-| `src/components/ProfileSettingsModal.tsx` | Demo "logged in as" profile editor |
-| `src/components/SourceSwitcher.tsx` | Primary-source strip, Compare tab, per-source freshness |
-| `src/components/Layout.tsx` | Resizable/collapsible sidebar, topbar with refresh/dark/language switches |
-| `src/components/Switches.tsx` | Shared `LanguageSwitch` / `ThemeToggleButton`, reused on auth pages |
-| `src/components/MetricTile.tsx` | The KPI tile reused across Overview, Campaigns, and Benchmarks |
-| `src/components/Avatar.tsx` | User initials/avatar chip, used on Companies and the account menu |
-| `src/components/primitives.tsx` | Shared `Button`/`Card`/`Pill`/`Table`/`Empty`/`Error`/`LoadingState`/`SectionTitle`/`Tooltip`/`SegmentedControl` building blocks |
-| `src/components/RequireAdmin.tsx` / `RequireInternal.tsx` | Route guards — redirect `company_user` / non-internal roles away from gated pages |
-| `src/views/OverviewView.tsx` | Portfolio landing dashboard — KPI tiles, trend chart, role-aware highlight cards |
-| `src/views/CampaignsView.tsx` | TanStack Table: sort, search, column visibility, pagination |
-| `src/views/CampaignDetailView.tsx` | Per-source analytics and the Compare overlay |
-| `src/views/BenchmarksView.tsx` / `BenchmarkDetailView.tsx` | Cross-client ranking vs. portfolio average, percentiles, trend, shareable per-dimension URLs |
-| `src/views/SetupView.tsx` | Salesforce-owned vs app-owned field ownership, incl. primary source |
-| `src/views/ConnectorsView.tsx` | Connector coverage and sync history |
-| `src/views/ReportsView.tsx` | Scheduled report pushes and delivery log |
-| `src/views/CompaniesView.tsx` | Per-company user list — invite, role change, remove |
-| `src/views/AlertsView.tsx` | Portfolio-wide divergence watchlist with editable thresholds |
-| `src/views/auth/` | Login, signup, forgot/reset password, shared `AuthLayout` |
-| `src/lib/session.tsx` | Stands in for Supabase Auth + row-level security scoping |
-| `src/lib/theme.tsx` | Dark-mode context, persisted, toggles a `.dark` class on `<html>` |
-| `src/lib/i18n.tsx` | Language context + `t()` + locale-aware date/time formatters |
-| `src/lib/translations.ts` | The EN/DE dictionary |
-| `src/lib/queryClient.ts` | TanStack Query client + query key registry |
-| `src/lib/profile.tsx` | Demo "logged in as" profile state |
-| `src/lib/alertSettings.tsx` | Watch/Investigate threshold settings, persisted to `localStorage` |
-| `src/lib/divergence.ts` | Shared delta/tone (in line / watch / investigate) calculation, used by both the Compare tab and the Alerts page |
-| `src/lib/benchmarks.ts` | Dimensions, metrics, and percentile/grouping logic behind the Benchmarks views |
-| `src/lib/overview.ts` | Builds the Overview page's summary/trend data |
-| `src/lib/reportMetrics.ts` | The metric list offered when building a scheduled email report |
-| `src/lib/chart.ts` | Shared chart color/axis-style helpers, dark-mode aware |
-| `src/lib/usePageTitle.ts` | Sets the browser tab title per route |
+| `src/app/` | Providers, the route table, sidebar navigation config, the app shell |
+| `src/api/` | Query client + keys, and the mock backend (`mock/data.ts`, `mock/store.ts`) |
+| `src/components/` | Shared, domain-agnostic UI: `ui/`, `form/`, `table/`, `page/`, `display/`, `feedback/`, `charts/`, `theme/` |
+| `src/features/` | One folder per product area — campaigns, overview, clients, benchmarks, alerts, reports, seats, api-access, connectors, auth, session, profile, preferences |
+| `src/hooks/`, `src/lib/` | Generic hooks and pure utilities (formatting, storage, search, sort, export) |
+| `src/i18n/` | Translation provider, `useFormatters`, and the EN/DE dictionaries in `locales/` |
+| `src/config/` | Route paths and localStorage keys |
+| `src/types/` | The domain model shared by the data layer and the features |
