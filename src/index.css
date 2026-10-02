@@ -95,6 +95,17 @@ body {
   background: transparent;
 }
 
+/* Hides the scrollbar while keeping the region scrollable (wheel, trackpad,
+   touch, keyboard). Used on the main content pane, where the always-visible
+   themed bar above just sits next to the top bar without adding anything. */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* The sidebar nav scrolls against a teal background — the default teal thumb
    above would nearly disappear against it, so it gets a lighter thumb here. */
 .sidebar-scroll {

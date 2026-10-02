@@ -1,7 +1,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { cn } from '../../lib/cn';
+import { cn } from '@/lib/cn';
 
 export const Dialog = DialogPrimitive.Root;
 
@@ -9,18 +9,23 @@ export function DialogContent({
   children,
   className,
   onOpenAutoFocus,
+  onInteractOutside,
 }: {
   children: ReactNode;
   className?: string;
   onOpenAutoFocus?: (e: Event) => void;
+  /** Call `preventDefault()` to stop a click on the overlay closing the
+   *  dialog — for content the user can't get back if it's dismissed by accident. */
+  onInteractOutside?: (e: Event) => void;
 }) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-opacity" />
       <DialogPrimitive.Content
         onOpenAutoFocus={onOpenAutoFocus}
+        onInteractOutside={onInteractOutside}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-xl outline-none dark:border-white/10 dark:bg-brame-dark-light',
+          'fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-xl outline-none dark:border-white/10 dark:bg-brame-dark-light',
           className
         )}
       >

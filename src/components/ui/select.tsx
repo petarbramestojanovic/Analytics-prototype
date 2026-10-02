@@ -1,14 +1,18 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { cn } from '@/lib/cn';
 
 export const Select = SelectPrimitive.Root;
 
-export function SelectTrigger({ id, placeholder }: { id?: string; placeholder?: string }) {
+export function SelectTrigger({ id, placeholder, className }: { id?: string; placeholder?: string; className?: string }) {
   return (
     <SelectPrimitive.Trigger
       id={id}
-      className="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100"
+      className={cn(
+        'flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100',
+        className
+      )}
     >
       <SelectPrimitive.Value
         className="min-w-0 flex-1 truncate text-left"
