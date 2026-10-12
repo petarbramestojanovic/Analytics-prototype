@@ -24,7 +24,6 @@ export type MetricKey =
 export interface SourceMeta {
   key: SourceKey;
   label: string;
-  fullLabel: string;
   /** 'live' = real-time (our own instrumentation). 'nightly' = complete
    *  through yesterday only, per RFC §4 rule 3. */
   cadence: 'live' | 'nightly';

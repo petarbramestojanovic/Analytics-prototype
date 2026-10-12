@@ -4,13 +4,14 @@ import { BarChart3, Download } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { usePagination } from '@/hooks/usePagination';
 import { EMPTY_VALUE, fmtCompact, fmtInt, fmtMetric } from '@/lib/format';
 import { exportToXlsx } from '@/lib/exportXlsx';
 import { matchesQuery } from '@/lib/text';
 import { compareValues, toggleSort, type SortState } from '@/lib/sort';
 import { Button, Card, CardFooter, Tabs, Tooltip } from '@/components/ui';
-import { EmptyState, EmptyText, ErrorState, LoadingState } from '@/components/feedback';
+import { EmptyState, EmptyText, ErrorState, PageSkeleton } from '@/components/feedback';
 import { FilterSelect, ListToolbar, Page, PageHeader, SearchInput, SectionTitle } from '@/components/page';
 import { Pagination, SortableTh, Table, TableEmptyRow, Td, Tr } from '@/components/table';
 import { StatGrid, SummaryTile, TextLink } from '@/components/display';
@@ -77,7 +78,7 @@ export function BenchmarksPage() {
       { replace: true }
     );
 
-  const [q, setQ] = useState('');
+  const [q, setQ] = useSearchParamState('q');
   const [sort, setSort] = useState<SortState<SortKey>>({ key: 'impressions', desc: true });
   const { data, isLoading, isError, refetch } = useBenchmarks(dimension);
 
@@ -101,7 +102,7 @@ export function BenchmarksPage() {
     [rows, metric]
   );
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="list" />;
   if (isError || !data) return <ErrorState onRetry={() => refetch()} />;
 
   const overall = data.overall[metric];

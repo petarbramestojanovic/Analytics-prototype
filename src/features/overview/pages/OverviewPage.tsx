@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { BarChart3, LayoutDashboard } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { Button, Card } from '@/components/ui';
-import { EmptyState, ErrorState, LoadingState } from '@/components/feedback';
+import { ButtonLink, Card } from '@/components/ui';
+import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SectionTitle } from '@/components/page';
 import { useSession } from '@/features/session';
 import { buildPortfolioSummary, ChartCard, PortfolioSummaryTiles, useScopedCampaigns } from '@/features/campaigns';
@@ -37,7 +36,7 @@ export function OverviewPage() {
   };
   const { frameBenchmark } = useIndustryBenchmark(undefined, isInternal);
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="dashboard" />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   return (
@@ -82,11 +81,9 @@ export function OverviewPage() {
                 <div className="font-semibold text-brame-dark dark:text-white">{t('overview.benchmarksCta.title')}</div>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('overview.benchmarksCta.body')}</p>
               </div>
-              <Link to={paths.benchmarks()}>
-                <Button variant="primary" icon={<BarChart3 size={14} />}>
+              <ButtonLink to={paths.benchmarks()} variant="primary" icon={<BarChart3 size={14} />}>
                   {t('overview.benchmarksCta.action')}
-                </Button>
-              </Link>
+                </ButtonLink>
             </Card>
           )}
         </>

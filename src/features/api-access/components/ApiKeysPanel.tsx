@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ban, KeyRound } from 'lucide-react';
 import { useFormatters, useI18n } from '@/i18n';
 import { Card, CardHeader, DropdownMenuItem, Pill, type PillTone } from '@/components/ui';
-import { ConfirmDialog, LoadingState } from '@/components/feedback';
+import { ConfirmDialog, TableSkeleton } from '@/components/feedback';
 import { RowActionsMenu, Table, TableEmptyRow, TableScroll, Td, Th } from '@/components/table';
 import type { ApiKey, Seat } from '@/types';
 import { useApiKeys, useRevokeApiKey } from '@/api/hooks/useApiKeys';
@@ -47,7 +47,7 @@ export function ApiKeysPanel({
 
       {isLoading ? (
         <TableScroll className="p-5">
-          <LoadingState compact />
+          <TableSkeleton rows={3} columns={4} />
         </TableScroll>
       ) : (
         <Table className="p-5">

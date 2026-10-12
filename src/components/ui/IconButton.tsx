@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import { focusRing } from './buttonStyles';
 
 const variants = {
   /** Round, bordered — the top bar's refresh / theme controls. */
@@ -28,6 +29,7 @@ export const IconButton = forwardRef<
       className={cn(
         'flex flex-shrink-0 items-center justify-center transition-colors disabled:opacity-60',
         variants[variant],
+        focusRing,
         className
       )}
       {...props}

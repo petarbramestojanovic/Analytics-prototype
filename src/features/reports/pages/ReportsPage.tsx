@@ -5,7 +5,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { usePagination } from '@/hooks/usePagination';
 import { matchesQuery } from '@/lib/text';
 import { Button, Tabs } from '@/components/ui';
-import { ConfirmDialog, LoadingState } from '@/components/feedback';
+import { ConfirmDialog, PageSkeleton } from '@/components/feedback';
 import { ListToolbar, Page, PageHeader, SearchInput } from '@/components/page';
 import { Pagination } from '@/components/table';
 import { EmptyCard } from '@/components/display';
@@ -54,7 +54,7 @@ export function ReportsPage() {
 
   const { paged, pagination } = usePagination(filtered, PAGE_SIZE, [levelFilter, statusFilter, q]);
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="list" />;
 
   return (
     <Page>

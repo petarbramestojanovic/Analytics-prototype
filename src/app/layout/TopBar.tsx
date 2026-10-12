@@ -1,7 +1,8 @@
-import { BarChart3, Building2, Menu, RefreshCw, ShieldCheck } from 'lucide-react';
+import { BarChart3, Building2, Menu, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/i18n';
-import { IconButton, Pill } from '@/components/ui';
+import { cn } from '@/lib/cn';
+import { focusRing, IconButton, Pill } from '@/components/ui';
 import { useScopeLabel, useSession } from '@/features/session';
 import { LanguageSwitch, ThemeToggleButton } from '@/features/preferences';
 
@@ -10,7 +11,7 @@ import { LanguageSwitch, ThemeToggleButton } from '@/features/preferences';
  * controls, and the mobile menu button. Only the mobile menu toggle is a
  * prop, since that state belongs to AppLayout's drawer.
  */
-export function TopBar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
+export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: () => void; onOpenSearch: () => void }) {
   const { seatCategory, isInternal } = useSession();
   const scopeLabel = useScopeLabel();
   const { t } = useI18n();
@@ -41,6 +42,7 @@ export function TopBar({ onOpenMobileMenu }: { onOpenMobileMenu: () => void }) {
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
+          <SearchButton onClick={onOpenSearch} />
           <RefreshDataButton />
           <LanguageSwitch />
           <ThemeToggleButton />
@@ -71,5 +73,35 @@ function RefreshDataButton() {
       onClick={() => queryClient.invalidateQueries()}
       disabled={fetching}
     />
+  );
+}
+
+/** "⌘K" on Apple platforms, "Ctrl K" elsewhere — for the trigger's hint. */
+const SHORTCUT_LABEL =
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
+
+/** Opens the ⌘K palette. A labelled field-like button on wider screens (so
+ *  the shortcut is discoverable), the round icon button on phones. */
+function SearchButton({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <>
+      <IconButton label={t('search.title')} icon={<Search size={14} />} onClick={onClick} className="md:hidden" />
+      <button
+        type="button"
+        onClick={onClick}
+        aria-keyshortcuts="Meta+K Control+K"
+        className={cn(
+          'hidden h-8 w-52 items-center gap-2 rounded-full border border-gray-200 bg-white pl-3 pr-1.5 text-xs text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-500 dark:hover:border-white/20 md:flex',
+          focusRing
+        )}
+      >
+        <Search size={13} />
+        <span className="flex-1 text-left">{t('search.trigger')}</span>
+        <kbd className="rounded-full border border-gray-200 px-1.5 py-0.5 font-sans text-[10px] font-medium text-gray-400 dark:border-white/10">
+          {SHORTCUT_LABEL}
+        </kbd>
+      </button>
+    </>
   );
 }

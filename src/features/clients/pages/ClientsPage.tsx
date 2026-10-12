@@ -10,7 +10,7 @@ import { EMPTY_VALUE, fmtCompact, fmtMetric } from '@/lib/format';
 import { matchesQuery } from '@/lib/text';
 import { compareValues, toggleSort } from '@/lib/sort';
 import { Card, CardFooter, Tabs } from '@/components/ui';
-import { EmptyText, LoadingState } from '@/components/feedback';
+import { EmptyText, TableSkeleton } from '@/components/feedback';
 import { ListToolbar, Page, PageHeader, SearchInput, ToolbarResetButton } from '@/components/page';
 import { Pagination, SortableTh, Table, Td, Th, Tr } from '@/components/table';
 import { TextLink } from '@/components/display';
@@ -20,8 +20,10 @@ import { useCompanies } from '@/api/hooks/useOrganizations';
 
 const PAGE_SIZE = 10;
 
-type LiveFilter = 'all' | 'live';
-type SortKey = 'name' | 'campaigns' | 'live' | 'ctr';
+const LIVE_FILTERS = ['all', 'live'] as const;
+const SORT_KEYS = ['name', 'campaigns', 'live', 'ctr'] as const;
+type LiveFilter = (typeof LIVE_FILTERS)[number];
+type SortKey = (typeof SORT_KEYS)[number];
 
 // Persisted like the Campaigns list's filters — only the explicit "Reset
 // filters" button clears them back to defaults.
@@ -45,7 +47,10 @@ export function ClientsPage() {
   usePageTitle(t('clients.title'));
   const { data: companies = [], isLoading } = useCompanies();
   const { data: allCampaigns = [] } = useCampaigns();
-  const { filters, setFilter, resetFilters, filtersActive } = useListFilters(STORAGE_KEYS.clientsFilters, DEFAULT_FILTERS);
+  const { filters, setFilter, resetFilters, filtersActive } = useListFilters(STORAGE_KEYS.clientsFilters, DEFAULT_FILTERS, {
+    liveFilter: LIVE_FILTERS,
+    sortKey: SORT_KEYS,
+  });
   const { q, liveFilter, sortKey, sortDesc } = filters;
   const sort = { key: sortKey, desc: sortDesc };
   const onSort = (key: SortKey) => {
@@ -105,7 +110,7 @@ export function ClientsPage() {
         </ListToolbar>
 
         {isLoading ? (
-          <LoadingState />
+          <TableSkeleton />
         ) : filtered.length === 0 ? (
           <EmptyText className="py-12">{t('clients.noMatches')}</EmptyText>
         ) : (

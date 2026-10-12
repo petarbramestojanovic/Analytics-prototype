@@ -1,5 +1,6 @@
 import { EMPTY_VALUE, fmtInt } from '@/lib/format';
 import { useTheme } from '@/components/theme';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 /**
  * Chart colours as hex literals, because SVG attributes cannot take Tailwind
@@ -22,6 +23,7 @@ export const CHART_COLORS = {
  */
 export function useAxisStyle() {
   const { theme } = useTheme();
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const textColor = theme === 'dark' ? '#ececec' : '#282929';
   return {
     axis: { stroke: theme === 'dark' ? '#8b8c8c' : '#9ca3af', fontSize: 11 },
@@ -43,6 +45,9 @@ export function useAxisStyle() {
     /** The default hover-highlight rectangle behind a Bar/Area is a light
      *  grey that reads as a jarring white patch in dark mode. */
     cursorFill: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)',
+    /** Spread onto every series as `isAnimationActive` — no grow-in animation
+     *  for users who asked the OS for reduced motion. */
+    animate: !reducedMotion,
   };
 }
 

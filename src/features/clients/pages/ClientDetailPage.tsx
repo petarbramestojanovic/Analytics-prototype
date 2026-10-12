@@ -5,7 +5,7 @@ import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Pill } from '@/components/ui';
-import { LoadingState } from '@/components/feedback';
+import { PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader } from '@/components/page';
 import { SummaryTile } from '@/components/display';
 import { buildPortfolioSummary, ChartCard, computePortfolioAlerts, PortfolioSummaryTiles, useCampaigns } from '@/features/campaigns';
@@ -49,7 +49,7 @@ export function ClientDetailPage() {
   // what the Alerts page already shows.
   const alerts = useMemo(() => computePortfolioAlerts(campaigns, thresholds), [campaigns, thresholds]);
 
-  if (companiesLoading || campaignsLoading) return <LoadingState />;
+  if (companiesLoading || campaignsLoading) return <PageSkeleton variant="dashboard" />;
 
   if (!company) {
     return (

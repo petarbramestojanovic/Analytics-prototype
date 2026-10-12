@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
-import { ErrorState, LoadingState } from '@/components/feedback';
+import { ErrorState, TableSkeleton } from '@/components/feedback';
 import { Eyebrow } from '@/components/display';
 import { LowSamplePill, useBenchmarks, type BenchmarkGroup, type Dimension } from '@/features/benchmarks';
 import { HeadlineCtr } from './HeadlineCtr';
@@ -25,7 +25,7 @@ export function TopGroupCard({ dimension, query }: { dimension: Dimension; query
   const overallCtr = data?.overall.ctr?.avg ?? null;
 
   let body: ReactNode;
-  if (isLoading) body = <LoadingState compact />;
+  if (isLoading) body = <TableSkeleton rows={3} columns={2} />;
   else if (isError || !data) body = <ErrorState onRetry={() => refetch()} compact />;
   else if (!top) body = <p className="text-sm text-gray-500 dark:text-gray-400">{t('overview.topNone')}</p>;
   else

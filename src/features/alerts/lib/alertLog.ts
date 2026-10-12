@@ -6,9 +6,9 @@ import { evaluateAlertRules } from './ruleEngine';
 
 /** Sentinel `ruleId` for rows produced by the fixed default thresholds, so
  *  the log can tell them apart from custom-rule rows without a separate flag. */
-export const DEFAULT_RULE_ID = '__default__';
+const DEFAULT_RULE_ID = '__default__';
 
-export type AlertSeverity = 'watch' | 'investigate';
+type AlertSeverity = 'watch' | 'investigate';
 
 export interface AlertLogRow {
   key: string;

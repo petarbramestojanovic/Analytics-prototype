@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { LoadingState } from '@/components/feedback';
+import { PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page } from '@/components/page';
 import { useSession } from '@/features/session';
 import { useCampaign } from '@/api/hooks/useCampaigns';
@@ -27,7 +27,7 @@ export function CampaignDetailPage() {
   const campaign = fetched && canSeeCampaign(fetched, session) ? fetched : undefined;
   usePageTitle(campaign?.name);
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="dashboard" />;
 
   if (!campaign) {
     return (

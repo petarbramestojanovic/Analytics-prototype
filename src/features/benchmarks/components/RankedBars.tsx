@@ -17,7 +17,7 @@ export function RankedBars({
   overallPct: number | null;
   metric: BenchmarkMetric;
 }) {
-  const { axis, grid, tooltipStyle, tooltipItemStyle, tooltipLabelStyle, cursorFill } = useAxisStyle();
+  const { axis, grid, tooltipStyle, tooltipItemStyle, tooltipLabelStyle, cursorFill, animate } = useAxisStyle();
   // Bars need room to stay legible as buckets multiply; clients especially.
   const height = Math.max(220, data.length * 34);
 
@@ -28,7 +28,7 @@ export function RankedBars({
           <CartesianGrid strokeDasharray="3 3" stroke={grid} horizontal={false} />
           <XAxis
             type="number"
-            tickFormatter={(v: number) => `${v.toFixed(1)}%`}
+            tickFormatter={(v: number) => fmtMetric(metric, v / 100)}
             tick={axis}
             tickLine={false}
             axisLine={false}
@@ -48,6 +48,7 @@ export function RankedBars({
           {/* fill here is what Recharts uses to color the tooltip's item text;
               the per-Cell fill below only affects each bar's own paint. */}
           <Bar
+            isAnimationActive={animate}
             dataKey="value"
             fill={CHART_COLORS.teal}
             radius={[0, 4, 4, 0]}

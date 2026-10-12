@@ -41,6 +41,7 @@ export interface SeatMember {
   email: string;
   role: SeatRole;
   status: InviteStatus;
-  lastSeen: string;
+  /** `null` until an invitee first signs in. */
+  lastSeenAt: string | null;
 }
 

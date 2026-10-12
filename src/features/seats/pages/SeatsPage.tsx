@@ -3,10 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { usePagination } from '@/hooks/usePagination';
 import { matchesQuery } from '@/lib/text';
 import { Button, Card, CardFooter, Tabs } from '@/components/ui';
-import { EmptyText, LoadingState } from '@/components/feedback';
+import { EmptyText, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SearchInput } from '@/components/page';
 import { Pagination } from '@/components/table';
 import { ListItemButton } from '@/components/display';
@@ -43,7 +44,7 @@ export function SeatsPage() {
   const { data: seats, isLoading } = useSeats();
   const { data: allMembers = [] } = useSeatMembers();
   const [creating, setCreating] = useState(false);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useSearchParamState('q');
 
   // Both fall back to the deep-linked seat (e.g. from a client's Users tile)
   // reactively rather than in the useState initializer — `seats` is still
@@ -67,17 +68,26 @@ export function SeatsPage() {
 
   const selectSeat = (seat: Seat) => {
     setSelectedId(seat.id);
-    setParams({ seat: seat.id }, { replace: true });
+    // Keep the search (?q=) — picking a result shouldn't clear the list.
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('seat', seat.id);
+        return next;
+      },
+      { replace: true }
+    );
   };
 
   const changeCategory = (next: SeatCategory) => {
     setActiveCategory(next);
-    setQ('');
     setSelectedId(undefined);
+    // One URL write that clears both ?seat= and the ?q= search — a separate
+    // setQ('') in the same tick would race this and lose.
     setParams({}, { replace: true });
   };
 
-  if (isLoading || !seats) return <LoadingState />;
+  if (isLoading || !seats) return <PageSkeleton variant="list" />;
 
   return (
     <Page>
@@ -136,11 +146,9 @@ export function SeatsPage() {
         onOpenChange={setCreating}
         onCreated={(seatId) => {
           const seat = seats.find((s) => s.id === seatId);
-          if (seat) {
-            setActiveCategory(seat.category);
-            setQ('');
-          }
+          if (seat) setActiveCategory(seat.category);
           setSelectedId(seatId);
+          // Replaces the whole query, so the search is cleared too.
           setParams({ seat: seatId }, { replace: true });
         }}
       />

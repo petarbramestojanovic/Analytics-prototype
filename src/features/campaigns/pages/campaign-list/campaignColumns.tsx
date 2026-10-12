@@ -129,6 +129,6 @@ export function campaignExportColumns(t: TranslateFn, showInternal: boolean): Ex
     { key: 'ctr', header: t('metric.ctr.label'), format: metric('ctr') },
     { key: 'viewability', header: t('metric.viewability.label'), format: metric('viewability') },
     { key: 'engagementRate', header: t('metric.engagementRate.label'), format: metric('engagementRate') },
-    { key: 'status', header: 'Status', format: (c) => t(`status.${c.status}`) },
+    { key: 'status', header: t('seats.col.status'), format: (c) => t(`status.${c.status}`) },
   ];
 }

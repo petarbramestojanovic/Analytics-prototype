@@ -83,7 +83,7 @@ export function CtaCard({ campaign }: { campaign: Campaign }) {
 
 export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; showEngagement: boolean }) {
   const { t } = useI18n();
-  const { axis, grid, cursorFill, tooltipStyle } = useAxisStyle();
+  const { axis, grid, cursorFill, tooltipStyle, animate } = useAxisStyle();
   return (
     <Card>
       <SectionTitle hint={t('detail.devicesHint')}>{t('detail.devicesTitle')}</SectionTitle>
@@ -94,7 +94,7 @@ export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; 
             <XAxis type="number" tickFormatter={fmtCompact} tick={axis} tickLine={false} axisLine={false} />
             <YAxis type="category" dataKey="device" tick={axis} tickLine={false} axisLine={false} width={60} />
             <RTooltip cursor={{ fill: cursorFill }} formatter={tooltipIntOnly} contentStyle={tooltipStyle} />
-            <Bar dataKey="impressions" name={t('detail.legendImpressions')} fill={CHART_COLORS.teal} radius={[0, 4, 4, 0]} />
+            <Bar isAnimationActive={animate} dataKey="impressions" name={t('detail.legendImpressions')} fill={CHART_COLORS.teal} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -5,7 +5,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { usePagination } from '@/hooks/usePagination';
 import { matchesQuery } from '@/lib/text';
 import { Card, CardFooter, Pill } from '@/components/ui';
-import { EmptyText, LoadingState } from '@/components/feedback';
+import { EmptyText, PageSkeleton } from '@/components/feedback';
 import { FilterSelect, Page, PageHeader, SearchInput } from '@/components/page';
 import { Pagination } from '@/components/table';
 import { ListItemButton } from '@/components/display';
@@ -42,7 +42,7 @@ export function CampaignSetupPage() {
 
   const campaign = campaigns.find((c) => c.id === params.get('campaign')) ?? campaigns[0];
 
-  if (isLoading || !campaign) return <LoadingState />;
+  if (isLoading || !campaign) return <PageSkeleton variant="list" />;
 
   return (
     <Page className="pb-3">

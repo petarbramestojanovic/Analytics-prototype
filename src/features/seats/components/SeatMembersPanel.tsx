@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Mail, ShieldCheck, ShieldOff, Trash2, UserPlus } from 'lucide-react';
-import { useI18n } from '@/i18n';
+import { useFormatters, useI18n } from '@/i18n';
 import { Button, Card, CardHeader, DropdownMenuItem } from '@/components/ui';
-import { ConfirmDialog, LoadingState } from '@/components/feedback';
+import { ConfirmDialog, TableSkeleton } from '@/components/feedback';
 import { RowActionsMenu, Table, TableEmptyRow, TableScroll, Td, Th } from '@/components/table';
 import type { Seat, SeatMember } from '@/types';
 import {
@@ -45,7 +45,7 @@ export function SeatMembersPanel({ seat, canManage }: { seat: Seat; canManage: b
 
       {isLoading ? (
         <TableScroll className="p-5">
-          <LoadingState compact />
+          <TableSkeleton rows={3} columns={4} />
         </TableScroll>
       ) : (
         <Table className="p-5">
@@ -72,7 +72,7 @@ export function SeatMembersPanel({ seat, canManage }: { seat: Seat; canManage: b
                   <InviteStatusPill status={m.status} />
                 </Td>
                 <Td align="right" className="text-gray-500 dark:text-gray-400">
-                  {m.lastSeen}
+                  <LastSeen at={m.lastSeenAt} />
                 </Td>
                 {canManage && (
                   <Td align="right" className="w-8">
@@ -137,4 +137,11 @@ function MemberActions({ member, onRemove }: { member: SeatMember; onRemove: () 
       </DropdownMenuItem>
     </RowActionsMenu>
   );
+}
+
+function LastSeen({ at }: { at: string | null }) {
+  const { t } = useI18n();
+  const { relativeTime, fmtDateLong, fmtTime } = useFormatters();
+  if (!at) return <>{t('companies.notSignedIn')}</>;
+  return <span title={`${fmtDateLong(at)}, ${fmtTime(at)}`}>{relativeTime(at)}</span>;
 }

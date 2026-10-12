@@ -4,7 +4,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSimulatedAction } from '@/hooks/useSimulatedAction';
 import { EMPTY_VALUE, fmtDuration, fmtInt } from '@/lib/format';
 import { Button, Card, Pill, ProgressBar } from '@/components/ui';
-import { LoadingState } from '@/components/feedback';
+import { PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
 import { LivePill, SOURCE_KEYS, useCampaigns } from '@/features/campaigns';
@@ -33,7 +33,7 @@ export function ConnectorsPage() {
 
   const sourceLabel = (source: SyncRun['source']) => t(`connectors.source.${source}`);
 
-  if (isLoading || runsLoading) return <LoadingState />;
+  if (isLoading || runsLoading) return <PageSkeleton variant="list" />;
 
   const started = campaigns.filter((c) => c.sources[c.primarySource] || c.status !== 'scheduled');
   const salesforceRun = lastRunFor(runs, 'salesforce');

@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { ArrowRight, Cable, Settings2, Unplug } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useFormatters, useI18n } from '@/i18n';
-import { Button, Card, Tabs } from '@/components/ui';
+import { Button, ButtonLink, Card, Tabs } from '@/components/ui';
 import { EmptyState } from '@/components/feedback';
 import { useSession } from '@/features/session';
 import { useIndustryBenchmark } from '@/features/benchmarks';
@@ -59,15 +58,13 @@ export function SourceView({
     return (
       <EmptyState
         icon={<Unplug size={32} />}
-        title={t('detail.noDataTitle', { source: meta.fullLabel })}
+        title={t('detail.noDataTitle', { source: t(`connectors.source.${meta.key}`) })}
         body={`${reason} ${t('detail.noDataSuffix')}`}
         action={
           isAdmin ? (
-            <Link to={paths.setup(campaign.id)}>
-              <Button variant="primary" icon={<Settings2 size={14} />}>
+            <ButtonLink to={paths.setup(campaign.id)} variant="primary" icon={<Settings2 size={14} />}>
                 {t('detail.openSetup')}
-              </Button>
-            </Link>
+              </ButtonLink>
           ) : undefined
         }
       />
@@ -95,7 +92,7 @@ export function SourceView({
 
       <div>
         <div className="mb-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <span>{t('detail.showingMetrics', { count: meta.measures.length, source: meta.fullLabel })}</span>
+          <span>{t('detail.showingMetrics', { count: meta.measures.length, source: t(`connectors.source.${meta.key}`) })}</span>
           {meta.measures.length < METRIC_KEYS.length && (
             <span className="text-gray-400 dark:text-gray-500">{t('detail.metricsNotTracked')}</span>
           )}
@@ -116,7 +113,7 @@ export function SourceView({
       <Card>
         <TrendChart
           title={t('detail.deliveryTitle')}
-          hint={t('detail.deliveryHint', { source: meta.fullLabel })}
+          hint={t('detail.deliveryHint', { source: t(`connectors.source.${meta.key}`) })}
           daily={trendData}
           defaultMetrics={['impressions', 'delivery']}
           frameBenchmark={benchmarks.frameBenchmark}
@@ -138,7 +135,7 @@ export function SourceView({
             <Cable size={18} className="mt-0.5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
             <div>
               <h3 className="text-sm font-semibold text-brame-dark dark:text-gray-100">
-                {t('detail.noInUnitTitle', { source: meta.fullLabel })}
+                {t('detail.noInUnitTitle', { source: t(`connectors.source.${meta.key}`) })}
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('detail.noInUnitBody')}</p>
               {campaign.sources.custom && (

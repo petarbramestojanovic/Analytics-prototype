@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import { Download, Plus, ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { usePagination } from '@/hooks/usePagination';
 import { exportToXlsx } from '@/lib/exportXlsx';
 import { fmtPct } from '@/lib/format';
 import { matchesQuery } from '@/lib/text';
 import { Button, Card, Tabs } from '@/components/ui';
-import { ConfirmDialog, EmptyState, EmptyText, LoadingState } from '@/components/feedback';
+import { ConfirmDialog, EmptyState, EmptyText, PageSkeleton } from '@/components/feedback';
 import { FilterSelect, Page, PageHeader, SearchInput, SectionTitle } from '@/components/page';
 import { Pagination } from '@/components/table';
 import { EmptyCard } from '@/components/display';
@@ -39,11 +40,14 @@ export function AlertsPage() {
   const [view, setView] = useState<'log' | 'rules'>('log');
   const { rows, isLoading } = useAlertLog();
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="list" />;
 
   return (
     <Page>
-      <PageHeader title={t('alerts.title')} subtitle={t('alerts.subtitle')} />
+      <div className="mb-6 grid grid-cols-1 items-center gap-4 lg:grid-cols-12">
+        <PageHeader title={t('alerts.title')} subtitle={t('alerts.subtitle')} className="mb-0 lg:col-span-6" />
+        {view === 'log' && <ThresholdSettings className="lg:col-span-6" />}
+      </div>
 
       <Tabs
         fill
@@ -51,21 +55,14 @@ export function AlertsPage() {
         value={view}
         onChange={setView}
         groupLabel={t('alerts.title')}
-        className="mb-6 w-[15%] min-w-[220px]"
+        className="mb-6 w-[220px]"
         options={[
           { value: 'log', label: t('alerts.tab.log') },
           { value: 'rules', label: t('alerts.tab.rules') },
         ]}
       />
 
-      {view === 'log' ? (
-        <div className="space-y-5">
-          <ThresholdSettings />
-          <AlertLog rows={rows} />
-        </div>
-      ) : (
-        <AlertRules />
-      )}
+      {view === 'log' ? <AlertLog rows={rows} /> : <AlertRules />}
     </Page>
   );
 }
@@ -74,8 +71,8 @@ function AlertLog({ rows: allRows }: { rows: ReturnType<typeof useAlertLog>['row
   const { t } = useI18n();
   const { isInternal } = useSession();
   const { data: campaigns = [] } = useCampaigns();
-  const [q, setQ] = useState('');
-  const [companyFilter, setCompanyFilter] = useState('all');
+  const [q, setQ] = useSearchParamState('q');
+  const [companyFilter, setCompanyFilter] = useSearchParamState('company', 'all');
 
   const rows = useMemo(
     () =>

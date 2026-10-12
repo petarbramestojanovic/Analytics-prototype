@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom';
 import { Settings2 } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useFormatters, useI18n } from '@/i18n';
-import { Button, Pill } from '@/components/ui';
+import { ButtonLink, Pill } from '@/components/ui';
 import { PageHeader } from '@/components/page';
 import { useSession } from '@/features/session';
 import type { Campaign } from '@/types';
@@ -50,9 +49,7 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
         // Setup stays Brame-operational — not a client permission,
         // regardless of that client's own Admin/Viewer role.
         isAdmin && (
-          <Link to={paths.setup(campaign.id)}>
-            <Button icon={<Settings2 size={14} />}>{t('detail.setup')}</Button>
-          </Link>
+          <ButtonLink to={paths.setup(campaign.id)} icon={<Settings2 size={14} />}>{t('detail.setup')}</ButtonLink>
         )
       }
     />

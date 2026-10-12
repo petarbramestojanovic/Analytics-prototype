@@ -1,6 +1,6 @@
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { LoadingState } from '@/components/feedback';
+import { PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader } from '@/components/page';
 import { NoSeatState } from '../components/NoSeatState';
 import { SeatMembersPanel } from '../components/SeatMembersPanel';
@@ -16,7 +16,7 @@ export function MyUsersPage() {
   usePageTitle(t('seats.myUsersTitle'));
   const { seat, isLoading } = useCurrentSeat();
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="list" />;
 
   return (
     <Page>

@@ -4,7 +4,7 @@ import { useFormatters, useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { fmtCompact, fmtMetric } from '@/lib/format';
 import { Card, CardHeader, Pill } from '@/components/ui';
-import { LoadingState } from '@/components/feedback';
+import { PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader, SectionTitle } from '@/components/page';
 import { Table, Td, Th, Tr } from '@/components/table';
 import { StatGrid, TextLink } from '@/components/display';
@@ -43,7 +43,7 @@ export function BenchmarkDetailPage() {
 
   const backTo = paths.benchmarks({ dimension, metric });
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="dashboard" />;
 
   if (!data) {
     return (

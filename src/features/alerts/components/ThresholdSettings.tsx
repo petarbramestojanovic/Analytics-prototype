@@ -3,26 +3,32 @@ import { TriangleAlert } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { Card, Input } from '@/components/ui';
-import { FieldLabel, FieldMessage } from '@/components/form';
+import { FieldMessage } from '@/components/form';
 import { useAlertThresholds } from '../alertThresholdsContext';
 
 /** The default watch/investigate thresholds every campaign is checked
- *  against — the same pair the Compare tab reads. */
-export function ThresholdSettings() {
+ *  against — the same pair the Compare tab reads. A compact one-row strip
+ *  that sits beside the page's tabs. */
+export function ThresholdSettings({ className }: { className?: string }) {
   const { t } = useI18n();
   const { watch, investigate, setWatch, setInvestigate } = useAlertThresholds();
 
   return (
-    <Card className="flex flex-1 flex-col gap-4">
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-between">
+    <Card padded={false} className={cn('px-4 py-2.5', className)}>
+      <div className="flex items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-brame-dark dark:text-gray-100">
-            <TriangleAlert size={15} className="shrink-0 text-amber-500" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-brame-dark dark:text-gray-100">
+            <TriangleAlert size={13} className="shrink-0 text-amber-500" />
             {t('alerts.settingsTitle')}
           </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('alerts.settingsHint')}</p>
+          <p
+            title={t('alerts.settingsHint')}
+            className="mt-0.5 line-clamp-2 text-[11px] text-gray-500 dark:text-gray-400"
+          >
+            {t('alerts.settingsHint')}
+          </p>
         </div>
-        <div className="flex shrink-0 flex-wrap items-start gap-3">
+        <div className="flex shrink-0 items-center gap-4">
           <PercentInput label={t('alerts.watchThreshold')} value={watch} onChange={setWatch} dotClassName="bg-amber-400" />
           <PercentInput
             label={t('alerts.investigateThreshold')}
@@ -60,12 +66,12 @@ function PercentInput({
   }, [displayValue, value]);
 
   return (
-    <label className="block">
-      <FieldLabel className="whitespace-nowrap">
+    <label className="flex items-center gap-2">
+      <span className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-gray-600 dark:text-gray-300">
         <span className={cn('h-2 w-2 rounded-full', dotClassName)} />
         {label}
-      </FieldLabel>
-      <div className="relative w-28">
+      </span>
+      <div className="relative w-20">
         <Input
           type="number"
           min={0}
@@ -80,9 +86,9 @@ function PercentInput({
             if (!Number.isNaN(n)) onChange(Math.max(0, n) / 100);
           }}
           onBlur={() => setRaw(displayValue)}
-          className="pr-8"
+          className="py-1.5 pr-7"
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
       </div>
     </label>
   );

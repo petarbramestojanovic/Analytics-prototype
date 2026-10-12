@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn';
 import { CardFooter, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui';
 import { Pagination } from './Pagination';
 import { tablePagination } from './tablePagination';
+import { ariaSort } from './ariaSort';
 import { SortButton, Table, TableEmptyRow, Td, Th } from './Table';
 
 /**
@@ -42,6 +43,7 @@ export function DataTable<T>({
                   <Th
                     key={header.id}
                     align={align(header.column.id)}
+                    sort={header.column.getCanSort() ? ariaSort(header.column.getIsSorted()) : undefined}
                     className={cn(sticky(header.column.id) && 'sticky right-0 bg-white dark:bg-brame-dark-light')}
                   >
                     {header.column.getCanSort() ? (

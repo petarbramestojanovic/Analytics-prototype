@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   locale: 'brame-prototype-locale',
   sidebarWidth: 'brame-sidebar-width',
   sidebarCollapsed: 'brame-sidebar-collapsed',
+  sidebarGroups: 'brame-sidebar-groups',
   profileName: 'brame-prototype-profile-name',
   profileAvatar: 'brame-prototype-profile-avatar',
   alertWatch: 'brame-prototype-alert-watch',
@@ -18,6 +19,7 @@ export const STORAGE_KEYS = {
   notifAlertBreach: 'brame-prototype-notif-alert-breach',
   notifReportDelivery: 'brame-prototype-notif-report-delivery',
   campaignsFilters: 'brame-prototype-campaigns-filters',
+  campaignsColumns: 'brame-prototype-campaigns-columns',
   clientsFilters: 'brame-prototype-clients-filters',
 } as const;
 

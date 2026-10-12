@@ -57,7 +57,7 @@ export function SourceSwitcher({
             tab={key}
             active={isActive}
             onClick={() => onChange(key)}
-            ariaLabel={`${meta.fullLabel} — ${role}${missing ? `, ${t('source.noConnector')}` : ''}`}
+            ariaLabel={`${t(`connectors.source.${meta.key}`)} — ${role}${missing ? `, ${t('source.noConnector')}` : ''}`}
             title={
               <>
                 {isPrimary && (

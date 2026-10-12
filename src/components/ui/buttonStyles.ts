@@ -1,5 +1,10 @@
 import { cn } from '@/lib/cn';
 
+/** Keyboard focus ring shared by every interactive primitive on light/dark
+ *  surfaces (the teal sidebar uses its own lime ring). */
+export const focusRing =
+  'outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/40 dark:focus-visible:ring-brame-turquoise/50';
+
 const variants = {
   primary: 'bg-brame-teal text-white hover:bg-brame-teal-dark border-brame-teal',
   secondary:
@@ -21,6 +26,7 @@ export type ButtonSize = keyof typeof sizes;
 export function buttonClasses(variant: ButtonVariant = 'secondary', size: ButtonSize = 'md') {
   return cn(
     'inline-flex items-center gap-1.5 rounded-lg border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+    focusRing,
     variants[variant],
     sizes[size]
   );

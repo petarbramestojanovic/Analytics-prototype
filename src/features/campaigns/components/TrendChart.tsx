@@ -70,7 +70,7 @@ export function TrendChart({
 }) {
   const { t } = useI18n();
   const { fmtDate, fmtDateLong } = useFormatters();
-  const { axis, grid, tooltipStyle } = useAxisStyle();
+  const { axis, grid, tooltipStyle, animate } = useAxisStyle();
   const [selected, setSelected] = useState<TrendMetric[]>(defaultMetrics);
   const [showFrame, setShowFrame] = useState(false);
   const [showIndustry, setShowIndustry] = useState(false);
@@ -157,7 +157,7 @@ export function TrendChart({
                   yAxisId="pct"
                   hide={pctMetrics.length === 0}
                   orientation="right"
-                  tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`}
+                  tickFormatter={(v: number) => fmtPct(v, 0)}
                   tick={axis}
                   tickLine={false}
                   axisLine={false}
@@ -177,6 +177,7 @@ export function TrendChart({
                 {LINE_ORDER.filter((m) => selected.includes(m)).map((m) => (
                   <Line
                     key={m}
+                    isAnimationActive={animate}
                     yAxisId={m === 'impressions' ? 'count' : 'pct'}
                     type="monotone"
                     dataKey={m}

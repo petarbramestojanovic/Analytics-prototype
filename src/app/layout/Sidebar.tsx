@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Activity, ChevronLeft, ChevronsUpDown, LogOut, UserCog } from 'lucide-react';
 import { paths } from '@/config/paths';
+import { STORAGE_KEYS } from '@/config/storageKeys';
+import { usePersistentState } from '@/hooks/usePersistentState';
+import { codecs } from '@/lib/storage';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import {
@@ -16,7 +19,7 @@ import { BrandMark } from '@/components/display';
 import { hasAccess, useSession, ViewingAsSwitcher } from '@/features/session';
 import { ProfileSettingsModal, useCurrentUser } from '@/features/profile';
 import { useAlertLog } from '@/features/alerts';
-import { NAV_SECTIONS } from '../navigation';
+import { NAV_SECTIONS, type NavSectionConfig } from '../navigation';
 import { NavItem, NavSection } from './NavItem';
 
 /**
@@ -34,6 +37,23 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
   const badges = { alerts: investigateCount };
 
   const sections = NAV_SECTIONS.filter((s) => hasAccess(session, s.access));
+  const [openGroups, setOpenGroups] = usePersistentState<Record<string, boolean>>(
+    STORAGE_KEYS.sidebarGroups,
+    {},
+    codecs.json<Record<string, boolean>>()
+  );
+  const toggleGroup = (key: string) => setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  // Unfold the group holding the current page, so the active item is never
+  // hidden. Only on navigation — the user can still fold it afterwards.
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const active = NAV_SECTIONS.find((s) => s.collapsible && s.items.some((item) => matchesPath(item.to, pathname)));
+    if (active) setOpenGroups((prev) => (prev[active.labelKey] ? prev : { ...prev, [active.labelKey]: true }));
+  }, [pathname, setOpenGroups]);
+
+  const sectionBadge = (section: NavSectionConfig) =>
+    section.items.reduce((sum, item) => sum + (item.badge ? badges[item.badge] : 0), 0);
 
   return (
     <>
@@ -64,9 +84,18 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
         )}
       </div>
 
-      <nav className="sidebar-scroll flex-1 overflow-y-auto overflow-x-hidden py-4">
+      <nav className="sidebar-scroll flex-1 overflow-y-auto overflow-x-hidden py-3">
         {sections.map((section, i) => (
-          <NavSection key={section.labelKey} label={t(section.labelKey)} collapsed={collapsed} first={i === 0}>
+          <NavSection
+            key={section.labelKey}
+            label={t(section.labelKey)}
+            collapsed={collapsed}
+            first={i === 0}
+            collapsible={section.collapsible}
+            open={!section.collapsible || !!openGroups[section.labelKey]}
+            onToggle={() => toggleGroup(section.labelKey)}
+            badge={sectionBadge(section)}
+          >
             {section.items.map((item) => (
               <NavItem
                 key={item.to}
@@ -88,6 +117,13 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
       <AccountMenu collapsed={collapsed} />
     </>
   );
+}
+
+/** Same prefix rule NavLink uses for its active state, minus any query string
+ *  (e.g. `paths.setup()` vs. `/admin/setup?campaign=…`). */
+function matchesPath(to: string, pathname: string) {
+  const base = to.split('?')[0];
+  return pathname === base || pathname.startsWith(`${base}/`);
 }
 
 function AccountMenu({ collapsed }: { collapsed: boolean }) {

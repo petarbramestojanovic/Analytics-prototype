@@ -215,17 +215,3 @@ export function groupBenchmarks(pool: BenchmarkCampaign[], dimension: Dimension,
 export function overallStats(pool: BenchmarkCampaign[], now: Date): Record<BenchmarkMetric, Stats | null> {
   return statsFor(withinWindow(pool, now));
 }
-
-export type PerformanceTier = 'top' | 'aboveAvg' | 'average' | 'belowAvg';
-
-/** Where one campaign sits in its own bucket's distribution. */
-export function performanceTier(
-  value: number | null,
-  stats: Pick<Stats, 'p50' | 'p75' | 'p90'> | null
-): PerformanceTier | null {
-  if (value === null || !stats) return null;
-  if (value >= stats.p90) return 'top';
-  if (value >= stats.p75) return 'aboveAvg';
-  if (value >= stats.p50) return 'average';
-  return 'belowAvg';
-}

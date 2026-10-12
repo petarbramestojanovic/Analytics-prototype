@@ -163,3 +163,18 @@ body {
 .drawer-content[data-state='closed'] {
   animation: drawer-content-out 200ms ease-in forwards;
 }
+
+/* Users who ask the OS for reduced motion get instant state changes instead
+   of slides, fades and pulses — the sliding tab indicator, drawer, sidebar
+   groups and skeleton pulse included. Charts opt out separately (Recharts
+   animates in JS; see useAxisStyle's `animate`). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

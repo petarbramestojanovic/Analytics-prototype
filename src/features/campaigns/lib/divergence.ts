@@ -15,7 +15,7 @@ export interface Thresholds {
   investigate: number;
 }
 
-export type DivergenceTone = 'green' | 'amber' | 'red';
+type DivergenceTone = 'green' | 'amber' | 'red';
 export type DivergenceRead = 'inLine' | 'watch' | 'investigate';
 
 export interface DivergenceRow {

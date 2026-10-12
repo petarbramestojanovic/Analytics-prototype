@@ -1,7 +1,9 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
+import { focusRing } from './buttonStyles';
 
 export const Dialog = DialogPrimitive.Root;
 
@@ -18,6 +20,7 @@ export function DialogContent({
    *  dialog — for content the user can't get back if it's dismissed by accident. */
   onInteractOutside?: (e: Event) => void;
 }) {
+  const { t } = useI18n();
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-opacity" />
@@ -30,7 +33,14 @@ export function DialogContent({
         )}
       >
         {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300">
+        <DialogPrimitive.Close
+          aria-label={t('common.close')}
+          title={t('common.close')}
+          className={cn(
+            'absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300',
+            focusRing
+          )}
+        >
           <X size={16} />
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>

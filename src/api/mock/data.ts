@@ -157,8 +157,8 @@ export const agencies: Agency[] = [
 // creates one from the Seats page.
 // ---------------------------------------------------------------------------
 
-export const ADMIN_SEAT_ID = 'seat-admin';
-export const BRAME_SEAT_ID = 'seat-brame';
+const ADMIN_SEAT_ID = 'seat-admin';
+const BRAME_SEAT_ID = 'seat-brame';
 
 export function seatIdForCompany(companyId: string): string {
   return `seat-client-${companyId}`;
@@ -175,68 +175,67 @@ export const seats: Seat[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Seat members — per-seat Admin/Viewer roles. lastSeen is mock record
-// content (like a log line), not UI chrome, so it stays English regardless
-// of the language switch.
+// Seat members — per-seat Admin/Viewer roles. lastSeenAt is a timestamp on
+// the pinned clock (lib/clock), rendered relative and translated by the UI.
 // ---------------------------------------------------------------------------
 
 export const seatMembers: SeatMember[] = [
-  { id: 'm-admin-1', seatId: ADMIN_SEAT_ID, name: 'Alex Weber', email: 'alex.weber@brame.io', role: 'admin', status: 'accepted', lastSeen: 'today, 09:20' },
-  { id: 'm-brame-1', seatId: BRAME_SEAT_ID, name: 'Nadia Brunner', email: 'nadia.brunner@brame.io', role: 'admin', status: 'accepted', lastSeen: 'today, 08:47' },
+  { id: 'm-admin-1', seatId: ADMIN_SEAT_ID, name: 'Alex Weber', email: 'alex.weber@brame.io', role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T09:20:00+02:00' },
+  { id: 'm-brame-1', seatId: BRAME_SEAT_ID, name: 'Nadia Brunner', email: 'nadia.brunner@brame.io', role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T08:47:00+02:00' },
 
-  { id: 'u-1', name: 'Petra Lang', email: 'p.lang@migros.ch', seatId: seatIdForCompany('c-migros'), role: 'admin', status: 'accepted', lastSeen: 'today, 08:41' },
-  { id: 'u-2', name: 'Tobias Frei', email: 't.frei@migros.ch', seatId: seatIdForCompany('c-migros'), role: 'viewer', status: 'accepted', lastSeen: '3 d ago' },
-  { id: 'u-2b', name: 'Corinne Hess', email: 'c.hess@migros.ch', seatId: seatIdForCompany('c-migros'), role: 'viewer', status: 'accepted', lastSeen: 'today, 10:03' },
+  { id: 'u-1', name: 'Petra Lang', email: 'p.lang@migros.ch', seatId: seatIdForCompany('c-migros'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T08:41:00+02:00' },
+  { id: 'u-2', name: 'Tobias Frei', email: 't.frei@migros.ch', seatId: seatIdForCompany('c-migros'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-05T14:00:00+02:00' },
+  { id: 'u-2b', name: 'Corinne Hess', email: 'c.hess@migros.ch', seatId: seatIdForCompany('c-migros'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T07:03:00+02:00' },
 
-  { id: 'u-3', name: 'Marc Bühler', email: 'm.buehler@swisscom.com', seatId: seatIdForCompany('c-swisscom'), role: 'admin', status: 'accepted', lastSeen: 'today, 07:15' },
-  { id: 'u-3b', name: 'Sandra Keller', email: 's.keller@swisscom.com', seatId: seatIdForCompany('c-swisscom'), role: 'viewer', status: 'accepted', lastSeen: 'yesterday' },
-  { id: 'u-3c', name: 'Dominik Wyss', email: 'd.wyss@swisscom.com', seatId: seatIdForCompany('c-swisscom'), role: 'viewer', status: 'accepted', lastSeen: '6 d ago' },
+  { id: 'u-3', name: 'Marc Bühler', email: 'm.buehler@swisscom.com', seatId: seatIdForCompany('c-swisscom'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T07:15:00+02:00' },
+  { id: 'u-3b', name: 'Sandra Keller', email: 's.keller@swisscom.com', seatId: seatIdForCompany('c-swisscom'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-07T16:30:00+02:00' },
+  { id: 'u-3c', name: 'Dominik Wyss', email: 'd.wyss@swisscom.com', seatId: seatIdForCompany('c-swisscom'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-02T14:00:00+02:00' },
 
-  { id: 'u-4', name: 'Jana Roth', email: 'j.roth@dm.de', seatId: seatIdForCompany('c-dm'), role: 'admin', status: 'accepted', lastSeen: 'yesterday' },
-  { id: 'u-5', name: 'Nina Weber', email: 'n.weber@dm.de', seatId: seatIdForCompany('c-dm'), role: 'viewer', status: 'accepted', lastSeen: '2 w ago' },
-  { id: 'u-5b', name: 'Lukas Franke', email: 'l.franke@dm.de', seatId: seatIdForCompany('c-dm'), role: 'viewer', status: 'accepted', lastSeen: 'today, 09:30' },
+  { id: 'u-4', name: 'Jana Roth', email: 'j.roth@dm.de', seatId: seatIdForCompany('c-dm'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-07T16:30:00+02:00' },
+  { id: 'u-5', name: 'Nina Weber', email: 'n.weber@dm.de', seatId: seatIdForCompany('c-dm'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-08-25T14:00:00+02:00' },
+  { id: 'u-5b', name: 'Lukas Franke', email: 'l.franke@dm.de', seatId: seatIdForCompany('c-dm'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T06:30:00+02:00' },
 
-  { id: 'u-6', name: 'Sebastian Kohl', email: 's.kohl@bmw.de', seatId: seatIdForCompany('c-bmw'), role: 'admin', status: 'accepted', lastSeen: 'today, 09:02' },
-  { id: 'u-6b', name: 'Miriam Voss', email: 'm.voss@bmw.de', seatId: seatIdForCompany('c-bmw'), role: 'viewer', status: 'accepted', lastSeen: '2 d ago' },
-  { id: 'u-6c', name: 'Jonas Peters', email: 'j.peters@bmw.de', seatId: seatIdForCompany('c-bmw'), role: 'viewer', status: 'accepted', lastSeen: '1 w ago' },
+  { id: 'u-6', name: 'Sebastian Kohl', email: 's.kohl@bmw.de', seatId: seatIdForCompany('c-bmw'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T09:02:00+02:00' },
+  { id: 'u-6b', name: 'Miriam Voss', email: 'm.voss@bmw.de', seatId: seatIdForCompany('c-bmw'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-06T14:00:00+02:00' },
+  { id: 'u-6c', name: 'Jonas Peters', email: 'j.peters@bmw.de', seatId: seatIdForCompany('c-bmw'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-01T14:00:00+02:00' },
 
-  { id: 'u-7', name: 'Laura Dietrich', email: 'l.dietrich@audi.de', seatId: seatIdForCompany('c-audi'), role: 'admin', status: 'accepted', lastSeen: 'yesterday' },
-  { id: 'u-7b', name: 'Felix Arnold', email: 'f.arnold@audi.de', seatId: seatIdForCompany('c-audi'), role: 'viewer', status: 'accepted', lastSeen: '4 d ago' },
+  { id: 'u-7', name: 'Laura Dietrich', email: 'l.dietrich@audi.de', seatId: seatIdForCompany('c-audi'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-07T16:30:00+02:00' },
+  { id: 'u-7b', name: 'Felix Arnold', email: 'f.arnold@audi.de', seatId: seatIdForCompany('c-audi'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-04T14:00:00+02:00' },
 
-  { id: 'u-8', name: 'Fabienne Moser', email: 'f.moser@coop.ch', seatId: seatIdForCompany('c-coop'), role: 'admin', status: 'accepted', lastSeen: 'today, 08:12' },
-  { id: 'u-8b', name: 'Yvonne Leu', email: 'y.leu@coop.ch', seatId: seatIdForCompany('c-coop'), role: 'viewer', status: 'accepted', lastSeen: 'today, 11:20' },
-  { id: 'u-8c', name: 'Reto Zimmermann', email: 'r.zimmermann@coop.ch', seatId: seatIdForCompany('c-coop'), role: 'viewer', status: 'accepted', lastSeen: '3 d ago' },
+  { id: 'u-8', name: 'Fabienne Moser', email: 'f.moser@coop.ch', seatId: seatIdForCompany('c-coop'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T08:12:00+02:00' },
+  { id: 'u-8b', name: 'Yvonne Leu', email: 'y.leu@coop.ch', seatId: seatIdForCompany('c-coop'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T08:20:00+02:00' },
+  { id: 'u-8c', name: 'Reto Zimmermann', email: 'r.zimmermann@coop.ch', seatId: seatIdForCompany('c-coop'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-05T14:00:00+02:00' },
 
-  { id: 'u-9', name: 'Kevin Brandt', email: 'k.brandt@lidl.ch', seatId: seatIdForCompany('c-lidl'), role: 'admin', status: 'accepted', lastSeen: '4 d ago' },
-  { id: 'u-9b', name: 'Melanie Frei', email: 'm.frei@lidl.ch', seatId: seatIdForCompany('c-lidl'), role: 'viewer', status: 'accepted', lastSeen: 'today, 07:58' },
+  { id: 'u-9', name: 'Kevin Brandt', email: 'k.brandt@lidl.ch', seatId: seatIdForCompany('c-lidl'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-04T14:00:00+02:00' },
+  { id: 'u-9b', name: 'Melanie Frei', email: 'm.frei@lidl.ch', seatId: seatIdForCompany('c-lidl'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T07:58:00+02:00' },
 
-  { id: 'u-10', name: 'Anja Steiner', email: 'a.steiner@denner.ch', seatId: seatIdForCompany('c-denner'), role: 'admin', status: 'accepted', lastSeen: '1 w ago' },
-  { id: 'u-10b', name: 'Simon Baumann', email: 's.baumann@denner.ch', seatId: seatIdForCompany('c-denner'), role: 'viewer', status: 'accepted', lastSeen: '2 w ago' },
-  { id: 'u-10c', name: 'Elena Marti', email: 'e.marti@denner.ch', seatId: seatIdForCompany('c-denner'), role: 'viewer', status: 'accepted', lastSeen: 'yesterday' },
+  { id: 'u-10', name: 'Anja Steiner', email: 'a.steiner@denner.ch', seatId: seatIdForCompany('c-denner'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-01T14:00:00+02:00' },
+  { id: 'u-10b', name: 'Simon Baumann', email: 's.baumann@denner.ch', seatId: seatIdForCompany('c-denner'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-08-25T14:00:00+02:00' },
+  { id: 'u-10c', name: 'Elena Marti', email: 'e.marti@denner.ch', seatId: seatIdForCompany('c-denner'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-07T16:30:00+02:00' },
 
-  { id: 'u-11', name: 'Ralf Huber', email: 'r.huber@mediamarkt.ch', seatId: seatIdForCompany('c-mediamarkt'), role: 'admin', status: 'accepted', lastSeen: 'today, 07:44' },
-  { id: 'u-11b', name: 'Nadine Schoch', email: 'n.schoch@mediamarkt.ch', seatId: seatIdForCompany('c-mediamarkt'), role: 'viewer', status: 'accepted', lastSeen: 'today, 08:05' },
+  { id: 'u-11', name: 'Ralf Huber', email: 'r.huber@mediamarkt.ch', seatId: seatIdForCompany('c-mediamarkt'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T07:44:00+02:00' },
+  { id: 'u-11b', name: 'Nadine Schoch', email: 'n.schoch@mediamarkt.ch', seatId: seatIdForCompany('c-mediamarkt'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T08:05:00+02:00' },
 
-  { id: 'u-12', name: 'Sofia Berg', email: 's.berg@ikea.com', seatId: seatIdForCompany('c-ikea'), role: 'admin', status: 'accepted', lastSeen: '2 d ago' },
-  { id: 'u-12b', name: 'Erik Lindqvist', email: 'e.lindqvist@ikea.com', seatId: seatIdForCompany('c-ikea'), role: 'viewer', status: 'accepted', lastSeen: '5 d ago' },
-  { id: 'u-12c', name: 'Maja Holm', email: 'm.holm@ikea.com', seatId: seatIdForCompany('c-ikea'), role: 'viewer', status: 'accepted', lastSeen: '1 w ago' },
+  { id: 'u-12', name: 'Sofia Berg', email: 's.berg@ikea.com', seatId: seatIdForCompany('c-ikea'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-06T14:00:00+02:00' },
+  { id: 'u-12b', name: 'Erik Lindqvist', email: 'e.lindqvist@ikea.com', seatId: seatIdForCompany('c-ikea'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-03T14:00:00+02:00' },
+  { id: 'u-12c', name: 'Maja Holm', email: 'm.holm@ikea.com', seatId: seatIdForCompany('c-ikea'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-01T14:00:00+02:00' },
 
-  { id: 'u-13', name: 'Thomas Gerber', email: 't.gerber@manor.ch', seatId: seatIdForCompany('c-manor'), role: 'admin', status: 'accepted', lastSeen: 'yesterday' },
-  { id: 'u-13b', name: 'Céline Rey', email: 'c.rey@manor.ch', seatId: seatIdForCompany('c-manor'), role: 'viewer', status: 'accepted', lastSeen: 'today, 09:47' },
+  { id: 'u-13', name: 'Thomas Gerber', email: 't.gerber@manor.ch', seatId: seatIdForCompany('c-manor'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-07T16:30:00+02:00' },
+  { id: 'u-13b', name: 'Céline Rey', email: 'c.rey@manor.ch', seatId: seatIdForCompany('c-manor'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T06:47:00+02:00' },
 
-  { id: 'u-14', name: 'Isabelle Meyer', email: 'i.meyer@ubs.com', seatId: seatIdForCompany('c-ubs'), role: 'admin', status: 'accepted', lastSeen: 'today, 08:55' },
-  { id: 'u-14b', name: 'Andreas Kunz', email: 'a.kunz@ubs.com', seatId: seatIdForCompany('c-ubs'), role: 'viewer', status: 'accepted', lastSeen: '2 d ago' },
-  { id: 'u-14c', name: 'Vera Stucki', email: 'v.stucki@ubs.com', seatId: seatIdForCompany('c-ubs'), role: 'viewer', status: 'accepted', lastSeen: '4 d ago' },
+  { id: 'u-14', name: 'Isabelle Meyer', email: 'i.meyer@ubs.com', seatId: seatIdForCompany('c-ubs'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T08:55:00+02:00' },
+  { id: 'u-14b', name: 'Andreas Kunz', email: 'a.kunz@ubs.com', seatId: seatIdForCompany('c-ubs'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-06T14:00:00+02:00' },
+  { id: 'u-14c', name: 'Vera Stucki', email: 'v.stucki@ubs.com', seatId: seatIdForCompany('c-ubs'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-04T14:00:00+02:00' },
 
-  { id: 'u-15', name: 'Daniel Egger', email: 'd.egger@swisslife.ch', seatId: seatIdForCompany('c-swisslife'), role: 'admin', status: 'accepted', lastSeen: '3 d ago' },
-  { id: 'u-15b', name: 'Larissa Good', email: 'l.good@swisslife.ch', seatId: seatIdForCompany('c-swisslife'), role: 'viewer', status: 'accepted', lastSeen: '1 w ago' },
+  { id: 'u-15', name: 'Daniel Egger', email: 'd.egger@swisslife.ch', seatId: seatIdForCompany('c-swisslife'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-05T14:00:00+02:00' },
+  { id: 'u-15b', name: 'Larissa Good', email: 'l.good@swisslife.ch', seatId: seatIdForCompany('c-swisslife'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-01T14:00:00+02:00' },
 
-  { id: 'u-16', name: 'Chiara Rossi', email: 'c.rossi@nestle.com', seatId: seatIdForCompany('c-nestle'), role: 'admin', status: 'accepted', lastSeen: 'today, 06:30' },
-  { id: 'u-16b', name: 'Marco Bianchi', email: 'm.bianchi@nestle.com', seatId: seatIdForCompany('c-nestle'), role: 'viewer', status: 'accepted', lastSeen: 'today, 07:10' },
-  { id: 'u-16c', name: 'Giulia Conti', email: 'g.conti@nestle.com', seatId: seatIdForCompany('c-nestle'), role: 'viewer', status: 'accepted', lastSeen: '3 d ago' },
+  { id: 'u-16', name: 'Chiara Rossi', email: 'c.rossi@nestle.com', seatId: seatIdForCompany('c-nestle'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T06:30:00+02:00' },
+  { id: 'u-16b', name: 'Marco Bianchi', email: 'm.bianchi@nestle.com', seatId: seatIdForCompany('c-nestle'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-08T07:10:00+02:00' },
+  { id: 'u-16c', name: 'Giulia Conti', email: 'g.conti@nestle.com', seatId: seatIdForCompany('c-nestle'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-05T14:00:00+02:00' },
 
-  { id: 'u-17', name: 'Peter Vogel', email: 'p.vogel@zalando.de', seatId: seatIdForCompany('c-zalando'), role: 'viewer', status: 'accepted', lastSeen: '5 d ago' },
-  { id: 'u-17b', name: 'Katharina Sommer', email: 'k.sommer@zalando.de', seatId: seatIdForCompany('c-zalando'), role: 'admin', status: 'accepted', lastSeen: 'today, 08:22' },
+  { id: 'u-17', name: 'Peter Vogel', email: 'p.vogel@zalando.de', seatId: seatIdForCompany('c-zalando'), role: 'viewer', status: 'accepted', lastSeenAt: '2026-09-03T14:00:00+02:00' },
+  { id: 'u-17b', name: 'Katharina Sommer', email: 'k.sommer@zalando.de', seatId: seatIdForCompany('c-zalando'), role: 'admin', status: 'accepted', lastSeenAt: '2026-09-08T08:22:00+02:00' },
 ];
 
 // ---------------------------------------------------------------------------

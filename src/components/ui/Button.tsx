@@ -1,4 +1,5 @@
 import { forwardRef, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 import { buttonClasses, type ButtonSize, type ButtonVariant } from './buttonStyles';
 
@@ -37,3 +38,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
+
+/** A router link styled as a Button — for navigation that looks like an
+ *  action. Never nest a `Button` inside a `Link`: that's an interactive
+ *  element inside another, which screen readers announce twice and keyboard
+ *  users tab through twice. */
+export function ButtonLink({
+  to,
+  children,
+  variant = 'secondary',
+  size = 'md',
+  icon,
+  className,
+}: {
+  to: string;
+  children?: ReactNode;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  icon?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link to={to} className={cn(buttonClasses(variant, size), className)}>
+      {icon}
+      {children}
+    </Link>
+  );
+}

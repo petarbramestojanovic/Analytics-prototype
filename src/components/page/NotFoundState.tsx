@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom';
 import { ArrowLeft, TriangleAlert } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { ButtonLink } from '@/components/ui';
 import { EmptyState } from '@/components/feedback';
 import { Page } from './Page';
 
@@ -24,11 +23,9 @@ export function NotFoundState({
         title={title}
         body={body}
         action={
-          <Link to={backTo}>
-            <Button variant="primary" icon={<ArrowLeft size={14} />}>
+          <ButtonLink to={backTo} variant="primary" icon={<ArrowLeft size={14} />}>
               {backLabel}
-            </Button>
-          </Link>
+            </ButtonLink>
         }
       />
     </Page>

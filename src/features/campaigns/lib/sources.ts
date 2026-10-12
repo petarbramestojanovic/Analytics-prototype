@@ -23,25 +23,22 @@ export const METRIC_KEYS: readonly MetricKey[] = [
   'uniqueUsers',
 ];
 
-export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'label' | 'fullLabel' | 'cadence' | 'measures'>> = {
+export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'label' | 'cadence' | 'measures'>> = {
   atk: {
     key: 'atk',
     label: 'ATK',
-    fullLabel: 'ATK (Zeus adserver)',
     cadence: 'nightly',
     measures: ['impressions', 'viewable', 'viewability', 'plays', 'uniqueUsers'],
   },
   nexd: {
     key: 'nexd',
     label: 'NEXD',
-    fullLabel: 'NEXD',
     cadence: 'nightly',
     measures: ['impressions', 'viewable', 'viewability', 'engagementRate', 'avgDwell', 'ctaClicks', 'ctr'],
   },
   custom: {
     key: 'custom',
     label: 'Brame',
-    fullLabel: 'Brame instrumentation',
     cadence: 'live',
     measures: [...METRIC_KEYS],
   },

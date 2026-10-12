@@ -3,10 +3,10 @@ import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { codecs, type StorageCodec } from '@/lib/storage';
 
-export const SIDEBAR_MIN_WIDTH = 216;
-export const SIDEBAR_MAX_WIDTH = 400;
-export const SIDEBAR_DEFAULT_WIDTH = 264;
-export const SIDEBAR_COLLAPSED_WIDTH = 76;
+const SIDEBAR_MIN_WIDTH = 216;
+const SIDEBAR_MAX_WIDTH = 400;
+const SIDEBAR_DEFAULT_WIDTH = 264;
+const SIDEBAR_COLLAPSED_WIDTH = 76;
 
 const clampWidth = (w: number) => Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, w));
 

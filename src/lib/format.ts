@@ -22,7 +22,7 @@ export const fmtPct = (n: number, decimals = 1) => `${(n * 100).toFixed(decimals
 /** A relative change with an explicit sign — "+4.2%", "-1.0%". */
 export const fmtSignedPct = (n: number, decimals = 1) => `${n > 0 ? '+' : ''}${fmtPct(n, decimals)}`;
 
-export const fmtSeconds = (n: number) => `${n.toFixed(1)}s`;
+const fmtSeconds = (n: number) => `${n.toFixed(1)}s`;
 
 export const fmtDuration = (ms: number) => fmtSeconds(ms / 1000);
 

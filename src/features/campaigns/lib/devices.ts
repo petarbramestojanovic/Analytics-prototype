@@ -22,7 +22,7 @@ export function deviceSplit(campaign: Campaign): DeviceSplit | null {
 /** Impression-weighted average of a rate (viewability, engagementRate) across
  *  a set of device rows — used to fold Tablet into Desktop without just
  *  averaging the two rates unweighted. */
-export function weightedDeviceRate(
+function weightedDeviceRate(
   rows: Campaign['devices'],
   metric: 'viewability' | 'engagementRate'
 ): number {

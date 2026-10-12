@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { CheckCircle2, KeyRound, LogIn } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { Button } from '@/components/ui';
+import { Button, ButtonLink } from '@/components/ui';
 import { PasswordField } from '@/components/form';
 import { AuthLayout } from '../components/AuthLayout';
 import { AuthHeader, AuthResult } from '../components/AuthParts';
@@ -30,11 +29,9 @@ export function ResetPasswordPage() {
           title={t('auth.reset.successTitle')}
           body={t('auth.reset.successBody')}
         >
-          <Link to={paths.login} className="mt-6 block">
-            <Button variant="primary" icon={<LogIn size={15} />}>
+          <ButtonLink to={paths.login} className="mt-6" variant="primary" icon={<LogIn size={15} />}>
               {t('auth.reset.goToLogin')}
-            </Button>
-          </Link>
+            </ButtonLink>
         </AuthResult>
       ) : (
         <>

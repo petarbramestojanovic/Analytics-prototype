@@ -5,6 +5,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/cn';
 import { Drawer, DrawerContent } from '@/components/ui';
 import { LoadingState } from '@/components/feedback';
+import { CommandPalette } from './CommandPalette';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { useResizableSidebar } from './useResizableSidebar';
@@ -13,6 +14,14 @@ import { useResizableSidebar } from './useResizableSidebar';
  * The signed-in app shell: a resizable/collapsible sidebar rail on desktop, a
  * drawer below `lg`, the sticky top bar, and the routed page in between.
  */
+/** Land on the current page's link rather than the first group toggle. */
+function focusActiveNavItem(e: Event) {
+  const active = document.querySelector<HTMLElement>('[role="dialog"] [aria-current="page"]');
+  if (!active) return;
+  e.preventDefault();
+  active.focus();
+}
+
 export function AppLayout() {
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const sidebar = useResizableSidebar(isDesktop);
@@ -20,9 +29,25 @@ export function AppLayout() {
   const { t } = useI18n();
   const location = useLocation();
 
+  const [searchOpen, setSearchOpen] = useState(false);
+
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
+
+  // ⌘K / Ctrl+K from anywhere in the app, including inside inputs — it's the
+  // one shortcut people expect to work everywhere.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setMobileOpen(false);
+        setSearchOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-brame-cream dark:bg-brame-dark">
@@ -50,19 +75,21 @@ export function AppLayout() {
         </aside>
       ) : (
         <Drawer open={mobileOpen} onOpenChange={setMobileOpen}>
-          <DrawerContent title={t('common.appName')}>
+          <DrawerContent title={t('common.appName')} onOpenAutoFocus={focusActiveNavItem}>
             <Sidebar collapsed={false} onToggleCollapsed={() => setMobileOpen(false)} />
           </DrawerContent>
         </Drawer>
       )}
 
       <main className="scrollbar-hidden flex-1 overflow-y-auto overflow-x-hidden">
-        <TopBar onOpenMobileMenu={() => setMobileOpen(true)} />
+        <TopBar onOpenMobileMenu={() => setMobileOpen(true)} onOpenSearch={() => setSearchOpen(true)} />
         {/* Inside the shell, so the sidebar stays put while a page's chunk loads. */}
         <Suspense fallback={<LoadingState />}>
           <Outlet />
         </Suspense>
       </main>
+
+      <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { focusRing } from '@/components/ui/buttonStyles';
+import { ariaSort } from './ariaSort';
 
 type Align = 'left' | 'center' | 'right';
 
@@ -73,13 +75,18 @@ export function Th({
   children,
   align = 'left',
   className = '',
+  sort,
 }: {
   children?: ReactNode;
   align?: Align;
   className?: string;
+  /** Set on sortable columns only, so assistive tech announces the order. */
+  sort?: 'ascending' | 'descending' | 'none';
 }) {
   return (
     <th
+      scope="col"
+      aria-sort={sort}
       className={cn(
         'whitespace-nowrap border-b border-gray-200 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:text-gray-400',
         alignClass[align],
@@ -131,7 +138,7 @@ export function TableEmptyRow({ colSpan, children }: { colSpan: number; children
 }
 
 /** The direction chevron a sortable header shows. */
-export function SortIndicator({ direction }: { direction: 'asc' | 'desc' | false }) {
+function SortIndicator({ direction }: { direction: 'asc' | 'desc' | false }) {
   if (direction === 'asc') return <ArrowUp size={11} />;
   if (direction === 'desc') return <ArrowDown size={11} />;
   return <ArrowUpDown size={11} className="text-gray-300 dark:text-gray-600" />;
@@ -148,7 +155,11 @@ export function SortButton({
   onClick?: (event: unknown) => void;
 }) {
   return (
-    <button onClick={onClick} className="inline-flex items-center gap-1 hover:text-brame-dark dark:hover:text-gray-200">
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn('inline-flex items-center gap-1 rounded hover:text-brame-dark dark:hover:text-gray-200', focusRing)}
+    >
       {children}
       <SortIndicator direction={direction} />
     </button>
@@ -170,9 +181,10 @@ export function SortableTh<K extends string>({
   onToggle: (col: K) => void;
   align?: Align;
 }) {
+  const direction = sort.key === col ? (sort.desc ? 'desc' : 'asc') : false;
   return (
-    <Th align={align}>
-      <SortButton direction={sort.key === col ? (sort.desc ? 'desc' : 'asc') : false} onClick={() => onToggle(col)}>
+    <Th align={align} sort={ariaSort(direction)}>
+      <SortButton direction={direction} onClick={() => onToggle(col)}>
         {children}
       </SortButton>
     </Th>

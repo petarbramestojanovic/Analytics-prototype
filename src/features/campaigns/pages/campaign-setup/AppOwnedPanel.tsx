@@ -10,7 +10,7 @@ import { ListRow } from '@/components/display';
 import type { Campaign, SourceKey } from '@/types';
 import { useRemoveClicktag, useUpdateCampaign } from '@/api/hooks/useCampaigns';
 import { AddClicktagModal } from '../../components/AddClicktagModal';
-import { SOURCE_KEYS, sourceMeta } from '../../lib/sources';
+import { SOURCE_KEYS } from '../../lib/sources';
 
 const splitIds = (value: string) =>
   value
@@ -91,7 +91,7 @@ export function AppOwnedPanel({ campaign }: { campaign: Campaign }) {
                 <SelectItem key={s} value={s}>
                   <span className="flex items-center gap-1.5">
                     {draft.primarySource === s && <Star size={11} className="text-brame-teal" fill="currentColor" />}
-                    {sourceMeta(campaign, s).fullLabel}
+                    {t(`connectors.source.${s}`)}
                   </span>
                 </SelectItem>
               ))}

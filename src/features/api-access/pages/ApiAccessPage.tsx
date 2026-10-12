@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Button, Callout, Card, CodeBlock } from '@/components/ui';
-import { LoadingState } from '@/components/feedback';
+import { PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SectionTitle } from '@/components/page';
 import { useCurrentUser } from '@/features/profile';
 import { NoSeatState, useCurrentSeat } from '@/features/seats';
@@ -26,7 +26,7 @@ export function ApiAccessPage() {
   const { seat, isLoading } = useCurrentSeat();
   const [creating, setCreating] = useState(false);
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <PageSkeleton variant="list" />;
 
   return (
     <Page>

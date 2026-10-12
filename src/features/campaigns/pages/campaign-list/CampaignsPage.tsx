@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -6,18 +6,21 @@ import {
   getSortedRowModel,
   useReactTable,
   type SortingState,
+  type Updater,
   type VisibilityState,
 } from '@tanstack/react-table';
 import { Download, SlidersHorizontal } from 'lucide-react';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { useI18n } from '@/i18n';
 import { useListFilters } from '@/hooks/useListFilters';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { exportToXlsx } from '@/lib/exportXlsx';
 import { fmtCompact } from '@/lib/format';
+import { codecs } from '@/lib/storage';
 import { matchesQuery } from '@/lib/text';
 import { Button, Card, Tabs } from '@/components/ui';
-import { ErrorState, LoadingState } from '@/components/feedback';
+import { ErrorState, TableSkeleton } from '@/components/feedback';
 import { FilterSelect, ListToolbar, Page, PageHeader, SearchInput, ToolbarButton, ToolbarResetButton } from '@/components/page';
 import { ColumnVisibilityMenu, DataTable } from '@/components/table';
 import { StatGrid, SummaryTile } from '@/components/display';
@@ -28,26 +31,43 @@ import { agencyOptions, companyOptions, DIRECT_AGENCY_KEY, marketOptions } from 
 import { primarySeries, SOURCE_KEYS } from '../../lib/sources';
 import { campaignExportColumns, useCampaignColumns } from './campaignColumns';
 
-type StatusFilter = 'all' | Campaign['status'];
+const STATUS_FILTERS = ['all', 'live', 'scheduled', 'ended'] as const satisfies readonly ('all' | Campaign['status'])[];
+type StatusFilter = (typeof STATUS_FILTERS)[number];
 
-// Persisted so a reload doesn't drop what an admin was just looking at.
+// In the URL (shareable) and persisted (a reload doesn't drop what an admin
+// was just looking at). `sort` is "<columnId>" or "-<columnId>" for desc.
 const DEFAULT_FILTERS = {
   q: '',
   statusFilter: 'all' as StatusFilter,
   companyFilter: 'all',
   countryFilter: 'all',
   agencyFilter: 'all',
+  sort: '',
 };
+
+const encodeSort = (s: SortingState) => (s[0] ? `${s[0].desc ? '-' : ''}${s[0].id}` : '');
+const decodeSort = (raw: string): SortingState =>
+  raw ? [{ id: raw.replace(/^-/, ''), desc: raw.startsWith('-') }] : [];
+
+const resolve = <T,>(updater: Updater<T>, prev: T) =>
+  typeof updater === 'function' ? (updater as (p: T) => T)(prev) : updater;
 
 export function CampaignsPage() {
   const { isInternal } = useSession();
   const { t } = useI18n();
   usePageTitle(t('campaigns.title'));
   const { campaigns: scoped, isLoading, isError, refetch } = useScopedCampaigns();
-  const { filters, setFilter, resetFilters, filtersActive } = useListFilters(STORAGE_KEYS.campaignsFilters, DEFAULT_FILTERS);
+  const { filters, setFilter, resetFilters, filtersActive } = useListFilters(STORAGE_KEYS.campaignsFilters, DEFAULT_FILTERS, {
+    statusFilter: STATUS_FILTERS,
+  });
   const { q, statusFilter, companyFilter, countryFilter, agencyFilter } = filters;
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  // Which columns are shown is a personal preference, not part of a shared
+  // link — so it lives in localStorage only.
+  const [columnVisibility, setColumnVisibility] = usePersistentState<VisibilityState>(
+    STORAGE_KEYS.campaignsColumns,
+    {},
+    codecs.json<VisibilityState>()
+  );
 
   // Company/country/agency are internal-only cuts across the whole portfolio —
   // a client is already scoped to one company, so narrowing further would be
@@ -65,13 +85,18 @@ export function CampaignsPage() {
   );
 
   const columns = useCampaignColumns(isInternal);
+  // A sort from a link is only honoured if this seat actually has that column.
+  const sorting = useMemo(
+    () => decodeSort(filters.sort).filter((s) => columns.some((c) => c.id === s.id && c.enableSorting !== false)),
+    [filters.sort, columns]
+  );
   const table = useReactTable({
     data: rows,
     columns,
     state: { sorting, globalFilter: q, columnVisibility },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => setFilter({ sort: encodeSort(resolve(updater, sorting)) }),
     onGlobalFilterChange: (v: string) => setFilter({ q: v }),
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange: (updater) => setColumnVisibility((prev) => resolve(updater, prev)),
     globalFilterFn: (row, _id, value) => matchesQuery(String(value), row.original.name, row.original.companyName),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -148,7 +173,7 @@ export function CampaignsPage() {
           <Tabs
             value={statusFilter}
             onChange={(v) => setFilter({ statusFilter: v })}
-            options={(['all', 'live', 'scheduled', 'ended'] as const).map((value) => ({
+            options={STATUS_FILTERS.map((value) => ({
               value,
               label: t(`campaigns.filter.${value}`),
             }))}
@@ -167,7 +192,7 @@ export function CampaignsPage() {
         </ListToolbar>
 
         {isLoading ? (
-          <LoadingState />
+          <TableSkeleton />
         ) : isError ? (
           <ErrorState onRetry={() => refetch()} />
         ) : (

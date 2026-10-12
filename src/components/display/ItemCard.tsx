@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn';
 import { Card } from '@/components/ui';
 
 /** A square icon tile — teal when the thing it represents is active. */
-export function IconBadge({ icon, active = true, className }: { icon: ReactNode; active?: boolean; className?: string }) {
+function IconBadge({ icon, active = true, className }: { icon: ReactNode; active?: boolean; className?: string }) {
   return (
     <div
       className={cn(

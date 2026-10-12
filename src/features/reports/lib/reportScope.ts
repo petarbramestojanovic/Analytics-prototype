@@ -11,7 +11,7 @@ export function reportScopeCompanyId(scope: ReportScope, campaigns: Campaign[]):
 }
 
 /** Same as reportScopeCompanyId but for the agency a report belongs to. */
-export function reportScopeAgencyId(scope: ReportScope, campaigns: Campaign[]): string | null {
+function reportScopeAgencyId(scope: ReportScope, campaigns: Campaign[]): string | null {
   if (scope.level === 'agency') return scope.agencyId;
   if (scope.level === 'campaign') return campaigns.find((c) => c.id === scope.campaignId)?.agencyId ?? null;
   return null;

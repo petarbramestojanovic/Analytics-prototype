@@ -176,7 +176,7 @@ export async function inviteSeatMember(input: InviteSeatMemberInput): Promise<Se
     email: input.email,
     role: input.role,
     status: 'pending',
-    lastSeen: 'Invited — not yet signed in',
+    lastSeenAt: null,
   };
   seatMembers.push(member);
   return member;
@@ -213,7 +213,7 @@ export async function acceptInvite(memberId: string): Promise<SeatMember> {
   const member = seatMembers.find((m) => m.id === memberId);
   if (!member) throw new Error(`Unknown seat member ${memberId}`);
   member.status = 'accepted';
-  member.lastSeen = 'just now';
+  member.lastSeenAt = TODAY.toISOString();
   return member;
 }
 

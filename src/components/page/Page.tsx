@@ -45,7 +45,7 @@ export function PageHeader({
 }
 
 /** "← Back to …" above a detail page's title. */
-export function BackLink({ to, children }: { to: string; children: ReactNode }) {
+function BackLink({ to, children }: { to: string; children: ReactNode }) {
   return (
     <Link
       to={to}
