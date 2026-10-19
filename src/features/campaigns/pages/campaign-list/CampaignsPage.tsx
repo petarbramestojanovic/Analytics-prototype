@@ -102,8 +102,13 @@ export function CampaignsPage() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 8 } },
+    initialState: { pagination: { pageSize: 10 } },
   });
+
+  // Only stretch the card to the viewport when the page is full — a short
+  // result set (few campaigns, a narrow filter, the last page) stays compact
+  // instead of ballooning its rows.
+  const fillsPage = table.getRowModel().rows.length >= table.getState().pagination.pageSize;
 
   const live = scoped.filter((c) => c.status === 'live');
   const exportRows = () =>
@@ -114,7 +119,7 @@ export function CampaignsPage() {
     );
 
   return (
-    <Page>
+    <Page fill>
       <PageHeader
         title={t('campaigns.title')}
         subtitle={isInternal ? t('campaigns.subtitleAdmin') : t('campaigns.subtitleClient')}
@@ -141,27 +146,28 @@ export function CampaignsPage() {
         />
       </StatGrid>
 
-      <Card padded={false}>
+      <Card padded={false} className={fillsPage ? 'flex flex-1 flex-col' : undefined}>
         <ListToolbar bare>
           <SearchInput value={q} onChange={(v) => setFilter({ q: v })} placeholder={t('campaigns.search')} />
 
           {isInternal && (
             <>
               <FilterSelect
-                className="w-44"
+                className="w-40"
                 value={agencyFilter}
                 onChange={(v) => setFilter({ agencyFilter: v })}
                 allLabel={t('campaigns.filter.allAgencies')}
                 options={agencyOptions(scoped, t('campaigns.agency.direct'))}
               />
               <FilterSelect
+                className="w-44"
                 value={companyFilter}
                 onChange={(v) => setFilter({ companyFilter: v })}
                 allLabel={t('campaigns.filter.allCompanies')}
                 options={companyOptions(scoped)}
               />
               <FilterSelect
-                className="w-36"
+                className="w-32"
                 value={countryFilter}
                 onChange={(v) => setFilter({ countryFilter: v })}
                 allLabel={t('campaigns.filter.allCountries')}
@@ -201,6 +207,7 @@ export function CampaignsPage() {
             emptyMessage={t('campaigns.noMatches')}
             align={(id) => (id === 'campaign' ? 'left' : 'center')}
             stickyColumnId="actions"
+            fill={fillsPage}
           />
         )}
       </Card>

@@ -3,9 +3,14 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
-/** The padded content area every routed page renders into. */
-export function Page({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('px-4 py-6 sm:px-6 lg:px-8', className)}>{children}</div>;
+/**
+ * The padded content area every routed page renders into. `fill` makes it a
+ * column at least as tall as the viewport, so a page can let its last card
+ * (`flex-1`) stretch to the bottom edge instead of leaving blank space under
+ * it. Taller content still grows the page and scrolls as usual.
+ */
+export function Page({ children, className, fill = false }: { children: ReactNode; className?: string; fill?: boolean }) {
+  return <div className={cn('px-4 pb-2 pt-4 sm:px-6 lg:px-8', fill && 'flex flex-1 flex-col', className)}>{children}</div>;
 }
 
 /**
@@ -28,7 +33,7 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn('mb-6', className)}>
+    <div className={cn('mb-4', className)}>
       {back && <BackLink to={back.to}>{back.label}</BackLink>}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>

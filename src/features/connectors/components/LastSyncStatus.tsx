@@ -9,10 +9,10 @@ export function LastSyncStatus({ run }: { run?: SyncRun }) {
   const { t } = useI18n();
   const { fmtTime, relativeTime } = useFormatters();
 
-  if (!run) return <p className="mt-4 text-xs text-gray-400 dark:text-gray-500">{t('connectors.neverSynced')}</p>;
+  if (!run) return <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">{t('connectors.neverSynced')}</p>;
 
   return (
-    <div className="mt-4 border-t border-gray-100 pt-3 dark:border-white/10">
+    <div className="mt-3 border-t border-gray-100 pt-2.5 dark:border-white/10">
       <div className="flex items-center justify-between text-xs">
         <span className="text-gray-500 dark:text-gray-400">{t('connectors.lastSync')}</span>
         <SyncStatusPill status={run.status} />

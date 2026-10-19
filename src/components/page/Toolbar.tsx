@@ -23,7 +23,7 @@ export function ListToolbar({
   const row = (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-3 p-4',
+        'flex flex-wrap items-center gap-3 px-3 py-2.5',
         bordered && 'border-b border-gray-200 dark:border-white/10',
         bare && className
       )}

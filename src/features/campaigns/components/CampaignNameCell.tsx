@@ -13,7 +13,7 @@ export function CampaignNameCell({ campaign, newTab = false }: { campaign: Campa
       <TextLink to={paths.campaign(campaign.id)} variant="record" newTab={newTab} className="whitespace-nowrap">
         {campaign.name}
       </TextLink>
-      <div className="mt-1 flex items-center gap-1.5">
+      <div className="mt-0.5 flex items-center gap-1.5">
         <CampaignStatusPill status={campaign.status} />
         <span className="whitespace-nowrap text-xs text-gray-400 dark:text-gray-500">
           {fmtDateRange(campaign.flightStart, campaign.flightEnd)}

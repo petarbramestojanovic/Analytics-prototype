@@ -17,7 +17,7 @@ export function ChartCard({
   ...trendChartProps
 }: { daily: TrendPoint[]; emptyLabel: string; className?: string } & Omit<ComponentProps<typeof TrendChart>, 'daily'>) {
   return (
-    <Card className={className ?? 'mb-5'}>
+    <Card className={className ?? 'mb-4'}>
       {daily.length === 0 ? (
         <>
           <SectionTitle hint={trendChartProps.hint}>{trendChartProps.title}</SectionTitle>

@@ -15,7 +15,7 @@ export function ConnectorCard({
   children?: ReactNode;
 }) {
   return (
-    <Card>
+    <Card className="p-4">
       <div className="flex items-start justify-between">
         <div>
           <div className="text-sm font-semibold text-brame-dark dark:text-gray-100">{name}</div>

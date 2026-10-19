@@ -14,10 +14,10 @@ const alignClass: Record<Align, string> = {
 
 /** A full-width table inside a horizontal-scroll wrapper — the shape of
  *  every data table in the app. */
-export function Table({ children, className }: { children: ReactNode; className?: string }) {
+export function Table({ children, className, fill = false }: { children: ReactNode; className?: string; fill?: boolean }) {
   return (
-    <TableScroll className={className}>
-      <table className="w-full">{children}</table>
+    <TableScroll className={className} fill={fill}>
+      <table className={cn('w-full', fill && 'h-full')}>{children}</table>
     </TableScroll>
   );
 }
@@ -29,7 +29,7 @@ export function Table({ children, className }: { children: ReactNode; className?
  * Prefer `Table`; use this directly only around something that isn't a plain
  * `<table>` (e.g. a loading state that replaces it).
  */
-export function TableScroll({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function TableScroll({ children, className = '', fill = false }: { children: ReactNode; className?: string; fill?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -51,8 +51,8 @@ export function TableScroll({ children, className = '' }: { children: ReactNode;
   }, [children]);
 
   return (
-    <div className="relative">
-      <div ref={ref} className={cn('overflow-x-auto', className)}>
+    <div className={cn('relative', fill && 'flex flex-1 flex-col')}>
+      <div ref={ref} className={cn('overflow-x-auto', fill && 'flex-1', className)}>
         {children}
       </div>
       <div
@@ -110,7 +110,7 @@ export function Td({
   return (
     <td
       className={cn(
-        'border-b border-gray-100 px-4 py-3 text-sm dark:border-white/5',
+        'border-b border-gray-100 px-4 py-2 text-sm dark:border-white/5',
         align === 'right' && 'tnum',
         alignClass[align],
         className

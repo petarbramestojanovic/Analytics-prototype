@@ -19,6 +19,7 @@ export function DataTable<T>({
   align = () => 'left',
   stickyColumnId,
   paginated = true,
+  fill = false,
 }: {
   table: TanStackTable<T>;
   emptyMessage: ReactNode;
@@ -27,13 +28,16 @@ export function DataTable<T>({
   /** A column (usually row actions) that stays visible while scrolling. */
   stickyColumnId?: string;
   paginated?: boolean;
+  /** Stretch the table to the card's remaining height, spreading the spare
+   *  space across the rows (for a card that fills the viewport). */
+  fill?: boolean;
 }) {
   const rows = table.getRowModel().rows;
   const sticky = (id: string) => id === stickyColumnId;
 
   return (
     <>
-      <Table>
+      <Table fill={fill}>
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>

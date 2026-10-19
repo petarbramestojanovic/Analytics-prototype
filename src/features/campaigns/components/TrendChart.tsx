@@ -96,7 +96,7 @@ export function TrendChart({
   ] as const;
 
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       <SectionTitle
         hint={hint}
         action={
@@ -139,7 +139,8 @@ export function TrendChart({
         <p className="py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('trend.selectAtLeastOne')}</p>
       ) : (
         <>
-          <div className="h-72">
+          <div className="relative h-56 min-h-56 flex-1">
+            <div className="absolute inset-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={daily}>
                 <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
@@ -209,6 +210,7 @@ export function TrendChart({
                 )}
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
           {hasGap && <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">{t('trend.gapNote')}</p>}
         </>

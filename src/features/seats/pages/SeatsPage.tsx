@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { usePagination } from '@/hooks/usePagination';
+import { cn } from '@/lib/cn';
 import { matchesQuery } from '@/lib/text';
 import { Button, Card, CardFooter, Tabs } from '@/components/ui';
 import { EmptyText, PageSkeleton } from '@/components/feedback';
@@ -90,7 +91,7 @@ export function SeatsPage() {
   if (isLoading || !seats) return <PageSkeleton variant="list" />;
 
   return (
-    <Page>
+    <Page fill>
       <PageHeader
         title={t('seats.title')}
         subtitle={t('seats.subtitle')}
@@ -101,8 +102,8 @@ export function SeatsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]">
-        <Card padded={false}>
+      <div className={cn('grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]', paged.length >= PAGE_SIZE ? 'flex-1' : 'lg:items-start')}>
+        <Card padded={false} className="flex flex-col">
           <div className="space-y-3 border-b border-gray-200 p-3 dark:border-white/10">
             <Tabs
               columns={2}
@@ -115,7 +116,7 @@ export function SeatsPage() {
             />
             <SearchInput value={q} onChange={setQ} placeholder={t('seats.search')} />
           </div>
-          <div className="min-h-[20rem]">
+          <div className="flex min-h-[20rem] flex-1 flex-col [&>button]:max-h-20 [&>button]:flex-1">
             {paged.map((seat) => {
               const Icon = SEAT_CATEGORY_ICON[seat.category];
               return (

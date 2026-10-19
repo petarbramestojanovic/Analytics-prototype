@@ -81,7 +81,7 @@ export function AppLayout() {
         </Drawer>
       )}
 
-      <main className="scrollbar-hidden flex-1 overflow-y-auto overflow-x-hidden">
+      <main className="scrollbar-hidden flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <TopBar onOpenMobileMenu={() => setMobileOpen(true)} onOpenSearch={() => setSearchOpen(true)} />
         {/* Inside the shell, so the sidebar stays put while a page's chunk loads. */}
         <Suspense fallback={<LoadingState />}>

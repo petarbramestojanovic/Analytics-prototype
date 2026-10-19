@@ -40,7 +40,7 @@ export function OverviewPage() {
   if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   return (
-    <Page>
+    <Page fill>
       <PageHeader title={t('overview.title')} subtitle={isInternal ? t('overview.subtitleAdmin') : t('overview.subtitleClient')} />
 
       {summary.campaignCount === 0 ? (
@@ -50,7 +50,7 @@ export function OverviewPage() {
           <PortfolioSummaryTiles summary={summary} showImpressions />
 
           {isInternal ? (
-            <div className="mb-5">
+            <div className="mb-4">
               <SectionTitle className="mb-2" hint={t('overview.topHint')}>
                 {t('overview.topTitle')}
               </SectionTitle>
@@ -61,7 +61,7 @@ export function OverviewPage() {
               </div>
             </div>
           ) : (
-            <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <BestCampaignCard campaigns={campaigns} avgCtr={summary.avgCtr} />
               <LiveCampaignsCard campaigns={campaigns} />
             </div>
@@ -73,6 +73,7 @@ export function OverviewPage() {
             title={t('overview.trendTitle')}
             hint={t('overview.trendHint')}
             frameBenchmark={frameBenchmark}
+            className="mb-4 flex flex-1 flex-col"
           />
 
           {isInternal && (

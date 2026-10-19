@@ -40,13 +40,13 @@ export function ConnectorsPage() {
   const periodic = <Pill tone="amber">{t('connectors.periodic')}</Pill>;
 
   return (
-    <Page>
+    <Page fill>
       <PageHeader title={t('connectors.title')} subtitle={t('connectors.subtitle')} />
 
-      <div className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-4">
         <ConnectorCard name={sourceLabel('salesforce')} description={t('connectors.salesforceHint')} badge={periodic}>
           {salesforceRun && (
-            <div className="mt-4 flex items-baseline justify-between text-xs">
+            <div className="mt-3 flex items-baseline justify-between text-xs">
               <span className="text-gray-500 dark:text-gray-400">{t('connectors.coverage')}</span>
               <span className="tnum font-medium text-brame-dark dark:text-gray-100">
                 {salesforceRun.campaignsTouched} {t('connectors.col.campaigns').toLowerCase()}
@@ -67,7 +67,7 @@ export function ConnectorsPage() {
               description={t('connectors.primaryFor', { count: campaigns.filter((c) => c.primarySource === key).length })}
               badge={live ? <LivePill label={t('connectors.realTime')} /> : periodic}
             >
-              <div className="mt-4">
+              <div className="mt-3">
                 <div className="mb-1 flex items-baseline justify-between text-xs">
                   <span className="text-gray-500 dark:text-gray-400">{t('connectors.coverage')}</span>
                   <span className="tnum font-medium text-brame-dark dark:text-gray-100">
@@ -87,8 +87,8 @@ export function ConnectorsPage() {
         })}
       </div>
 
-      <Card padded={false}>
-        <div className="p-5 pb-0">
+      <Card padded={false} className="flex-1">
+        <div className="p-4 pb-0">
           <SectionTitle
             hint={t('connectors.historyHint')}
             action={
@@ -105,7 +105,7 @@ export function ConnectorsPage() {
             {t('connectors.historyTitle')}
           </SectionTitle>
         </div>
-        <Table className="px-5 pb-5">
+        <Table className="px-4 pb-3">
           <thead>
             <tr>
               <Th>{t('connectors.col.source')}</Th>
@@ -122,8 +122,10 @@ export function ConnectorsPage() {
               <tr key={r.id}>
                 <Td className="font-medium">{sourceLabel(r.source)}</Td>
                 <Td>
-                  <div>{fmtTime(r.startedAt)}</div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500">{relativeTime(r.startedAt)}</div>
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span>{fmtTime(r.startedAt)}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{relativeTime(r.startedAt)}</span>
+                  </div>
                 </Td>
                 <Td>
                   <SyncStatusPill status={r.status} />

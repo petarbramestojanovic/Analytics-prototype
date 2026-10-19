@@ -89,5 +89,5 @@ const GRID_COLUMNS = {
 
 /** The responsive row summary tiles sit in at the top of a page. */
 export function StatGrid({ columns = 4, children, className }: { columns?: keyof typeof GRID_COLUMNS; children: ReactNode; className?: string }) {
-  return <div className={cn('mb-5 grid gap-4', GRID_COLUMNS[columns], className)}>{children}</div>;
+  return <div className={cn('mb-4 grid gap-3', GRID_COLUMNS[columns], className)}>{children}</div>;
 }

@@ -63,5 +63,5 @@ export function CardHeader({
 
 /** A card's bottom strip — pagination, totals, footnotes. */
 export function CardFooter({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('border-t border-gray-200 px-4 py-3 dark:border-white/10', className)}>{children}</div>;
+  return <div className={cn('mt-auto border-t border-gray-200 px-4 py-2.5 dark:border-white/10', className)}>{children}</div>;
 }

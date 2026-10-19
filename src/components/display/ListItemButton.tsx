@@ -23,7 +23,7 @@ export function ListItemButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-0 dark:border-white/5',
+        'flex w-full items-center gap-3 border-b border-gray-100 px-4 py-2 text-left transition-colors last:border-0 dark:border-white/5',
         active ? 'bg-brame-teal/5 dark:bg-brame-teal/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'
       )}
     >
