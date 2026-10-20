@@ -12,7 +12,10 @@ import {
 } from 'recharts';
 import { SlidersHorizontal } from 'lucide-react';
 import { useFormatters, useI18n } from '@/i18n';
+import { STORAGE_KEYS } from '@/config/storageKeys';
+import { usePersistentState } from '@/hooks/usePersistentState';
 import { fmtCompact, fmtMetric, fmtPct, EMPTY_VALUE } from '@/lib/format';
+import { codecs, type StorageCodec } from '@/lib/storage';
 import { useAxisStyle } from '@/components/charts';
 import { SectionTitle, ToolbarButton } from '@/components/page';
 import {
@@ -40,6 +43,17 @@ const LINE_ANIMATION = { animationDuration: 500, animationEasing: 'ease-out' } a
 
 /** Draw (and legend) order — the volume line first, then the rates. */
 const LINE_ORDER: readonly TrendMetric[] = ['impressions', 'delivery', 'engagementRate', 'ctr'];
+
+/** The metric picks, remembered across reloads. Unknown entries (a metric
+ *  that was renamed or removed) are dropped rather than breaking the chart;
+ *  an empty list is a valid pick ("show nothing"). */
+const metricsCodec: StorageCodec<TrendMetric[]> = {
+  parse: (raw) => {
+    const parsed = codecs.json<unknown>().parse(raw);
+    return Array.isArray(parsed) ? TREND_METRICS.filter((m) => parsed.includes(m)) : undefined;
+  },
+  serialize: (v) => JSON.stringify(v),
+};
 
 /**
  * The one trend chart used everywhere in the app that shows a daily series —
@@ -71,7 +85,10 @@ export function TrendChart({
   const { t } = useI18n();
   const { fmtDate, fmtDateLong } = useFormatters();
   const { axis, grid, tooltipStyle, animate } = useAxisStyle();
-  const [selected, setSelected] = useState<TrendMetric[]>(defaultMetrics);
+  // One shared pick for every trend chart, so the choice sticks as you move
+  // between Overview, a client and a campaign; `defaultMetrics` only applies
+  // until the user first changes it.
+  const [selected, setSelected] = usePersistentState<TrendMetric[]>(STORAGE_KEYS.trendMetrics, defaultMetrics, metricsCodec);
   const [showFrame, setShowFrame] = useState(false);
   const [showIndustry, setShowIndustry] = useState(false);
 

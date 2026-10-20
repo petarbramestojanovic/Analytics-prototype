@@ -21,6 +21,7 @@ export const STORAGE_KEYS = {
   campaignsFilters: 'brame-prototype-campaigns-filters',
   campaignsColumns: 'brame-prototype-campaigns-columns',
   clientsFilters: 'brame-prototype-clients-filters',
+  trendMetrics: 'brame-prototype-trend-metrics',
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
