@@ -23,7 +23,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       agencyName: agencies.find((a) => a.id === agencyId)?.name ?? '',
       isInternal: seatCategory === 'admin' || seatCategory === 'brame',
       isAdmin: seatCategory === 'admin',
-      canManageSeat: seatRole === 'admin',
+      // The Admin seat has no restricted variant — a "viewer" there would
+      // still reach every Brame-operational screen, so the role is moot.
+      canManageSeat: seatCategory === 'admin' || seatRole === 'admin',
     }),
     [seatCategory, seatRole, companyId, agencyId]
   );

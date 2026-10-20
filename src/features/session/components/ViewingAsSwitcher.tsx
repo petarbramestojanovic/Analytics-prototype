@@ -79,18 +79,21 @@ export function ViewingAsSwitcher() {
 
         {/* Seat role is orthogonal to the category above — it only
             previews whether this seat's admin can reach the light Users
-            page (/users) to invite/manage their own seat. */}
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <span className="text-[10px] uppercase tracking-wide text-white/50">{t('viewingAs.seatRole')}</span>
-          <SegmentedControl
-            value={seatRole}
-            onChange={setSeatRole}
-            className={TRACK}
-            itemClassName="truncate px-2 py-0.5 text-[11px] font-medium transition-colors"
-            options={roles}
-            {...SIDEBAR_SEGMENT}
-          />
-        </div>
+            page (/users) to invite/manage their own seat. The Admin seat is
+            always an admin, so there is nothing to preview there. */}
+        {seatCategory !== 'admin' && (
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="text-[10px] uppercase tracking-wide text-white/50">{t('viewingAs.seatRole')}</span>
+            <SegmentedControl
+              value={seatRole}
+              onChange={setSeatRole}
+              className={TRACK}
+              itemClassName="truncate px-2 py-0.5 text-[11px] font-medium transition-colors"
+              options={roles}
+              {...SIDEBAR_SEGMENT}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
