@@ -13,10 +13,12 @@ import { addDays } from 'date-fns';
 import {
   agencies,
   apiKeys,
+  benchmarkCreatives,
   benchmarkPool,
   campaigns,
   companies,
   emailReports,
+  inboxEvents,
   seatIdForAgency,
   seatIdForCompany,
   seatMembers,
@@ -25,19 +27,25 @@ import {
 } from './data';
 import { TODAY } from '@/lib/clock';
 import {
+  benchmarkContext,
   groupBenchmarks,
   overallStats,
+  type BenchmarkContext,
   type BenchmarkGroup,
   type BenchmarkMetric,
+  type BenchmarkScope,
   type Dimension,
   type Stats,
 } from '@/features/benchmarks/lib/benchmarks';
 import type {
   Agency,
   ApiKey,
+  BenchmarkCampaign,
+  BenchmarkCreative,
   Campaign,
   Clicktag,
   EmailReport,
+  InboxEvent,
   MetricKey,
   Seat,
   SeatMember,
@@ -214,6 +222,15 @@ export async function acceptInvite(memberId: string): Promise<SeatMember> {
   if (!member) throw new Error(`Unknown seat member ${memberId}`);
   member.status = 'accepted';
   member.lastSeenAt = TODAY.toISOString();
+  inboxEvents.push({
+    id: `ev-invite-${member.id}-${Date.now()}`,
+    kind: 'invitation',
+    createdAt: TODAY.toISOString(),
+    seatId: member.seatId,
+    seatName: seats.find((s) => s.id === member.seatId)?.name ?? '',
+    memberName: member.name,
+    memberEmail: member.email,
+  });
   return member;
 }
 
@@ -291,6 +308,16 @@ export async function fetchSyncRuns(): Promise<SyncRun[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Inbox — events written when something finished or changed. Whether a person
+// has read them is that person's own state, kept by the app, not here.
+// ---------------------------------------------------------------------------
+
+export async function fetchInboxEvents(): Promise<InboxEvent[]> {
+  await delay(150);
+  return [...inboxEvents];
+}
+
+// ---------------------------------------------------------------------------
 // Email reports — human-readable performance summaries.
 // ---------------------------------------------------------------------------
 
@@ -340,11 +367,36 @@ export async function setEmailReportEnabled(id: string, enabled: boolean): Promi
   return report;
 }
 
+/** What the "send sample" action hands the backend: one address and the
+ *  fully rendered email — the real send happens there; this only simulates it. */
+export interface SampleReportRequest {
+  to: string;
+  subject: string;
+  attachment: string | null;
+}
+
+/** Sends a dummy report to a single address so a layout can be confirmed
+ *  before the report is saved. Deliberately touches no saved report — a
+ *  sample is not a run, so it never changes "last sent". */
+export async function sendSampleEmailReport(request: SampleReportRequest): Promise<{ to: string; sentAt: string }> {
+  await delay(900);
+  return { to: request.to, sentAt: new Date().toISOString() };
+}
+
 export async function sendTestEmailReport(id: string): Promise<EmailReport> {
   await delay(600);
   const report = emailReports.find((r) => r.id === id);
   if (!report) throw new Error(`Unknown email report ${id}`);
   report.lastSentAt = new Date().toISOString();
+  inboxEvents.push({
+    id: `ev-report-${report.id}-${Date.now()}`,
+    kind: 'report',
+    createdAt: TODAY.toISOString(),
+    reportId: report.id,
+    reportName: report.name,
+    recipientCount: report.recipients.length,
+    format: report.format,
+  });
   return report;
 }
 
@@ -363,14 +415,37 @@ interface BenchmarkResponse {
   windowCampaignCount: number;
 }
 
-export async function fetchBenchmarks(dimension: Dimension): Promise<BenchmarkResponse> {
+export async function fetchBenchmarks(dimension: Dimension, scope?: BenchmarkScope): Promise<BenchmarkResponse> {
   await delay(350);
-  const groups = groupBenchmarks(benchmarkPool, dimension, TODAY);
+  const groups = groupBenchmarks(benchmarkPool, dimension, TODAY, scope);
   return {
     groups,
-    overall: overallStats(benchmarkPool, TODAY),
+    overall: overallStats(benchmarkPool, TODAY, scope),
     windowCampaignCount: groups.reduce((sum, g) => sum + g.campaignCount, 0),
   };
+}
+
+/** Every benchmark campaign (the 12-month window is applied by the caller's
+ *  comparisons). Internal-only: the matrix and the mechanic view are cut from
+ *  it, and clients/agencies never get it — they get `fetchBenchmarkContext`. */
+export async function fetchBenchmarkPool(): Promise<BenchmarkCampaign[]> {
+  await delay(300);
+  return benchmarkPool;
+}
+
+/** Every creative (size + mechanic) behind the benchmark pool — what mechanics
+ *  are benchmarked on. Internal-only, like the pool. */
+export async function fetchBenchmarkCreatives(): Promise<BenchmarkCreative[]> {
+  await delay(300);
+  return benchmarkCreatives;
+}
+
+/** A client against its industry (and, for Brame seats only, against BRAME).
+ *  What a client or agency seat is allowed to see — never another client's
+ *  numbers, never an agency's, never the wider pool. */
+export async function fetchBenchmarkContext(companyId: string, includeBrame: boolean): Promise<BenchmarkContext> {
+  await delay(250);
+  return benchmarkContext(benchmarkPool, companyId, TODAY, includeBrame);
 }
 
 export async function fetchBenchmarkGroup(

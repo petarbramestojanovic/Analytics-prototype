@@ -14,6 +14,7 @@ export const CHART_COLORS = {
   lime: '#DFFA96',
   purple: '#6b5b95',
   amber: '#b45309',
+  blue: '#2e6ac5',
 } as const;
 
 /**

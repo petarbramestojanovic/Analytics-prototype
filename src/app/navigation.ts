@@ -1,6 +1,7 @@
 import {
   BarChart3,
   BellRing,
+  Inbox,
   Building2,
   Cable,
   FolderKanban,
@@ -19,7 +20,9 @@ interface NavItemConfig {
   labelKey: string;
   icon: LucideIcon;
   /** Which live count (if any) the item shows as a badge. */
-  badge?: 'alerts';
+  badge?: 'alerts' | 'inbox';
+  /** Narrows the section's access for this one item. */
+  access?: Access;
 }
 
 export interface NavSectionConfig {
@@ -34,7 +37,11 @@ export interface NavSectionConfig {
   items: NavItemConfig[];
 }
 
-/** The sidebar, top to bottom. */
+/** Pinned above every section, with no header of its own: the person's inbox
+ *  belongs to them, not to any area of the product. */
+export const NAV_TOP_ITEMS: NavItemConfig[] = [{ to: paths.inbox, labelKey: 'nav.inbox', icon: Inbox, badge: 'inbox' }];
+
+/** The sidebar sections, top to bottom, under the pinned items. */
 export const NAV_SECTIONS: NavSectionConfig[] = [
   {
     labelKey: 'nav.sectionReporting',
@@ -44,6 +51,7 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
       { to: paths.overview, labelKey: 'nav.overview', icon: LayoutDashboard },
       { to: paths.campaigns, labelKey: 'nav.campaigns', icon: FolderKanban },
       { to: paths.reports, labelKey: 'nav.reports', icon: Send },
+      { to: paths.benchmarks(), labelKey: 'nav.benchmarks', icon: BarChart3, access: 'internal' },
     ],
   },
   {
@@ -61,7 +69,6 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     access: 'internal',
     collapsible: true,
     items: [
-      { to: paths.benchmarks(), labelKey: 'nav.benchmarks', icon: BarChart3 },
       { to: paths.clients, labelKey: 'nav.clients', icon: Users },
       { to: paths.alerts, labelKey: 'nav.alerts', icon: BellRing, badge: 'alerts' },
     ],

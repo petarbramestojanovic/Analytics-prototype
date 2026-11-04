@@ -6,3 +6,13 @@ export function matchesQuery(query: string, ...fields: (string | null | undefine
   if (!needle) return true;
   return fields.some((f) => f?.toLowerCase().includes(needle));
 }
+
+/** A filesystem-safe, lower-case slug — for download names. */
+export function slugify(text: string): string {
+  return text
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}

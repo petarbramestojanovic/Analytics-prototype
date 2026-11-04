@@ -7,6 +7,7 @@ import { SessionProvider } from '@/features/session';
 import { ProfileProvider } from '@/features/profile';
 import { NotificationSettingsProvider } from '@/features/preferences';
 import { AlertRulesProvider, AlertThresholdsProvider } from '@/features/alerts';
+import { InboxProvider } from '@/features/inbox';
 
 /**
  * Every app-wide provider, outermost first. A provider may use anything above
@@ -22,6 +23,7 @@ const PROVIDERS = [
   AlertThresholdsProvider,
   AlertRulesProvider,
   NotificationSettingsProvider,
+  InboxProvider,
 ];
 
 export function AppProviders({ children }: { children: ReactNode }) {

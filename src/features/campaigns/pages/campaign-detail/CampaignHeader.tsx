@@ -1,15 +1,21 @@
-import { Settings2 } from 'lucide-react';
+import { ArrowLeft, Settings2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { paths } from '@/config/paths';
-import { useFormatters, useI18n } from '@/i18n';
+import { useI18n } from '@/i18n';
 import { ButtonLink, Pill } from '@/components/ui';
-import { PageHeader } from '@/components/page';
 import { useSession } from '@/features/session';
 import type { Campaign } from '@/types';
 import { CampaignStatusPill } from '../../components/CampaignStatusPill';
+import { FlightTimeline } from '../../components/FlightTimeline';
 
+/**
+ * Title row: the name, its status and — while the campaign runs — the flight
+ * timeline stretched across the rest of the row up to the Setup button. Under
+ * it, who and what the campaign is. For a campaign that isn't live the dates
+ * live in the delivery card below instead.
+ */
 export function CampaignHeader({ campaign }: { campaign: Campaign }) {
   const { t } = useI18n();
-  const { fmtDateRange } = useFormatters();
   const { isAdmin, isInternal } = useSession();
 
   const facts = [
@@ -19,39 +25,57 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
     // Who booked the campaign is Brame/sales business — never shown to the
     // client whose campaign it is.
     ...(isInternal ? [campaign.agencyName ?? t('campaigns.agency.direct')] : []),
-    fmtDateRange(campaign.flightStart, campaign.flightEnd, true),
     campaign.salesforce.productLine,
     campaign.salesforce.market,
   ];
 
   return (
-    <PageHeader
-      className="mb-5"
-      back={{ to: paths.campaigns, label: t('detail.back') }}
-      title={campaign.name}
-      badges={
-        <>
+    <header className="mb-6">
+      <Link
+        to={paths.campaigns}
+        className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brame-teal dark:text-gray-400 dark:hover:text-brame-turquoise-light"
+      >
+        <ArrowLeft size={14} />
+        {t('detail.back')}
+      </Link>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{campaign.name}</h1>
           <CampaignStatusPill status={campaign.status} />
           {campaign.status === 'archived' && <Pill tone="amber">{t('detail.archivedBadge')}</Pill>}
-        </>
-      }
-      subtitle={
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          {facts.map((fact, i) => (
-            <span key={i} className="contents">
-              {i > 0 && <span>·</span>}
-              {typeof fact === 'string' ? <span>{fact}</span> : fact}
-            </span>
-          ))}
         </div>
-      }
-      actions={
-        // Setup stays Brame-operational — not a client permission,
-        // regardless of that client's own Admin/Viewer role.
-        isAdmin && (
-          <ButtonLink to={paths.setup(campaign.id)} icon={<Settings2 size={14} />}>{t('detail.setup')}</ButtonLink>
-        )
-      }
-    />
+
+        {campaign.status === 'live' ? (
+          <FlightTimeline
+            campaign={campaign}
+            className="order-last basis-full md:order-none md:basis-auto"
+          />
+        ) : (
+          <div className="flex-1" />
+        )}
+
+        {
+          // Setup stays Brame-operational — not a client permission,
+          // regardless of that client's own Admin/Viewer role.
+          isAdmin && (
+            <ButtonLink to={paths.setup(campaign.id)} icon={<Settings2 size={14} />}>
+              {t('detail.setup')}
+            </ButtonLink>
+          )
+        }
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+        {facts.map((fact, i) => (
+          // The dot belongs to the item before it, so a wrapped line never
+          // starts with a stray separator.
+          <span key={i} className="inline-flex items-center gap-2">
+            {fact}
+            {i < facts.length - 1 && <span aria-hidden>·</span>}
+          </span>
+        ))}
+      </div>
+    </header>
   );
 }

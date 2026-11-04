@@ -11,6 +11,7 @@ import { StatGrid, TextLink } from '@/components/display';
 import { DeliveryBar, MetricTile } from '@/features/campaigns';
 import type { BenchmarkCampaign } from '@/types';
 import { useBenchmarkGroup } from '@/api/hooks/useBenchmarks';
+import { BenchmarkValue } from '../components/BenchmarkValue';
 import { DistributionColumn } from '../components/DistributionColumn';
 import { LowSamplePill } from '../components/LowSamplePill';
 import { TrendPill } from '../components/TrendIndicator';
@@ -70,7 +71,10 @@ export function BenchmarkDetailPage() {
             <TrendPill trend={group.trend} pct={group.trendPct} />
           </>
         }
-        subtitle={t('benchmarkDetail.eligible', { eligible: group.eligibleCount, total: group.campaignCount })}
+        subtitle={t('benchmarkDetail.eligible', {
+          eligible: group.eligibleCount,
+          total: group.campaignCount,
+        })}
         className="mb-5"
       />
 
@@ -82,7 +86,9 @@ export function BenchmarkDetailPage() {
       </StatGrid>
 
       <Card className="mb-5">
-        <SectionTitle hint={t('benchmarkDetail.distributionHint')}>{t('benchmarkDetail.distributionTitle')}</SectionTitle>
+        <SectionTitle hint={t('benchmarkDetail.distributionHint')}>
+          {t('benchmarkDetail.distributionTitle')}
+        </SectionTitle>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {BENCHMARK_METRICS.map((m) => (
             <DistributionColumn key={m} metric={m} stats={group.stats[m]} overall={overall[m]} />
@@ -91,7 +97,10 @@ export function BenchmarkDetailPage() {
       </Card>
 
       <Card padded={false}>
-        <CardHeader title={t('benchmarkDetail.campaignsTitle')} hint={t('benchmarkDetail.campaignsHint')} />
+        <CardHeader
+          title={t('benchmarkDetail.campaignsTitle')}
+          hint={t('benchmarkDetail.campaignsHint')}
+        />
         <Table>
           <thead>
             <tr>
@@ -120,13 +129,19 @@ export function BenchmarkDetailPage() {
   );
 }
 
-function CampaignRow({ campaign, dimension }: { campaign: BenchmarkCampaign; dimension: Dimension }) {
+function CampaignRow({
+  campaign,
+  dimension,
+}: {
+  campaign: BenchmarkCampaign;
+  dimension: Dimension;
+}) {
   const { t } = useI18n();
   const { fmtDateRange } = useFormatters();
   const excluded = campaign.activeDays < MIN_BENCHMARK_ACTIVE_DAYS;
 
   return (
-    <Tr>
+    <Tr to={paths.campaign(campaign.id.replace(/^bm-live-/, ''))} newTab>
       <Td>
         {/* Benchmark rows projected from a live campaign carry its id behind a
             `bm-live-` prefix (see api/mock/data.ts projectLiveCampaign). */}
@@ -137,7 +152,10 @@ function CampaignRow({ campaign, dimension }: { campaign: BenchmarkCampaign; dim
           <span className="ml-2 inline-flex align-middle">
             <Pill
               tone="amber"
-              title={t('benchmarkDetail.excludedHint', { days: campaign.activeDays, floor: MIN_BENCHMARK_ACTIVE_DAYS })}
+              title={t('benchmarkDetail.excludedHint', {
+                days: campaign.activeDays,
+                floor: MIN_BENCHMARK_ACTIVE_DAYS,
+              })}
             >
               {t('benchmarkDetail.excluded')}
             </Pill>
@@ -152,16 +170,25 @@ function CampaignRow({ campaign, dimension }: { campaign: BenchmarkCampaign; dim
         </Td>
       )}
       <Td>
-        <span className="text-xs text-gray-500 dark:text-gray-400">{fmtDateRange(campaign.flightStart, campaign.flightEnd)}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {fmtDateRange(campaign.flightStart, campaign.flightEnd)}
+        </span>
       </Td>
       <Td align="right">{fmtCompact(campaign.impressions)}</Td>
       {BENCHMARK_METRICS.map((m) => (
         <Td key={m} align="right">
-          {fmtMetric(m, campaign[m])}
+          <BenchmarkValue
+            value={campaign[m]}
+            metric={m}
+            companyId={campaign.companyId}
+            industry={campaign.industry}
+          >
+            {fmtMetric(m, campaign[m])}
+          </BenchmarkValue>
         </Td>
       ))}
       <Td align="right">
-        <DeliveryBar pacing={campaign.deliveryPacing} />
+        <DeliveryBar pacing={campaign.deliveryPacing} health={campaign.deliveryHealth} />
       </Td>
     </Tr>
   );

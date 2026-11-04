@@ -138,7 +138,7 @@ function DailyOverlayCard({ campaign, left, right }: { campaign: Campaign; left:
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-            <XAxis dataKey="date" tickFormatter={fmtDate} tick={axis} tickLine={false} />
+            <XAxis dataKey="date" tickFormatter={fmtDate} tick={axis} tickLine={false} minTickGap={28} />
             <YAxis tickFormatter={fmtCompact} tick={axis} tickLine={false} axisLine={false} />
             <RTooltip formatter={tooltipInt} labelFormatter={(l) => fmtDateLong(String(l))} contentStyle={tooltipStyle} />
             <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />

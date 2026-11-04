@@ -11,12 +11,12 @@ import { checkSources, sourceMeta } from './sources';
 export interface Thresholds {
   /** Fraction (e.g. 0.03 = 3%). Below this, two sources are "in line". */
   watch: number;
-  /** Fraction (e.g. 0.1 = 10%). At/above this, a divergence needs investigating. */
+  /** Fraction (e.g. 0.08 = 8%). At/above this, a divergence needs investigating. */
   investigate: number;
 }
 
 type DivergenceTone = 'green' | 'amber' | 'red';
-export type DivergenceRead = 'inLine' | 'watch' | 'investigate';
+type DivergenceRead = 'inLine' | 'watch' | 'investigate';
 
 export interface DivergenceRow {
   campaignId: string;
@@ -46,6 +46,9 @@ export function relativeChange(from: number, to: number): number {
  *  no data or does not measure that metric at all (a comparison against
  *  absence is not a comparison). */
 export function sourceDelta(campaign: Campaign, baseline: SourceKey, check: SourceKey, metric: MetricKey) {
+  // Conversions are attributed per source (ATK's post-view window vs ours), not a
+  // count two sources are expected to agree on — never compared.
+  if (metric === 'conversions') return null;
   const bSeries = campaign.sources[baseline];
   const cSeries = campaign.sources[check];
   if (!bSeries || !cSeries) return null;
@@ -118,7 +121,7 @@ export function computePortfolioAlerts(campaigns: Campaign[], thresholds: Thresh
 }
 
 /** Investigate before watch, then the largest divergence first. */
-export function bySeverity(a: { read: DivergenceRead; absDelta: number }, b: { read: DivergenceRead; absDelta: number }) {
+function bySeverity(a: { read: DivergenceRead; absDelta: number }, b: { read: DivergenceRead; absDelta: number }) {
   if (a.read !== b.read) return a.read === 'investigate' ? -1 : 1;
   return b.absDelta - a.absDelta;
 }

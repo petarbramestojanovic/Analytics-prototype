@@ -10,7 +10,7 @@ import { StatGrid } from '@/components/display/StatTile';
  * prefers-reduced-motion. A spinner (LoadingState) is still right for
  * route-chunk fallbacks, where the page's shape isn't known yet.
  */
-export function Skeleton({ className }: { className?: string }) {
+function Skeleton({ className }: { className?: string }) {
   return <div aria-hidden className={cn('rounded-md bg-gray-200/70 motion-safe:animate-pulse dark:bg-white/10', className)} />;
 }
 

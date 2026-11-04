@@ -23,9 +23,9 @@ Brame rather than as a generic template.
    came from and how fresh they are. The `n/a` in the Engagement column is the
    interesting bit: an adserver cannot measure engagement, so the cell says so
    rather than showing 0%.
-2. **Migros Cumulus Summer Spin** → the source strip at the top. ATK is the
-   primary source; NEXD and Brame are checks. Note the amber "complete through
-   07 Sep" — a nightly source does not include today.
+2. **Migros Cumulus Summer** → the source card under the delivery and goal
+   cards. ATK is the primary source; NEXD and Brame are checks. Note the amber
+   "complete through …" — a nightly source does not include today.
 3. Scroll down on that campaign. There is no page-flow or CTA detail, and the
    card explains why: the adserver stops at delivery. Click through to Brame
    instrumentation to see in-unit behaviour.
@@ -33,7 +33,7 @@ Brame rather than as a generic template.
    difference and a plain-language read (in line / watch / investigate). Only
    metrics both platforms measure are listed. When the two sources are on
    different clocks, the view says so before anyone panics about a gap.
-5. **Migros Back-to-School Quiz** → NEXD tab. No connector, so it is blank with
+5. **Migros Back-to-School** → NEXD tab. No connector, so it is blank with
    a reason and a link to fix it — never a zero.
 6. **Campaign setup** — Salesforce-owned fields locked on top, app-owned
    technical setup editable below, including a **Primary source** selector —
@@ -148,22 +148,65 @@ Scheduled reports remain visible to client seats — the RFC has clients
 receiving their own report deliveries, so that page is scoped by company
 rather than hidden entirely.
 
-## Filtering (admin)
+## Filtering
 
-The Campaigns list gets two extra filters, admin-only (a client is already
-scoped to one company, so they'd be pointless there): **Company** and
-**Country** (Salesforce's `market` field), alongside the existing search and
-status filter. All compose together via a single filter chain before the
-table renders.
+- **Overview** — one bar: a **period** (last 30/90 days, this/last quarter,
+  year to date, last 12 months, Q4 / Black Friday week / Christmas for a chosen
+  year, or a custom range, with an optional **year-over-year** comparison that
+  shows each rate's change against the same window a year earlier) plus
+  combinable multi-select dropdowns for sales
+  person, campaign manager, campaign and country. The period works on delivery
+  *days*: a campaign counts only for the days it delivered inside it. Sales and
+  campaign manager are Brame-side cuts and hidden from clients. Everything
+  (tiles, trend, benchmark cards) follows the selection and it is kept in the
+  URL, so a link reproduces the view. A **Primary KPI performance** card groups
+  live campaigns by the KPI they were briefed on and shows how many are on
+  target. The demo includes 13 finished 2025 campaigns so the year-over-year
+  comparison has something to compare against.
+- **Campaigns list** — search and status tabs in the toolbar; everything else in
+  a **Filters** panel that slides in from the right (start date, end date, and,
+  for Brame seats, sales, campaign manager, client, agency, country,
+  category). Every dropdown takes several picks (checkboxes appear on hover);
+  with the panel closed, each active filter is one chip ("4 sales people").
+  Rows open their campaign on click.
+- Multi-select values travel as one comma-separated string (`lib/selection.ts`),
+  so a link from before multi-select still works.
 
-## Alerts & thresholds (admin)
+## Alerts & thresholds (Brame-internal)
 
 Karsten, on the comparison sources: *"we define thresholds... have alerts in place."* `/admin/alerts` is a portfolio-wide, standing list of every campaign currently over threshold — every primary source checked against every other reporting source, across all campaigns, not one at a time inside Compare.
 
 - **One set of thresholds, everywhere.** `src/features/campaigns/lib/divergence.ts` holds the delta/tone computation; both the Alerts page and each campaign's own Compare tab call the same functions, so a campaign can't read "in line" in one place and "investigate" in the other.
 - **Thresholds are editable** on the Alerts page itself (Watch / Investigate, as percentages), persisted like theme/language (`src/features/alerts/AlertThresholdsProvider.tsx` — a browser-side setting, not a mock-store record; see the file's comment for why).
+- **Default thresholds are 3% (watch, yellow) and 8% (investigate, red)** for a primary source against another source (DSP vs ad server). A value an admin saved earlier still wins.
+- **Rule types** (the *Alert rules* tab, in `lib/ruleEngine.ts`): source difference, KPI trend, fixed limit, decline since start, below another KPI, **falling day after day** (a rate down ≥ X pp on each of N days in a row) and **device split** (mobile or desktop share of impressions against a limit; tablet counts as mobile). Fixed limits and below-another-KPI work on any KPI with a daily value, in its own unit — two KPIs are only compared when they share one (two rates, or two counts). Eight standard rules ship on; the last two are viewability falling 5 days in a row (1 pp) and mobile share below 50%.
 - **Sidebar badge** on the Alerts nav item shows the current investigate-severity count, computed the same way as the page.
-- Admin-only, same as Setup/Connectors/Companies — Karsten's framing was internal monitoring, not something shown to clients.
+- Brame-internal (Admin and Brame seats) — Karsten's framing was internal monitoring, not something shown to clients.
+
+## Benchmarks
+
+Brame seats get a **Benchmarks** page with three views; every seat gets a light
+"How it compares" read on its own campaigns.
+
+- **Rankings** — industry / client / market over a rolling 12 months, with a
+  "vs. BRAME" column and the industries furthest above the BRAME average.
+- **Compare** — each campaign (or client) next to the averages of its client,
+  industry, market and BRAME; and one industry or client split by market
+  (Automotive AT vs. DE, IKEA AT vs. DE).
+- **Mechanics** — Tap to Reveal, Matchmaker, Carousel …, across *creatives*: a
+  mechanic belongs to a creative (one size + one mechanic), and a campaign can
+  run several. The mechanic list is whatever the data holds. One level only —
+  no mechanic × market or × industry — so an average never rests on one or two
+  flights; it appears once 3+ creatives back it (`MIN_COMPARE_SAMPLE`), while
+  how often a mechanic is booked always shows.
+- **Visibility** — clients and agencies only ever get their own client against
+  its industry (`useBenchmarkContext`, no BRAME figure, no other clients, no
+  agency benchmarks). The pool, the matrix and the mechanics are Brame-only and
+  enforced in the data layer, not just hidden in the UI.
+- Demo data: benchmarks are built from exactly the campaigns in the Campaigns
+  list — no hidden or generated history — so every count on a benchmark page can
+  be matched to campaigns you can open. With a small portfolio many groups sit
+  under the 3-campaign minimum and show as low sample; that is intended.
 
 ## Judgment calls worth reviewing
 
@@ -174,7 +217,15 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 - **Delivered-of-booked** uses Salesforce's booked impressions against the
   primary source's delivered count. It is the only commercial figure shown, and
   whether clients should see it is an open question.
-- **No conversions or revenue** anywhere, because the RFC describes none.
+- **Conversions** are dummy data, shown only for campaigns whose Salesforce
+  "conversion tracking" flag is on, and only from sources that measure them
+  (ATK, Brame). They are never compared across sources — each attributes them
+  differently. No revenue anywhere.
+- **Main goal, performance guarantee and total budget** are dummy stand-ins for
+  Salesforce fields not yet in the API. Clients see the goal; the guarantee and
+  budget are Brame-only.
+- **Device split**: Tablet counts as mobile (smartphone + tablet) in the tabs,
+  the chart and the list column; the data keeps Tablet as its own row.
 - **Auth is a demonstration, not a real flow.** No account is created, no
   email is sent, and any password is accepted — the point is to show the
   screens exist and behave, not to gate the prototype.

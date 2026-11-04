@@ -11,7 +11,7 @@ export function SelectTrigger({ id, placeholder, className }: { id?: string; pla
     <SelectPrimitive.Trigger
       id={id}
       className={cn(
-        'flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100',
+        'flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-base text-brame-dark outline-none focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100',
         focusRing,
         className
       )}

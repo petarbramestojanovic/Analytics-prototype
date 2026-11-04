@@ -19,7 +19,8 @@ export type MetricKey =
   | 'completionRate'
   | 'ctaClicks'
   | 'ctr'
-  | 'uniqueUsers';
+  | 'uniqueUsers'
+  | 'conversions';
 
 export interface SourceMeta {
   key: SourceKey;
@@ -41,6 +42,8 @@ export interface DailyPoint {
   ctaClicks: number;
   avgDwell: number;
   uniqueUsers: number;
+  /** Only on campaigns that track conversions (see `conversionTracking`). */
+  conversions?: number;
 }
 
 export interface SourceSeries {
@@ -72,14 +75,28 @@ interface DeviceRow {
   engagementRate: number;
 }
 
-interface CreativeRow {
+/** One creative's counts for one day — the subset of DailyPoint a creative
+ *  breakdown carries. Rates are always derived from these, never stored. */
+export type CreativeDailyPoint = Pick<
+  DailyPoint,
+  'date' | 'impressions' | 'viewable' | 'engagements' | 'ctaClicks' | 'conversions'
+>;
+
+export interface CreativeRow {
   id: string;
   name: string;
+  /** The size, e.g. 300x250, 300x600, 320x480. */
   format: string;
+  /** The game mechanic this creative runs (Tap to Reveal, Matchmaker, Carousel …).
+   *  A mechanic belongs to a creative, not to the campaign: one campaign can run
+   *  several creatives with different mechanics. */
+  mechanic: string;
   impressions: number;
   engagementRate: number;
   avgDwell: number;
   ctaClicks: number;
+  /** Day-by-day counts; `impressions`/`ctaClicks` above are their sums. */
+  daily: CreativeDailyPoint[];
 }
 
 interface UtmRow {
@@ -94,6 +111,41 @@ export interface Clicktag {
   id: string;
   label: string;
   url: string;
+}
+
+/** A Salesforce user (sales person or campaign manager). `avatarUrl` is the
+ *  Salesforce profile photo; null falls back to initials. */
+export interface Person {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+/** How a campaign is delivering against where it should be *by now* (delivered
+ *  share of booked vs. share of the runtime elapsed) — not against the full
+ *  booking. Computed by the backend. */
+export type DeliveryHealth = 'good' | 'okay' | 'poor';
+
+/** The metrics a campaign can be sold against or guaranteed on: the rates. */
+export type GoalMetric = 'engagementRate' | 'ctr' | 'viewability' | 'completionRate';
+
+/** The campaign's main goal as briefed in Salesforce. `target` is in the
+ *  metric's own unit (a 0–1 rate); null = named, no target set. */
+export interface PrimaryKpi {
+  metric: GoalMetric;
+  target: number | null;
+}
+
+/** What Brame contractually guarantees the client — a floor on a rate.
+ *  Brame-internal: never shown to the client. */
+interface PerformanceGuarantee {
+  metric: GoalMetric;
+  value: number;
+}
+
+interface Money {
+  amount: number;
+  currency: 'CHF' | 'EUR';
 }
 
 export type CampaignStatus = 'live' | 'scheduled' | 'ended' | 'archived';
@@ -116,10 +168,22 @@ export interface Campaign {
   flightEnd: string;
   /** Salesforce-owned commercial metadata — read-only replica in the app. */
   salesforce: {
-    owner: string;
+    salesPerson: Person;
+    campaignManager: Person;
     market: string;
+    /** Commercial category (e.g. Food Retail) — Salesforce-owned. */
+    category: string;
     bookedImpressions: number;
     productLine: string;
+    /** The main goal, briefed in Salesforce. Null until sales has set one. */
+    primaryKpi: PrimaryKpi | null;
+    /** Brame-internal: the performance floor guaranteed to the client. */
+    performanceGuarantee: PerformanceGuarantee | null;
+    /** Brame-internal: the campaign's total budget. */
+    totalBudget: Money | null;
+    /** Whether the campaign tracks conversions at all; the conversion metric
+     *  only shows (and is only delivered by the sources that measure it) when on. */
+    conversionTracking: boolean;
     lastSyncedAt: string;
   };
   /** App-owned technical setup — never touched by a sync (RFC §4 rule 4). */
@@ -129,6 +193,15 @@ export interface Campaign {
     nexdLiveIds: string[];
     atkPixelMapping: string;
     clicktags: Clicktag[];
+  };
+  /** Backend-computed pacing read. The percentage shown in the UI is the
+   *  current status (delivered ÷ booked); this drives the colour. */
+  delivery: {
+    /** Null when there is nothing to judge yet (no delivery, not started). */
+    health: DeliveryHealth | null;
+    /** Share of the booking that should be delivered by today (0–1), from
+     *  the elapsed share of the runtime. Shown in the tooltip. */
+    expectedPacing: number | null;
   };
   sources: Record<SourceKey, SourceSeries | null>;
   pages: PageStep[];

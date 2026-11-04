@@ -2,6 +2,7 @@ import { useI18n } from '@/i18n';
 import { fmtMetric } from '@/lib/format';
 import { StatTile } from '@/components/display';
 import { Tooltip } from '@/components/ui';
+import { BenchmarkValue } from '@/features/benchmarks';
 import type { MetricKey } from '@/types';
 
 /** A headline metric with its translated label and help tooltip. */
@@ -10,11 +11,15 @@ export function MetricTile({
   value,
   emphasis = false,
   footnote,
+  companyId,
 }: {
   metric: MetricKey;
   value: number | null | undefined;
   emphasis?: boolean;
   footnote?: string;
+  /** The client the value belongs to, so it can be read against that
+   *  client's industry benchmark. Omit for a value that isn't one campaign's. */
+  companyId?: string;
 }) {
   const { t } = useI18n();
   return (
@@ -33,7 +38,15 @@ export function MetricTile({
           </span>
         </>
       }
-      value={fmtMetric(metric, value)}
+      value={
+        companyId ? (
+          <BenchmarkValue value={value} metric={metric} companyId={companyId}>
+            {fmtMetric(metric, value)}
+          </BenchmarkValue>
+        ) : (
+          fmtMetric(metric, value)
+        )
+      }
     />
   );
 }

@@ -14,6 +14,7 @@ import { EmptyText, TableSkeleton } from '@/components/feedback';
 import { ListToolbar, Page, PageHeader, SearchInput, ToolbarResetButton } from '@/components/page';
 import { Pagination, SortableTh, Table, Td, Th, Tr } from '@/components/table';
 import { TextLink } from '@/components/display';
+import { TODAY } from '@/lib/clock';
 import { buildPortfolioSummary, useCampaigns, type PortfolioSummary } from '@/features/campaigns';
 import type { Company } from '@/types';
 import { useCompanies } from '@/api/hooks/useOrganizations';
@@ -66,7 +67,7 @@ export function ClientsPage() {
     for (const company of companies) {
       const own = allCampaigns.filter((c) => c.companyId === company.id);
       map.set(company.id, {
-        ...buildPortfolioSummary(own, new Date()),
+        ...buildPortfolioSummary(own, TODAY),
         markets: [...new Set(own.map((c) => c.salesforce.market))],
       });
     }
@@ -153,7 +154,7 @@ export function ClientsPage() {
 
 function ClientRow({ company, stats }: { company: Company; stats?: ClientStats }) {
   return (
-    <Tr>
+    <Tr to={paths.client(company.id)}>
       <Td>
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500">

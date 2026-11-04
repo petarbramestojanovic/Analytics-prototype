@@ -45,7 +45,7 @@ export function ClientAlertsCard({ alerts, campaigns }: { alerts: DivergenceRow[
               const campaign = byId.get(row.campaignId);
               const label = (s: DivergenceRow['baseline']) => (campaign ? sourceMeta(campaign, s).label : s);
               return (
-                <Tr key={`${row.campaignId}-${row.check}-${row.metric}`}>
+                <Tr key={`${row.campaignId}-${row.check}-${row.metric}`} to={paths.campaign(row.campaignId)} newTab>
                   <Td>
                     <TextLink to={paths.campaign(row.campaignId)} variant="record" newTab>
                       {row.campaignName}

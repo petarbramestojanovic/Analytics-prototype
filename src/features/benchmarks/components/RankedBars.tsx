@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CHART_COLORS, useAxisStyle } from '@/components/charts';
 import { EMPTY_VALUE, fmtMetric } from '@/lib/format';
 import type { BenchmarkMetric } from '../lib/benchmarks';
@@ -20,6 +21,8 @@ export function RankedBars({
   const { axis, grid, tooltipStyle, tooltipItemStyle, tooltipLabelStyle, cursorFill, animate } = useAxisStyle();
   // Bars need room to stay legible as buckets multiply; clients especially.
   const height = Math.max(220, data.length * 34);
+  // Narrower name column on a phone, so the bars keep most of the width.
+  const wide = useMediaQuery('(min-width: 640px)');
 
   return (
     <div style={{ height }}>
@@ -34,7 +37,7 @@ export function RankedBars({
             axisLine={false}
             domain={[0, 'dataMax + 0.5']}
           />
-          <YAxis type="category" dataKey="name" width={130} tick={axis} tickLine={false} axisLine={false} />
+          <YAxis type="category" dataKey="name" width={wide ? 130 : 84} tick={axis} tickLine={false} axisLine={false} />
           <RTooltip
             cursor={{ fill: cursorFill }}
             formatter={(v: unknown) => [typeof v === 'number' ? fmtMetric(metric, v / 100) : EMPTY_VALUE, '']}

@@ -1,8 +1,10 @@
+import type { DeliveryHealth } from './campaign';
+
 /**
  * A campaign reduced to the fields a benchmark needs. Deliberately not the full
- * `Campaign`: benchmarks read a 12-month rolling history of finished flights,
- * which is a far larger and much thinner set than the live campaigns the rest
- * of the app works with. Mirrors the KPI platform's `campaign_totals` row.
+ * `Campaign`: benchmarks read a 12-month rolling window of flights, so only
+ * the totals a comparison needs are kept. Mirrors the KPI platform's
+ * `campaign_totals` row.
  */
 export interface BenchmarkCampaign {
   id: string;
@@ -31,5 +33,34 @@ export interface BenchmarkCampaign {
    *  `deliveryPacing()` judgment call as the Campaigns list and Campaign
    *  Details, computed once at projection time from the full Campaign. */
   deliveryPacing: number | null;
+  /** The backend's pacing-vs-elapsed-runtime read — what colours the bar. */
+  deliveryHealth: DeliveryHealth | null;
 }
 
+/**
+ * One creative reduced to what a mechanic benchmark needs. The mechanic lives
+ * here, not on `BenchmarkCampaign`: a creative is one size and one mechanic,
+ * and a campaign can run several of them. Mechanics are benchmarked across
+ * creatives, at this level only.
+ */
+export interface BenchmarkCreative {
+  id: string;
+  campaignId: string;
+  campaignName: string;
+  companyId: string;
+  companyName: string;
+  industry: string;
+  market: string;
+  /** The size: 300x250, 300x600, 320x480 … */
+  format: string;
+  /** Whatever mechanic the creative runs — the list is open-ended. */
+  mechanic: string;
+  flightStart: string;
+  flightEnd: string;
+  /** Days with impressions > 0, same floor as a campaign. */
+  activeDays: number;
+  impressions: number;
+  ctr: number | null;
+  viewability: number | null;
+  engagementRate: number | null;
+}

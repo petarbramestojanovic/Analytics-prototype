@@ -3,4 +3,5 @@ export { useAlertThresholds } from './alertThresholdsContext';
 export { AlertRulesProvider } from './AlertRulesProvider';
 export { useAlertRules } from './alertRulesContext';
 export { useAlertLog } from './hooks/useAlertLog';
-export type { AlertRule, AlertRuleInput, AlertRuleScope } from './types';
+export { notifiesPerson } from './lib/notify';
+export { alertTriggeredAt, type AlertLogRow } from './lib/alertLog';

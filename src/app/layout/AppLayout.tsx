@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn';
 import { Drawer, DrawerContent } from '@/components/ui';
 import { LoadingState } from '@/components/feedback';
 import { CommandPalette } from './CommandPalette';
+import { RecentPagesTracker } from './RecentPagesTracker';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { useResizableSidebar } from './useResizableSidebar';
@@ -50,7 +51,8 @@ export function AppLayout() {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-brame-cream dark:bg-brame-dark">
+    <div className="flex h-dvh overflow-hidden bg-brame-cream dark:bg-brame-dark">
+      <RecentPagesTracker />
       {isDesktop ? (
         <aside
           style={{ width: sidebar.width }}

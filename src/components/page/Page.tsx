@@ -75,8 +75,8 @@ export function SectionTitle({
   className?: string;
 }) {
   return (
-    <div className={cn('mb-4 flex items-start justify-between gap-4', className)}>
-      <div>
+    <div className={cn('mb-4 flex flex-wrap items-start justify-between gap-x-4 gap-y-2', className)}>
+      <div className="min-w-0">
         <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">{children}</h2>
         {hint && <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{hint}</p>}
       </div>

@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui';
 import {
+  ALL_TREND_METRICS,
   TREND_METRICS,
   TREND_METRIC_COLORS,
   type BenchmarkableTrendMetric,
@@ -42,7 +43,7 @@ const BENCHMARKABLE: readonly BenchmarkableTrendMetric[] = ['engagementRate', 'c
 const LINE_ANIMATION = { animationDuration: 500, animationEasing: 'ease-out' } as const;
 
 /** Draw (and legend) order — the volume line first, then the rates. */
-const LINE_ORDER: readonly TrendMetric[] = ['impressions', 'delivery', 'engagementRate', 'ctr'];
+const LINE_ORDER: readonly TrendMetric[] = ['impressions', 'delivery', 'engagementRate', 'ctr', 'viewability'];
 
 /** The metric picks, remembered across reloads. Unknown entries (a metric
  *  that was renamed or removed) are dropped rather than breaking the chart;
@@ -50,7 +51,7 @@ const LINE_ORDER: readonly TrendMetric[] = ['impressions', 'delivery', 'engageme
 const metricsCodec: StorageCodec<TrendMetric[]> = {
   parse: (raw) => {
     const parsed = codecs.json<unknown>().parse(raw);
-    return Array.isArray(parsed) ? TREND_METRICS.filter((m) => parsed.includes(m)) : undefined;
+    return Array.isArray(parsed) ? ALL_TREND_METRICS.filter((m) => parsed.includes(m)) : undefined;
   },
   serialize: (v) => JSON.stringify(v),
 };
@@ -68,6 +69,7 @@ export function TrendChart({
   hint,
   daily,
   defaultMetrics = ['impressions'],
+  availableMetrics = TREND_METRICS,
   frameBenchmark,
   industryBenchmark,
   industryLabel,
@@ -76,6 +78,9 @@ export function TrendChart({
   hint?: string;
   daily: TrendPoint[];
   defaultMetrics?: TrendMetric[];
+  /** The metrics this chart offers in its dropdown; a remembered pick the
+   *  chart can't plot (e.g. delivery on a per-creative chart) is ignored. */
+  availableMetrics?: readonly TrendMetric[];
   /** Brame's own portfolio-wide average — never scoped to one tenant. */
   frameBenchmark?: BenchmarkValues;
   /** Average for this campaign/client's own industry bucket. */
@@ -88,7 +93,8 @@ export function TrendChart({
   // One shared pick for every trend chart, so the choice sticks as you move
   // between Overview, a client and a campaign; `defaultMetrics` only applies
   // until the user first changes it.
-  const [selected, setSelected] = usePersistentState<TrendMetric[]>(STORAGE_KEYS.trendMetrics, defaultMetrics, metricsCodec);
+  const [picked, setSelected] = usePersistentState<TrendMetric[]>(STORAGE_KEYS.trendMetrics, defaultMetrics, metricsCodec);
+  const selected = picked.filter((m) => availableMetrics.includes(m));
   const [showFrame, setShowFrame] = useState(false);
   const [showIndustry, setShowIndustry] = useState(false);
 
@@ -124,7 +130,7 @@ export function TrendChart({
               </ToolbarButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {TREND_METRICS.map((metric) => (
+              {availableMetrics.map((metric) => (
                 <DropdownMenuCheckboxItem
                   key={metric}
                   checked={selected.includes(metric)}
@@ -161,7 +167,7 @@ export function TrendChart({
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={daily}>
                 <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-                <XAxis dataKey="date" tickFormatter={fmtDate} tick={axis} tickLine={false} />
+                <XAxis dataKey="date" tickFormatter={fmtDate} tick={axis} tickLine={false} minTickGap={28} />
                 <YAxis
                   yAxisId="count"
                   hide={!showsImpressions}

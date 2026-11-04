@@ -6,28 +6,34 @@ import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { usePagination } from '@/hooks/usePagination';
-import { EMPTY_VALUE, fmtCompact, fmtInt, fmtMetric } from '@/lib/format';
+import { cn } from '@/lib/cn';
+import { EMPTY_VALUE, fmtCompact, fmtInt, fmtMetric, fmtSignedPct } from '@/lib/format';
 import { exportToXlsx } from '@/lib/exportXlsx';
 import { matchesQuery } from '@/lib/text';
 import { compareValues, toggleSort, type SortState } from '@/lib/sort';
 import { Button, Card, CardFooter, Tabs, Tooltip } from '@/components/ui';
 import { EmptyState, EmptyText, ErrorState, PageSkeleton } from '@/components/feedback';
 import { FilterSelect, ListToolbar, Page, PageHeader, SearchInput, SectionTitle } from '@/components/page';
-import { Pagination, SortableTh, Table, TableEmptyRow, Td, Tr } from '@/components/table';
+import { Pagination, SortableTh, Table, TableEmptyRow, Td, Th, Tr } from '@/components/table';
 import { StatGrid, SummaryTile, TextLink } from '@/components/display';
 import { useBenchmarks } from '@/api/hooks/useBenchmarks';
+import { BenchmarkViewTabs } from '../components/BenchmarkViewTabs';
 import { LowSamplePill } from '../components/LowSamplePill';
+import { parseBenchmarkView } from '../lib/benchmarkView';
+import { BenchmarkPoolView } from './BenchmarkCompareViews';
 import { RankedBars } from '../components/RankedBars';
 import { TrendIcon } from '../components/TrendIndicator';
 import {
   BENCHMARK_METRICS,
   DIMENSIONS,
   MIN_BENCHMARK_ACTIVE_DAYS,
+  MIN_COMPARE_SAMPLE,
   parseBenchmarkMetric,
   parseDimension,
   type BenchmarkGroup,
   type BenchmarkMetric,
   type Dimension,
+  type Stats,
 } from '../lib/benchmarks';
 
 type SortKey = 'group' | 'campaigns' | 'impressions' | BenchmarkMetric;
@@ -60,6 +66,12 @@ function sortValue(g: BenchmarkGroup, key: SortKey): number | string {
  * between them was which field the rows grouped on.
  */
 export function BenchmarksPage() {
+  const [params] = useSearchParams();
+  const view = parseBenchmarkView(params.get('view'));
+  return view === 'rankings' ? <RankingsView /> : <BenchmarkPoolView view={view} />;
+}
+
+function RankingsView() {
   const { t } = useI18n();
   usePageTitle(t('benchmarks.title'));
 
@@ -107,6 +119,17 @@ export function BenchmarksPage() {
 
   const overall = data.overall[metric];
 
+  // Where BRAME is strongest: the industries furthest above the BRAME average
+  // (the ICP view), counting only buckets that clear the sample floor.
+  const strongest = overall?.avg
+    ? data.groups
+        .filter((g) => g.stats[metric] && g.stats[metric]!.n >= MIN_COMPARE_SAMPLE)
+        .map((g) => ({ g, delta: (g.stats[metric]!.avg - overall.avg) / overall.avg }))
+        .filter((x) => x.delta > 0.05)
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 3)
+    : [];
+
   const exportRows = () =>
     exportToXlsx(`benchmarks-${dimension}.xlsx`, rows, [
       { key: 'displayName', header: t('benchmarks.col.group') },
@@ -133,6 +156,8 @@ export function BenchmarksPage() {
           </Button>
         }
       />
+
+      <BenchmarkViewTabs view="rankings" />
 
       <StatGrid>
         <SummaryTile
@@ -165,6 +190,24 @@ export function BenchmarksPage() {
         <EmptyState icon={<BarChart3 size={32} />} title={t('benchmarks.empty.title')} body={t('benchmarks.empty.body')} />
       ) : (
         <>
+          {dimension === 'industry' && strongest.length > 0 && (
+            <Card className="mb-5">
+              <SectionTitle hint={t('benchmarks.strong.hint', { min: MIN_COMPARE_SAMPLE })}>
+                {t('benchmarks.strong.title', { metric: t(`metric.${metric}.label`) })}
+              </SectionTitle>
+              <div className="flex flex-wrap gap-3">
+                {strongest.map(({ g, delta }) => (
+                  <div key={g.key} className="rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 dark:border-green-400/25 dark:bg-green-400/10">
+                    <div className="text-sm font-semibold text-brame-dark dark:text-gray-100">{g.displayName}</div>
+                    <div className="tnum text-xs text-green-700 dark:text-green-300">
+                      {fmtMetric(metric, g.stats[metric]!.avg)} · {fmtSignedPct(delta, 0)} {t('benchmarks.strong.vs')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           <Card className="mb-5">
             <SectionTitle hint={t('benchmarks.chartHint', { days: MIN_BENCHMARK_ACTIVE_DAYS })}>
               {t('benchmarks.chartTitle', {
@@ -197,14 +240,20 @@ export function BenchmarksPage() {
                       {t(`metric.${m}.label`)}
                     </SortableTh>
                   ))}
+                  <Th align="center">
+                    <span className="inline-flex items-center gap-1">
+                      {t('benchmarks.col.vsBrame', { metric: t(`metric.${metric}.label`) })}
+                      <Tooltip text={t('benchmarks.col.vsBrameHint')} />
+                    </span>
+                  </Th>
                 </tr>
               </thead>
               <tbody>
                 {paged.map((g) => (
-                  <GroupRow key={g.key} group={g} dimension={dimension} />
+                  <GroupRow key={g.key} group={g} dimension={dimension} metric={metric} overall={overall} />
                 ))}
                 {rows.length === 0 && (
-                  <TableEmptyRow colSpan={3 + TABLE_METRICS.length}>{t('benchmarks.noMatches')}</TableEmptyRow>
+                  <TableEmptyRow colSpan={4 + TABLE_METRICS.length}>{t('benchmarks.noMatches')}</TableEmptyRow>
                 )}
               </tbody>
             </Table>
@@ -220,11 +269,25 @@ export function BenchmarksPage() {
   );
 }
 
-function GroupRow({ group, dimension }: { group: BenchmarkGroup; dimension: Dimension }) {
+function GroupRow({
+  group,
+  dimension,
+  metric,
+  overall,
+}: {
+  group: BenchmarkGroup;
+  dimension: Dimension;
+  metric: BenchmarkMetric;
+  overall: Stats | null;
+}) {
   const { t } = useI18n();
+  const own = group.stats[metric];
+  // How far this group sits from the BRAME average — only once it clears the
+  // sample floor, so a thin bucket never reads as "strong" or "weak".
+  const vsBrame = own && overall && own.n >= MIN_COMPARE_SAMPLE && overall.avg ? (own.avg - overall.avg) / overall.avg : null;
 
   return (
-    <Tr>
+    <Tr to={paths.benchmarkGroup(dimension, group.key)}>
       <Td>
         <TextLink to={paths.benchmarkGroup(dimension, group.key)} variant="record">
           {group.displayName}
@@ -255,6 +318,20 @@ function GroupRow({ group, dimension }: { group: BenchmarkGroup; dimension: Dime
           </Td>
         );
       })}
+      <Td align="center">
+        {vsBrame == null ? (
+          <span className="text-gray-300 dark:text-gray-600">{EMPTY_VALUE}</span>
+        ) : (
+          <span
+            className={cn(
+              'tnum text-sm font-semibold',
+              vsBrame >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            )}
+          >
+            {fmtSignedPct(vsBrame, 0)}
+          </span>
+        )}
+      </Td>
     </Tr>
   );
 }

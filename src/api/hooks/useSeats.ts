@@ -15,7 +15,7 @@ import type { SeatRole } from '@/types';
 
 /** Any membership change can move a seat's member count, so every seat write
  *  refreshes both the seat list and every member list. */
-const invalidates = [queryKeys.seats.all, queryKeys.seatMembers.all];
+const invalidates = [queryKeys.seats.all, queryKeys.seatMembers.all, queryKeys.inbox.all];
 
 export function useSeats() {
   return useQuery({ queryKey: queryKeys.seats.all, queryFn: fetchSeats });

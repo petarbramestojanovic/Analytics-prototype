@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ChevronLeft, ChevronsUpDown, LogOut, UserCog } from 'lucide-react';
+import { Activity, ChevronLeft, ChevronsUpDown, LogOut, RefreshCw, UserCog } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { paths } from '@/config/paths';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
@@ -9,6 +10,8 @@ import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import {
   Avatar,
+  IconButton,
+  useLabelTip,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,7 +22,9 @@ import { BrandMark } from '@/components/display';
 import { hasAccess, useSession, ViewingAsSwitcher } from '@/features/session';
 import { ProfileSettingsModal, useCurrentUser } from '@/features/profile';
 import { useAlertLog } from '@/features/alerts';
-import { NAV_SECTIONS, type NavSectionConfig } from '../navigation';
+import { useInbox } from '@/features/inbox';
+import { LanguageSwitch, ThemeToggleButton } from '@/features/preferences';
+import { NAV_SECTIONS, NAV_TOP_ITEMS, type NavSectionConfig } from '../navigation';
 import { NavItem, NavSection } from './NavItem';
 
 /**
@@ -30,11 +35,13 @@ import { NavItem, NavSection } from './NavItem';
  */
 export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; onToggleCollapsed: () => void }) {
   const session = useSession();
+  const queryClient = useQueryClient();
   const { t } = useI18n();
   // Same log (and same thresholds) the Alerts page itself shows, so the badge
   // and the page never disagree on how many campaigns need attention.
   const { investigateCount } = useAlertLog();
-  const badges = { alerts: investigateCount };
+  const { unreadCount } = useInbox();
+  const badges = { alerts: investigateCount, inbox: unreadCount };
 
   const sections = NAV_SECTIONS.filter((s) => hasAccess(session, s.access));
   const [openGroups, setOpenGroups] = usePersistentState<Record<string, boolean>>(
@@ -61,42 +68,51 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
         {collapsed ? (
           // Floating circular badge rather than a cramped icon squeezed
           // against a chevron — click it to expand.
-          <button
+          <RailButton
+            label={t('nav.expand')}
             onClick={onToggleCollapsed}
-            aria-label={t('nav.expand')}
-            title={t('nav.expand')}
             className="ml-0.5 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-brame-lime text-brame-teal shadow-lg ring-2 ring-white/15 transition-transform hover:scale-105"
           >
             <Activity className="h-5 w-5" />
-          </button>
+          </RailButton>
         ) : (
           <>
             <BrandMark className="flex-1 overflow-hidden" />
-            <button
+            <RailButton
+              label={t('nav.collapse')}
               onClick={onToggleCollapsed}
-              aria-label={t('nav.collapse')}
-              title={t('nav.collapse')}
               className="hidden flex-shrink-0 rounded-lg p-1 transition-colors hover:bg-brame-teal-light lg:inline-flex"
             >
               <ChevronLeft size={18} />
-            </button>
+            </RailButton>
           </>
         )}
       </div>
 
       <nav className="sidebar-scroll flex-1 overflow-y-auto overflow-x-hidden py-3">
-        {sections.map((section, i) => (
+        <div className="space-y-0.5">
+          {NAV_TOP_ITEMS.map((item) => (
+            <NavItem
+              key={item.to}
+              to={item.to}
+              label={t(item.labelKey)}
+              icon={item.icon}
+              collapsed={collapsed}
+              badge={item.badge ? badges[item.badge] : undefined}
+            />
+          ))}
+        </div>
+        {sections.map((section) => (
           <NavSection
             key={section.labelKey}
             label={t(section.labelKey)}
             collapsed={collapsed}
-            first={i === 0}
             collapsible={section.collapsible}
             open={!section.collapsible || !!openGroups[section.labelKey]}
             onToggle={() => toggleGroup(section.labelKey)}
             badge={sectionBadge(section)}
           >
-            {section.items.map((item) => (
+            {section.items.filter((item) => !item.access || hasAccess(session, item.access)).map((item) => (
               <NavItem
                 key={item.to}
                 to={item.to}
@@ -112,6 +128,18 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
 
       {/* Stand-in for the auth session. Demonstrates that authorization is
           tenant-scoped rather than a UI filter. */}
+      {/* Phone-only: the controls the slim top bar gives up. */}
+      {!collapsed && (
+        <div className="flex items-center gap-2 px-4 pb-3 sm:hidden">
+          <LanguageSwitch />
+          <ThemeToggleButton />
+          <IconButton
+            label={t('common.refresh')}
+            icon={<RefreshCw size={14} />}
+            onClick={() => queryClient.invalidateQueries()}
+          />
+        </div>
+      )}
       {!collapsed && <ViewingAsSwitcher />}
 
       <AccountMenu collapsed={collapsed} />
@@ -131,13 +159,16 @@ function AccountMenu({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
   const user = useCurrentUser();
   const [profileOpen, setProfileOpen] = useState(false);
+  // Collapsed, the avatar is all there is to read: the tooltip names the account.
+  const tip = useLabelTip<HTMLButtonElement>(user.name, { side: 'right', detail: user.scopeLabel, disabled: !collapsed });
 
   return (
     <div className={cn('border-t border-brame-teal-light', collapsed ? 'p-2' : 'p-3')}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            title={collapsed ? user.name : undefined}
+            ref={tip.ref}
+            {...tip.bind}
             className={cn(
               'flex w-full items-center gap-2.5 rounded-lg py-2 text-left transition-colors hover:bg-brame-teal-light',
               collapsed ? 'justify-center px-0' : 'px-2'
@@ -168,7 +199,31 @@ function AccountMenu({ collapsed }: { collapsed: boolean }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {tip.tip}
       <ProfileSettingsModal open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
+  );
+}
+
+/** A button in the sidebar's header, with a tooltip to its right. */
+function RailButton({
+  label,
+  onClick,
+  className,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  className: string;
+  children: ReactNode;
+}) {
+  const { ref, bind, tip } = useLabelTip<HTMLButtonElement>(label, { side: 'right' });
+  return (
+    <>
+      <button ref={ref} {...bind} onClick={onClick} aria-label={label} className={className}>
+        {children}
+      </button>
+      {tip}
+    </>
   );
 }

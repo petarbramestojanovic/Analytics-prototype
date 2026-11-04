@@ -11,7 +11,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   const { t } = useI18n();
 
   return (
-    <div className="flex min-h-screen bg-brame-cream dark:bg-brame-dark">
+    <div className="flex min-h-dvh bg-brame-cream dark:bg-brame-dark">
       <div className="hidden flex-1 flex-col justify-between bg-brame-teal p-10 text-white lg:flex">
         <Link to={paths.login}>
           <BrandMark size="lg" />

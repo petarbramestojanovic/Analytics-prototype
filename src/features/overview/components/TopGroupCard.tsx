@@ -5,7 +5,12 @@ import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
 import { ErrorState, TableSkeleton } from '@/components/feedback';
 import { Eyebrow } from '@/components/display';
-import { LowSamplePill, useBenchmarks, type BenchmarkGroup, type Dimension } from '@/features/benchmarks';
+import {
+  LowSamplePill,
+  useBenchmarks,
+  type BenchmarkGroup,
+  type Dimension,
+} from '@/features/benchmarks';
 import { HeadlineCtr } from './HeadlineCtr';
 
 /** Best-performing group per dimension, ranked by CTR — the same headline
@@ -18,7 +23,13 @@ function topByCtr(groups: BenchmarkGroup[]): BenchmarkGroup | null {
 }
 
 /** "Top industry / client / market" — links into that benchmark group. */
-export function TopGroupCard({ dimension, query }: { dimension: Dimension; query: ReturnType<typeof useBenchmarks> }) {
+export function TopGroupCard({
+  dimension,
+  query,
+}: {
+  dimension: Dimension;
+  query: ReturnType<typeof useBenchmarks>;
+}) {
   const { t } = useI18n();
   const { data, isLoading, isError, refetch } = query;
   const top = data ? topByCtr(data.groups) : null;
@@ -27,7 +38,8 @@ export function TopGroupCard({ dimension, query }: { dimension: Dimension; query
   let body: ReactNode;
   if (isLoading) body = <TableSkeleton rows={3} columns={2} />;
   else if (isError || !data) body = <ErrorState onRetry={() => refetch()} compact />;
-  else if (!top) body = <p className="text-sm text-gray-500 dark:text-gray-400">{t('overview.topNone')}</p>;
+  else if (!top)
+    body = <p className="text-sm text-gray-500 dark:text-gray-400">{t('overview.topNone')}</p>;
   else
     body = (
       <>
@@ -35,13 +47,20 @@ export function TopGroupCard({ dimension, query }: { dimension: Dimension; query
           <div className="text-lg font-bold text-brame-dark dark:text-white">{top.displayName}</div>
           {top.lowSample && <LowSamplePill />}
         </div>
-        <HeadlineCtr value={top.stats.ctr!.avg} comparison={overallCtr != null ? { key: 'overview.vsPortfolio', value: overallCtr } : undefined} />
+        <HeadlineCtr
+          value={top.stats.ctr!.avg}
+          comparison={
+            overallCtr != null ? { key: 'overview.vsPortfolio', value: overallCtr } : undefined
+          }
+        />
       </>
     );
 
   const content = (
     <Card className="h-full transition-colors hover:border-brame-teal/40 dark:hover:border-brame-turquoise/40">
-      <Eyebrow>{t('overview.topOf', { dimension: t(`benchmarks.dimension.${dimension}`) })}</Eyebrow>
+      <Eyebrow>
+        {t('overview.topOf', { dimension: t(`benchmarks.dimension.${dimension}`) })}
+      </Eyebrow>
       {body}
     </Card>
   );

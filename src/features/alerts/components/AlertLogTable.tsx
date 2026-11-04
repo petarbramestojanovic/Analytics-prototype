@@ -24,7 +24,7 @@ export function AlertLogTable({ rows }: { rows: AlertLogRow[] }) {
         {rows.map((row) => (
           <tr key={row.key}>
             <Td>
-              <TextLink to={paths.campaign(row.campaignId)} variant="record">
+              <TextLink to={paths.alert(row.key)} variant="record">
                 {row.campaignName}
               </TextLink>
             </Td>
@@ -38,7 +38,7 @@ export function AlertLogTable({ rows }: { rows: AlertLogRow[] }) {
             </Td>
             <Td>{t(`metric.${row.metric}.label`)}</Td>
             <Td align="right">
-              <DeltaValue delta={row.delta} severity={row.severity} />
+              <DeltaValue delta={row.delta} severity={row.severity} unit={row.deltaKind ?? 'pct'} />
             </Td>
             <Td>
               <Pill tone={row.severity === 'watch' ? 'amber' : 'red'}>{t(`detail.read.${row.severity}`)}</Pill>

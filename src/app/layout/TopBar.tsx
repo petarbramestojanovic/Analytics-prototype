@@ -1,4 +1,8 @@
-import { BarChart3, Building2, Menu, RefreshCw, Search, ShieldCheck } from 'lucide-react';
+import { BarChart3, Bell, Building2, Menu, RefreshCw, Search, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { paths } from '@/config/paths';
+import { useInbox } from '@/features/inbox';
+import { RecentMenu } from './RecentMenu';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
@@ -21,14 +25,12 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
     <div className="sticky top-0 z-20 flex-shrink-0 border-b border-gray-200 bg-white/70 px-4 py-2.5 backdrop-blur dark:border-white/10 dark:bg-brame-dark/70 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <button
+          <IconButton
+            label={t('nav.openMenu')}
+            icon={<Menu size={16} />}
             onClick={onOpenMobileMenu}
-            aria-label={t('nav.openMenu')}
-            title={t('nav.openMenu')}
-            className="-ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-brame-dark transition-colors hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-white/10 lg:hidden"
-          >
-            <Menu size={18} />
-          </button>
+            className="flex-shrink-0 lg:hidden"
+          />
           <ScopeIcon size={14} className="flex-shrink-0" />
           <span className="max-w-[40vw] truncate font-medium text-brame-dark dark:text-gray-100 sm:max-w-none">
             {scopeLabel}
@@ -43,15 +45,45 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
 
         <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
           <SearchButton onClick={onOpenSearch} />
+          <RecentMenu />
+          <InboxButton />
+          {/* Below `sm` these three live at the bottom of the menu drawer, so
+              the bar keeps room for the page's name. */}
           <RefreshDataButton />
-          <LanguageSwitch />
-          <ThemeToggleButton />
+          <div className="hidden sm:flex">
+            <LanguageSwitch />
+          </div>
+          <div className="hidden sm:flex">
+            <ThemeToggleButton />
+          </div>
           <Pill tone="amber" className="hidden sm:inline-flex">
             {t('common.prototypeBadge')}
           </Pill>
         </div>
       </div>
     </div>
+  );
+}
+
+/** The bell: unread count at a glance, one click to the inbox. */
+function InboxButton() {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const { unreadCount } = useInbox();
+  return (
+    <span className="relative flex">
+      <IconButton
+        label={t('nav.inbox')}
+        detail={unreadCount > 0 ? t('inbox.unreadCount', { count: unreadCount }) : undefined}
+        icon={<Bell size={14} />}
+        onClick={() => navigate(paths.inbox)}
+      />
+      {unreadCount > 0 && (
+        <span className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white dark:ring-brame-dark">
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -72,6 +104,7 @@ function RefreshDataButton() {
       icon={<RefreshCw size={14} className={fetching ? 'animate-spin' : ''} />}
       onClick={() => queryClient.invalidateQueries()}
       disabled={fetching}
+      className="hidden sm:flex"
     />
   );
 }

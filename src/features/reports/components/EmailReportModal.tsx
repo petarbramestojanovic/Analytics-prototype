@@ -1,18 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Save } from 'lucide-react';
+import { Eye, FlaskConical, Layers, Save, Send } from 'lucide-react';
 import type { EmailReportInput } from '@/api';
 import { useI18n } from '@/i18n';
-import { Checkbox, Tabs } from '@/components/ui';
-import { FieldLabel, FieldMessage, FormModal, SelectField, StaticField, SwitchField, TextField } from '@/components/form';
+import { Button, Checkbox, Input, Tabs } from '@/components/ui';
+import {
+  FieldLabel,
+  FieldMessage,
+  FormModal,
+  SearchSelectField,
+  SelectField,
+  StaticField,
+  SwitchField,
+  TextField,
+} from '@/components/form';
 import { useCampaigns } from '@/features/campaigns';
 import { useAgencies, useCompanies } from '@/features/clients';
 import type { EmailReport, ReportScope } from '@/types';
-import { useCreateEmailReport, useUpdateEmailReport } from '@/api/hooks/useEmailReports';
+import {
+  useCreateEmailReport,
+  useSendSampleReport,
+  useUpdateEmailReport,
+} from '@/api/hooks/useEmailReports';
 import { REPORT_METRICS, reportMetrics, type ReportMetric } from '../lib/reportMetrics';
 import { reportScopeName } from '../lib/reportScope';
+import type { ReportDraft } from '../lib/reportContent';
+import { useReportRendering } from '../hooks/useReportRendering';
+import { ReportPreviewDialog } from './ReportPreviewDialog';
 
 function parseRecipients(value: string): string[] {
   return value
@@ -22,7 +38,8 @@ function parseRecipients(value: string): string[] {
 }
 
 const isValidRecipients = (value: string) =>
-  parseRecipients(value).length > 0 && parseRecipients(value).every((email) => z.string().email().safeParse(email).success);
+  parseRecipients(value).length > 0 &&
+  parseRecipients(value).every((email) => z.string().email().safeParse(email).success);
 
 const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri'] as const;
 type ReportLevel = ReportScope['level'];
@@ -47,7 +64,7 @@ type FormValues = {
 function toFormValues(
   report: EmailReport | undefined,
   fixedCompanyId: string | undefined,
-  fixedAgencyId: string | undefined
+  fixedAgencyId: string | undefined,
 ): FormValues {
   if (report) {
     const { scope } = report;
@@ -131,7 +148,9 @@ export function EmailReportModal({
       : (['client', 'agency', 'campaign'] as const);
 
   const scopedCampaigns = (campaigns ?? []).filter(
-    (c) => (!fixedCompanyId || c.companyId === fixedCompanyId) && (!fixedAgencyId || c.agencyId === fixedAgencyId)
+    (c) =>
+      (!fixedCompanyId || c.companyId === fixedCompanyId) &&
+      (!fixedAgencyId || c.agencyId === fixedAgencyId),
   );
 
   const schema = z
@@ -146,12 +165,21 @@ export function EmailReportModal({
       granularity: z.enum(['total', 'daily']),
       cadence: z.enum(['daily', 'weekly', 'monthly']),
       dayOfWeek: z.enum(WEEKDAYS),
-      format: z.enum(['excel', 'pdf', 'email']),
+      format: z.enum(['excel', 'csv', 'pdf', 'email']),
       enabled: z.boolean(),
     })
-    .refine((v) => v.level !== 'client' || !!fixedCompanyId || !!v.companyId, { message: 'required', path: ['companyId'] })
-    .refine((v) => v.level !== 'agency' || !!fixedAgencyId || !!v.agencyId, { message: 'required', path: ['agencyId'] })
-    .refine((v) => v.level !== 'campaign' || !!v.campaignId, { message: 'required', path: ['campaignId'] });
+    .refine((v) => v.level !== 'client' || !!fixedCompanyId || !!v.companyId, {
+      message: 'required',
+      path: ['companyId'],
+    })
+    .refine((v) => v.level !== 'agency' || !!fixedAgencyId || !!v.agencyId, {
+      message: 'required',
+      path: ['agencyId'],
+    })
+    .refine((v) => v.level !== 'campaign' || !!v.campaignId, {
+      message: 'required',
+      path: ['campaignId'],
+    });
 
   const {
     register,
@@ -175,6 +203,63 @@ export function EmailReportModal({
 
   const level = watch('level');
   const cadence = watch('cadence');
+
+  // The form as it stands right now, as a report — what Preview shows and
+  // what "send sample" mails. Blank targets fall back to the whole portfolio.
+  const values = watch();
+  const draftScope = (): ReportScope | undefined => {
+    if (report) return report.scope;
+    if (values.level === 'client') {
+      const id = fixedCompanyId ?? values.companyId;
+      const name = fixedCompanyName ?? companies?.find((c) => c.id === id)?.name;
+      return id && name ? { level: 'client', companyId: id, companyName: name } : undefined;
+    }
+    if (values.level === 'agency') {
+      const id = fixedAgencyId ?? values.agencyId;
+      const name = fixedAgencyName ?? agencies?.find((a) => a.id === id)?.name;
+      return id && name ? { level: 'agency', agencyId: id, agencyName: name } : undefined;
+    }
+    const c = campaigns?.find((x) => x.id === values.campaignId);
+    return c ? { level: 'campaign', campaignId: c.id, campaignName: c.name } : undefined;
+  };
+  const draftKey = JSON.stringify([values, report?.id]);
+  const draft: ReportDraft = useMemo(
+    () => ({
+      scope: draftScope(),
+      name: values.name,
+      metrics: values.metrics,
+      granularity: values.granularity,
+      cadence: values.cadence,
+      format: values.format,
+    }),
+    // draftKey covers every form value the draft reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [draftKey, companies, agencies, campaigns],
+  );
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [sampleEmail, setSampleEmail] = useState('');
+  const [sampleError, setSampleError] = useState(false);
+  const sendSample = useSendSampleReport();
+  const rendering = useReportRendering(draft);
+
+  useEffect(() => {
+    if (open) {
+      setSampleEmail('');
+      setSampleError(false);
+      sendSample.reset();
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onSendSample = () => {
+    const to = sampleEmail.trim();
+    if (!z.string().email().safeParse(to).success) {
+      setSampleError(true);
+      return;
+    }
+    setSampleError(false);
+    sendSample.mutate({ to, subject: rendering.subject, attachment: rendering.attachment });
+  };
   const mutation = report ? updateReport : createReport;
 
   const onSubmit = (values: FormValues) => {
@@ -183,10 +268,18 @@ export function EmailReportModal({
       scope = report.scope;
     } else if (values.level === 'client') {
       const companyId = fixedCompanyId ?? values.companyId;
-      scope = { level: 'client', companyId, companyName: fixedCompanyName ?? companies?.find((c) => c.id === companyId)?.name ?? '' };
+      scope = {
+        level: 'client',
+        companyId,
+        companyName: fixedCompanyName ?? companies?.find((c) => c.id === companyId)?.name ?? '',
+      };
     } else if (values.level === 'agency') {
       const agencyId = fixedAgencyId ?? values.agencyId;
-      scope = { level: 'agency', agencyId, agencyName: fixedAgencyName ?? agencies?.find((a) => a.id === agencyId)?.name ?? '' };
+      scope = {
+        level: 'agency',
+        agencyId,
+        agencyName: fixedAgencyName ?? agencies?.find((a) => a.id === agencyId)?.name ?? '',
+      };
     } else {
       scope = {
         level: 'campaign',
@@ -208,7 +301,10 @@ export function EmailReportModal({
     };
 
     if (report) {
-      updateReport.mutate({ id: report.id, patch: payload }, { onSuccess: () => onOpenChange(false) });
+      updateReport.mutate(
+        { id: report.id, patch: payload },
+        { onSuccess: () => onOpenChange(false) },
+      );
     } else {
       createReport.mutate(payload, { onSuccess: () => onOpenChange(false) });
     }
@@ -225,139 +321,221 @@ export function EmailReportModal({
       submitIcon={<Save size={13} />}
       pending={mutation.isPending}
       submitDisabled={!!report && !isDirty}
+      wide
+      footerStart={
+        <Button type="button" icon={<Eye size={13} />} onClick={() => setPreviewOpen(true)}>
+          {t('reports.preview.button')}
+        </Button>
+      }
     >
-      {report ? (
-        <StaticField label={t('reports.email.level')}>
-          {t(`reports.email.level.${report.scope.level}`)} · {reportScopeName(report.scope)}
-        </StaticField>
-      ) : (
-        <div>
-          <FieldLabel>{t('reports.email.level')}</FieldLabel>
-          <Tabs
-            fill
-            size="lg"
-            value={level}
-            onChange={(v) => setValue('level', v, { shouldDirty: true })}
-            options={availableLevels.map((l) => ({ value: l, label: t(`reports.email.level.${l}`) }))}
-          />
-        </div>
-      )}
+      {/* Two columns so the whole form fits without scrolling. */}
+      <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+        <div className="space-y-4">
+          {report ? (
+            <StaticField label={t('reports.email.level')}>
+              {t(`reports.email.level.${report.scope.level}`)} · {reportScopeName(report.scope)}
+            </StaticField>
+          ) : (
+            <div>
+              <FieldLabel>{t('reports.email.level')}</FieldLabel>
+              <Tabs
+                fill
+                size="lg"
+                value={level}
+                onChange={(v) => setValue('level', v, { shouldDirty: true })}
+                options={availableLevels.map((l) => ({
+                  value: l,
+                  label: t(`reports.email.level.${l}`),
+                }))}
+              />
+            </div>
+          )}
 
-      {showScopePicker && level === 'client' && !fixedCompanyId && (
-        <SelectField
-          control={control}
-          name="companyId"
-          label={t('reports.email.company')}
-          placeholder={t('reports.email.companyPlaceholder')}
-          options={(companies ?? []).map((c) => ({ value: c.id, label: c.name }))}
-          error={errors.companyId && t('common.required')}
-        />
-      )}
-
-      {showScopePicker && level === 'agency' && !fixedAgencyId && (
-        <SelectField
-          control={control}
-          name="agencyId"
-          label={t('reports.email.agency')}
-          placeholder={t('reports.email.agencyPlaceholder')}
-          options={(agencies ?? []).map((a) => ({ value: a.id, label: a.name }))}
-          error={errors.agencyId && t('common.required')}
-        />
-      )}
-
-      {showScopePicker && level === 'campaign' && (
-        <SelectField
-          control={control}
-          name="campaignId"
-          label={t('reports.email.campaign')}
-          placeholder={t('reports.email.campaignPlaceholder')}
-          options={scopedCampaigns.map((c) => ({ value: c.id, label: `${c.name} — ${c.companyName}` }))}
-          error={errors.campaignId && t('common.required')}
-        />
-      )}
-
-      <TextField
-        label={t('reports.email.name')}
-        placeholder={t('reports.email.namePlaceholder')}
-        error={errors.name && t('common.required')}
-        {...register('name')}
-      />
-
-      <TextField
-        label={t('reports.email.recipients')}
-        placeholder={t('reports.email.recipientsPlaceholder')}
-        error={errors.recipients && t('reports.email.invalidRecipients')}
-        help={t('reports.email.recipientsHint')}
-        {...register('recipients')}
-      />
-
-      <div>
-        <FieldLabel>{t('reports.email.metrics')}</FieldLabel>
-        <div className="flex flex-wrap gap-x-4 gap-y-2">
-          {REPORT_METRICS.map((m) => (
-            <Checkbox
-              key={m}
-              value={m}
-              label={t(`metric.${m}.label`)}
-              className="items-center text-brame-dark dark:text-gray-200"
-              {...register('metrics')}
+          {showScopePicker && level === 'client' && !fixedCompanyId && (
+            <SelectField
+              control={control}
+              name="companyId"
+              label={t('reports.email.company')}
+              placeholder={t('reports.email.companyPlaceholder')}
+              options={(companies ?? []).map((c) => ({ value: c.id, label: c.name }))}
+              error={errors.companyId && t('common.required')}
             />
-          ))}
+          )}
+
+          {showScopePicker && level === 'agency' && !fixedAgencyId && (
+            <SelectField
+              control={control}
+              name="agencyId"
+              label={t('reports.email.agency')}
+              placeholder={t('reports.email.agencyPlaceholder')}
+              options={(agencies ?? []).map((a) => ({ value: a.id, label: a.name }))}
+              error={errors.agencyId && t('common.required')}
+            />
+          )}
+
+          {showScopePicker && level === 'campaign' && (
+            <SearchSelectField
+              control={control}
+              name="campaignId"
+              label={t('reports.email.campaign')}
+              placeholder={t('reports.email.campaignPlaceholder')}
+              options={scopedCampaigns.map((c) => ({
+                value: c.id,
+                label: c.name,
+                description: c.companyName,
+              }))}
+              error={errors.campaignId && t('common.required')}
+            />
+          )}
+
+          <TextField
+            label={t('reports.email.name')}
+            placeholder={t('reports.email.namePlaceholder')}
+            error={errors.name && t('common.required')}
+            {...register('name')}
+          />
+
+          <TextField
+            label={t('reports.email.recipients')}
+            placeholder={t('reports.email.recipientsPlaceholder')}
+            error={errors.recipients && t('reports.email.invalidRecipients')}
+            help={t('reports.email.recipientsHint')}
+            {...register('recipients')}
+          />
+
+          <div>
+            <FieldLabel>{t('reports.email.metrics')}</FieldLabel>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {REPORT_METRICS.map((m) => (
+                <Checkbox
+                  key={m}
+                  value={m}
+                  label={t(`metric.${m}.label`)}
+                  className="items-center text-brame-dark dark:text-gray-200"
+                  {...register('metrics')}
+                />
+              ))}
+            </div>
+            <FieldMessage error={errors.metrics && t('reports.email.metricsRequired')} />
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+              <Layers size={12} className="flex-shrink-0" />
+              {t('reports.email.creativeNote')}
+            </p>
+          </div>
         </div>
-        <FieldMessage error={errors.metrics && t('reports.email.metricsRequired')} />
-      </div>
 
-      <SelectField
-        control={control}
-        name="granularity"
-        label={t('reports.email.granularity')}
-        options={[
-          { value: 'total', label: t('reports.email.granularity.total') },
-          { value: 'daily', label: t('reports.email.granularity.daily') },
-        ]}
-      />
+        <div className="space-y-4">
+          <SelectField
+            control={control}
+            name="granularity"
+            label={t('reports.email.granularity')}
+            options={[
+              { value: 'total', label: t('reports.email.granularity.total') },
+              { value: 'daily', label: t('reports.email.granularity.daily') },
+            ]}
+          />
 
-      <div className="grid grid-cols-2 gap-4">
-        <SelectField
-          control={control}
-          name="cadence"
-          label={t('reports.email.cadence')}
-          options={[
-            { value: 'daily', label: t('reports.email.cadenceDaily') },
-            { value: 'weekly', label: t('reports.email.cadenceWeekly') },
-            { value: 'monthly', label: t('reports.email.cadenceMonthly') },
-          ]}
-        />
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField
+              control={control}
+              name="cadence"
+              label={t('reports.email.cadence')}
+              options={[
+                { value: 'daily', label: t('reports.email.cadenceDaily') },
+                { value: 'weekly', label: t('reports.email.cadenceWeekly') },
+                { value: 'monthly', label: t('reports.email.cadenceMonthly') },
+              ]}
+            />
 
-        <SelectField
-          control={control}
-          name="format"
-          label={t('reports.email.format')}
-          options={[
-            { value: 'excel', label: t('reports.email.formatExcel') },
-            { value: 'pdf', label: t('reports.email.formatPdf') },
-            { value: 'email', label: t('reports.email.formatEmailBody') },
-          ]}
-        />
-      </div>
+            <SelectField
+              control={control}
+              name="format"
+              label={t('reports.email.format')}
+              options={[
+                { value: 'excel', label: t('reports.email.formatExcel') },
+                { value: 'csv', label: t('reports.email.formatCsv') },
+                { value: 'pdf', label: t('reports.email.formatPdf') },
+                { value: 'email', label: t('reports.email.formatEmailBody') },
+              ]}
+            />
+          </div>
 
-      {/* Monthly is always "the 1st" and daily has no day to pick (see
+          {/* Monthly is always "the 1st" and daily has no day to pick (see
           EmailReport's dayOfWeek doc comment) — this field only exists to
           disambiguate within a week. */}
-      {cadence === 'weekly' && (
-        <SelectField
-          control={control}
-          name="dayOfWeek"
-          label={t('reports.email.dayOfWeek')}
-          options={WEEKDAYS.map((d) => ({ value: d, label: t(`reports.email.day.${d}`) }))}
-        />
-      )}
+          {cadence === 'weekly' && (
+            <SelectField
+              control={control}
+              name="dayOfWeek"
+              label={t('reports.email.dayOfWeek')}
+              options={WEEKDAYS.map((d) => ({ value: d, label: t(`reports.email.day.${d}`) }))}
+            />
+          )}
 
-      <SwitchField
-        label={t('reports.email.scheduleEnabled')}
-        hint={t('reports.email.scheduleHint')}
-        checked={watch('enabled')}
-        onChange={(v) => setValue('enabled', v, { shouldDirty: true })}
+          <SwitchField
+            label={t('reports.email.scheduleEnabled')}
+            hint={t('reports.email.scheduleHint')}
+            checked={watch('enabled')}
+            onChange={(v) => setValue('enabled', v, { shouldDirty: true })}
+          />
+
+          <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="flex items-center gap-2 text-sm font-semibold text-brame-dark dark:text-gray-100">
+              <FlaskConical size={14} className="text-brame-teal dark:text-brame-turquoise-light" />
+              {t('reports.sample.title')}
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('reports.sample.hint')}
+            </p>
+            <div className="mt-2.5 flex gap-2">
+              <Input
+                type="email"
+                value={sampleEmail}
+                onChange={(e) => {
+                  setSampleEmail(e.target.value);
+                  setSampleError(false);
+                  sendSample.reset();
+                }}
+                placeholder={t('reports.sample.placeholder')}
+                aria-label={t('reports.sample.title')}
+                aria-invalid={sampleError || undefined}
+                onKeyDown={(e) => {
+                  // Enter here sends the sample — never submits (saves) the report.
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onSendSample();
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                icon={<Send size={13} />}
+                onClick={onSendSample}
+                disabled={sendSample.isPending}
+              >
+                {sendSample.isPending ? t('reports.sample.sending') : t('reports.sample.send')}
+              </Button>
+            </div>
+            {sampleError && (
+              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                {t('reports.sample.invalid')}
+              </p>
+            )}
+            {sendSample.isSuccess && (
+              <p className="mt-1.5 text-xs font-medium text-green-700 dark:text-green-400">
+                {t('reports.sample.sent', { email: sendSample.data.to })}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <ReportPreviewDialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        draft={draft}
+        recipients={parseRecipients(values.recipients)}
       />
     </FormModal>
   );

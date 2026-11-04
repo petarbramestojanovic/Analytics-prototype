@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Input } from '@/components/ui';
+import { Input, useLabelTip } from '@/components/ui';
 import { focusRing } from '@/components/ui/buttonStyles';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
@@ -15,6 +15,7 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<TextFieldProps, '
   const [visible, setVisible] = useState(false);
   const { t } = useI18n();
   const toggleLabel = visible ? t('common.hidePassword') : t('common.showPassword');
+  const tip = useLabelTip<HTMLButtonElement>(toggleLabel, { side: 'top' });
   return (
     <FormField label={label} error={error} help={help}>
       <div className="relative">
@@ -24,7 +25,8 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<TextFieldProps, '
           onClick={() => setVisible((v) => !v)}
           aria-label={toggleLabel}
           aria-pressed={visible}
-          title={toggleLabel}
+          ref={tip.ref}
+          {...tip.bind}
           className={cn(
             'absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300',
             focusRing
@@ -32,6 +34,7 @@ export const PasswordField = forwardRef<HTMLInputElement, Omit<TextFieldProps, '
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
+        {tip.tip}
       </div>
     </FormField>
   );

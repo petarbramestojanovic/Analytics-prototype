@@ -20,7 +20,8 @@ export function Switch({
       aria-pressed={checked}
       aria-label={label}
       className={cn(
-        'relative h-6 w-11 flex-shrink-0 rounded-full transition-colors disabled:opacity-60',
+        // The ::before is an invisible, larger tap area around the small switch.
+        'relative h-6 w-11 flex-shrink-0 rounded-full transition-colors before:absolute before:-inset-2 before:content-[""] disabled:opacity-60',
         checked ? 'bg-brame-teal' : 'bg-gray-300 dark:bg-white/15'
       )}
     >

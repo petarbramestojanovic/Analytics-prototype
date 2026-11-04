@@ -19,6 +19,9 @@ export const fmtCompact = (n: number) => {
 
 export const fmtPct = (n: number, decimals = 1) => `${(n * 100).toFixed(decimals)}%`;
 
+/** A difference in percentage points with an explicit sign — "-8.5 pp". */
+export const fmtSignedPp = (n: number, decimals = 1) => `${n > 0 ? '+' : ''}${(n * 100).toFixed(decimals)} pp`;
+
 /** A relative change with an explicit sign — "+4.2%", "-1.0%". */
 export const fmtSignedPct = (n: number, decimals = 1) => `${n > 0 ? '+' : ''}${fmtPct(n, decimals)}`;
 

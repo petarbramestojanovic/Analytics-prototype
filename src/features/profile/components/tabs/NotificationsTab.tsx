@@ -7,13 +7,15 @@ export function NotificationsTab() {
   const { t } = useI18n();
   const n = useNotificationSettings();
   const settings = [
+    { key: 'inboxAlerts', checked: n.inboxAlerts, onChange: n.setInboxAlerts },
+    { key: 'inboxReports', checked: n.inboxReports, onChange: n.setInboxReports },
+    { key: 'inboxInvitations', checked: n.inboxInvitations, onChange: n.setInboxInvitations },
     { key: 'emailDigest', checked: n.emailDigest, onChange: n.setEmailDigest },
-    { key: 'alertBreach', checked: n.alertBreach, onChange: n.setAlertBreach },
-    { key: 'reportDelivery', checked: n.reportDelivery, onChange: n.setReportDelivery },
   ] as const;
 
   return (
     <div className="space-y-3">
+      <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.notifications.intro')}</p>
       {settings.map((s) => (
         <SettingRow
           key={s.key}

@@ -1,6 +1,6 @@
 import { useCompanies } from '@/features/clients';
 import type { BenchmarkValues } from '@/features/campaigns';
-import type { Stats } from '../lib/benchmarks';
+import type { BenchmarkScope, Stats } from '../lib/benchmarks';
 import { useBenchmarks } from '@/api/hooks/useBenchmarks';
 
 const toValues = (stats: { ctr: Stats | null; engagementRate: Stats | null }): BenchmarkValues => ({
@@ -15,8 +15,8 @@ const toValues = (stats: { ctr: Stats | null; engagementRate: Stats | null }): B
  * construct, so pass `enabled: false` for any seat that isn't internal — the
  * query then never runs, rather than fetching and hiding the result.
  */
-export function useIndustryBenchmark(companyId: string | undefined, enabled = true) {
-  const { data } = useBenchmarks('industry', enabled);
+export function useIndustryBenchmark(companyId: string | undefined, enabled = true, scope?: BenchmarkScope) {
+  const { data } = useBenchmarks('industry', enabled, scope);
   const { data: companies } = useCompanies();
   const industry = companies?.find((c) => c.id === companyId)?.industry;
   const group = industry ? data?.groups.find((g) => g.key === industry) : undefined;

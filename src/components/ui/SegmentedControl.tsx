@@ -73,6 +73,12 @@ export function SegmentedControl<T extends string>({
 // shadow alone to mark the active tab.
 const TRACK = 'rounded-lg p-1 bg-gray-200 dark:bg-white/5';
 const INDICATOR = 'rounded-md bg-white shadow-sm dark:bg-brame-dark-light';
+// Tabs that sit straight on the page background rather than inside a card.
+// Inside a card the track is white/5 over the card surface (#3a3b3b), which
+// works out to about #444545 with the pill at the card colour. On the darker
+// page that same white/5 vanishes, so this reproduces the resulting track
+// colour directly; the pill stays as it is everywhere else.
+const PAGE_TRACK = 'dark:bg-[#444545]';
 const ACTIVE = 'text-brame-dark dark:text-white';
 const INACTIVE = 'text-gray-500 hover:text-brame-dark dark:text-gray-400 dark:hover:text-gray-100';
 
@@ -96,6 +102,7 @@ export function Tabs<T extends string>({
   size = 'md',
   fill = false,
   columns,
+  onPage = false,
   className,
 }: {
   value: T;
@@ -105,6 +112,8 @@ export function Tabs<T extends string>({
   size?: keyof typeof HEIGHT;
   fill?: boolean;
   columns?: keyof typeof GRID_COLUMNS;
+  /** Set when the tabs sit directly on the page background, not in a card. */
+  onPage?: boolean;
   className?: string;
 }) {
   const layout = columns
@@ -120,7 +129,7 @@ export function Tabs<T extends string>({
       onChange={onChange}
       options={options}
       groupLabel={groupLabel}
-      className={cn(TRACK, layout, className)}
+      className={cn(TRACK, onPage && PAGE_TRACK, layout, className)}
       indicatorClassName={INDICATOR}
       itemClassName={cn(item, 'text-xs font-medium transition-colors')}
       activeItemClassName={ACTIVE}

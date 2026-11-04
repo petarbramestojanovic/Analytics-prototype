@@ -40,10 +40,10 @@ export function ItemCard({
 }) {
   return (
     <Card>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex min-w-0 items-start gap-3">
           <IconBadge icon={icon} active={active} className="mt-0.5" />
-          <div>
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-brame-dark dark:text-gray-100">{title}</span>
               {badges}
@@ -51,7 +51,7 @@ export function ItemCard({
             {children}
           </div>
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">{actions}</div>}
       </div>
     </Card>
   );

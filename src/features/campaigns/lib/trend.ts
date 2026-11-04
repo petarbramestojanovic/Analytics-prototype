@@ -8,15 +8,21 @@ import { CHART_COLORS } from '@/components/charts';
  * and the color-per-metric mapping here means a metric is never given two
  * different colors in two different views.
  */
-export type TrendMetric = 'delivery' | 'impressions' | 'engagementRate' | 'ctr';
+export type TrendMetric = 'delivery' | 'impressions' | 'engagementRate' | 'ctr' | 'viewability';
 
+/** What the chart offers by default. Viewability is opt-in per caller (the
+ *  daily views pass it via `availableMetrics`) so existing charts are unchanged. */
 export const TREND_METRICS: TrendMetric[] = ['delivery', 'impressions', 'engagementRate', 'ctr'];
+
+/** Every metric the chart can plot, for decoding a remembered pick. */
+export const ALL_TREND_METRICS: TrendMetric[] = [...TREND_METRICS, 'viewability'];
 
 export const TREND_METRIC_COLORS: Record<TrendMetric, string> = {
   delivery: CHART_COLORS.purple,
   impressions: CHART_COLORS.teal,
   engagementRate: CHART_COLORS.turquoise,
   ctr: CHART_COLORS.amber,
+  viewability: CHART_COLORS.blue,
 };
 
 /** Only these two are ever benchmarked (lib/benchmarks.ts BENCHMARK_METRICS
@@ -32,6 +38,8 @@ export interface TrendPoint {
   delivery: number | null;
   engagementRate: number | null;
   ctr: number | null;
+  /** Only the daily views plot this; other callers may leave it out. */
+  viewability?: number | null;
 }
 
 /**
@@ -43,6 +51,7 @@ export interface TrendPoint {
 export function buildCampaignTrend(series: SourceSeries, bookedImpressions: number): TrendPoint[] {
   const measuresEngagement = series.totals.engagementRate !== undefined;
   const measuresCtr = series.totals.ctr !== undefined;
+  const measuresViewability = series.totals.viewability !== undefined;
   let cumulativeImpressions = 0;
 
   return series.daily.map((point) => {
@@ -53,6 +62,7 @@ export function buildCampaignTrend(series: SourceSeries, bookedImpressions: numb
       delivery: bookedImpressions ? cumulativeImpressions / bookedImpressions : null,
       engagementRate: measuresEngagement && point.impressions ? point.engagements / point.impressions : null,
       ctr: measuresCtr && point.impressions ? point.ctaClicks / point.impressions : null,
+      viewability: measuresViewability && point.impressions ? point.viewable / point.impressions : null,
     };
   });
 }

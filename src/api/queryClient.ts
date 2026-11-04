@@ -35,10 +35,14 @@ export const queryKeys = {
     bySeat: (seatId: string) => ['apiKeys', seatId] as const,
   },
   emailReports: { all: ['emailReports'] as const },
+  inbox: { all: ['inbox'] as const },
   benchmarks: {
     all: ['benchmarks'] as const,
-    byDimension: (dimension: string) => ['benchmarks', dimension] as const,
-    group: (dimension: string, key: string) => ['benchmarks', dimension, key] as const,
+    byDimension: (dimension: string, scope?: object) => ['benchmarks', dimension, scope ?? null] as const,
+    group: (dimension: string, key: string) => ['benchmarks', dimension, 'group', key] as const,
+    pool: ['benchmarks', 'pool'] as const,
+    creatives: ['benchmarks', 'creatives'] as const,
+    context: (companyId: string, includeBrame: boolean) => ['benchmarks', 'context', companyId, includeBrame] as const,
   },
   syncRuns: { all: ['syncRuns'] as const },
 };

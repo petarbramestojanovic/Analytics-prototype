@@ -27,7 +27,7 @@ export interface EmailReport {
   /** Only meaningful when cadence is 'weekly'; daily is every day and
    *  monthly is always the 1st. */
   dayOfWeek?: 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
-  format: 'excel' | 'pdf' | 'email';
+  format: 'excel' | 'csv' | 'pdf' | 'email';
   /** Whether this report sends automatically on `cadence`. A saved report
    *  with this off is never pushed on a schedule — only run on demand. */
   enabled: boolean;

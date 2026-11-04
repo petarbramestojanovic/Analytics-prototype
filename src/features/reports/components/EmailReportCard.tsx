@@ -1,4 +1,5 @@
-import { Clock, Mail, Pencil, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Clock, Eye, Mail, Pencil, Trash2 } from 'lucide-react';
 import { useFormatters, useI18n } from '@/i18n';
 import { Button, Pill, Switch } from '@/components/ui';
 import { ItemCard } from '@/components/display';
@@ -6,6 +7,8 @@ import type { EmailReport } from '@/types';
 import { useSendTestEmailReport, useSetEmailReportEnabled } from '@/api/hooks/useEmailReports';
 import { humanCadence, reportFormatLabel, reportMetrics } from '../lib/reportMetrics';
 import { reportScopeLabel } from '../lib/reportScope';
+import type { ReportDraft } from '../lib/reportContent';
+import { ReportPreviewDialog } from './ReportPreviewDialog';
 import { ReportStatusPill } from './ReportStatusPill';
 
 /** One saved report in the Reports list — with run-now, edit, remove and the
@@ -23,6 +26,18 @@ export function EmailReportCard({
   const { relativeTime } = useFormatters();
   const setEnabled = useSetEmailReportEnabled();
   const sendTest = useSendTestEmailReport();
+  const [previewing, setPreviewing] = useState(false);
+  const draft: ReportDraft = useMemo(
+    () => ({
+      scope: report.scope,
+      name: report.name,
+      metrics: reportMetrics(report),
+      granularity: report.granularity,
+      cadence: report.cadence,
+      format: report.format,
+    }),
+    [report],
+  );
 
   return (
     <ItemCard
@@ -39,8 +54,15 @@ export function EmailReportCard({
       }
       actions={
         <>
-          <Button size="sm" onClick={() => sendTest.mutate(report.id)} disabled={sendTest.isPending}>
+          <Button
+            size="sm"
+            onClick={() => sendTest.mutate(report.id)}
+            disabled={sendTest.isPending}
+          >
             {sendTest.isPending ? t('reports.email.running') : t('reports.runNow')}
+          </Button>
+          <Button size="sm" icon={<Eye size={12} />} onClick={() => setPreviewing(true)}>
+            {t('reports.preview.button')}
           </Button>
           <Button size="sm" icon={<Pencil size={12} />} onClick={onEdit}>
             {t('common.edit')}
@@ -57,7 +79,9 @@ export function EmailReportCard({
         </>
       }
     >
-      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{report.recipients.join(', ')}</div>
+      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        {report.recipients.join(', ')}
+      </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
         <span className="inline-flex items-center gap-1">
           <Clock size={11} />
@@ -77,6 +101,12 @@ export function EmailReportCard({
             : t('reports.email.neverSent')}
         </span>
       </div>
+      <ReportPreviewDialog
+        open={previewing}
+        onClose={() => setPreviewing(false)}
+        draft={draft}
+        recipients={report.recipients}
+      />
     </ItemCard>
   );
 }

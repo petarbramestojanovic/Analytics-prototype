@@ -22,6 +22,9 @@ function page<M extends Record<string, unknown>>(load: () => Promise<M>, name: k
   return lazy(() => load().then((m) => ({ default: m[name] as ComponentType })));
 }
 
+/** One page serves both alert list levels, so the tabs between them stay mounted and animate. */
+const AlertsHomePage = page(() => import('@/features/alerts/pages/AlertsHomePage'), 'AlertsHomePage');
+
 /** Rendered without the app shell — nobody is signed in yet. */
 export const publicRoutes: AppRoute[] = [
   { path: paths.login, Page: page(() => import('@/features/auth/pages/LoginPage'), 'LoginPage'), access: 'everyone' },
@@ -48,6 +51,7 @@ export const appRoutes: AppRoute[] = [
     access: 'everyone',
   },
   { path: paths.reports, Page: page(() => import('@/features/reports/pages/ReportsPage'), 'ReportsPage'), access: 'everyone' },
+  { path: paths.inbox, Page: page(() => import('@/features/inbox/pages/InboxPage'), 'InboxPage'), access: 'everyone' },
 
   // A seat's own admin manages that seat's members and API keys, whatever
   // the seat's category.
@@ -68,7 +72,15 @@ export const appRoutes: AppRoute[] = [
     Page: page(() => import('@/features/clients/pages/ClientDetailPage'), 'ClientDetailPage'),
     access: 'internal',
   },
-  { path: paths.alerts, Page: page(() => import('@/features/alerts/pages/AlertsPage'), 'AlertsPage'), access: 'internal' },
+  { path: paths.alerts, Page: AlertsHomePage, access: 'internal' },
+  // Static `rules` outranks the `:key` below, so the two levels never collide.
+  { path: paths.alertRules, Page: AlertsHomePage, access: 'internal' },
+  {
+    path: paths.alertRule(':id'),
+    Page: page(() => import('@/features/alerts/pages/AlertRuleDetailPage'), 'AlertRuleDetailPage'),
+    access: 'internal',
+  },
+  { path: '/admin/alerts/:key', Page: page(() => import('@/features/alerts/pages/AlertDetailPage'), 'AlertDetailPage'), access: 'internal' },
 
   // Brame-operational configuration — Admin seat only.
   {

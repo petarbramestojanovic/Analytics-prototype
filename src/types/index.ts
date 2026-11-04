@@ -6,4 +6,5 @@ export * from './benchmark';
 export * from './seat';
 export * from './apiKey';
 export * from './report';
+export * from './inbox';
 export * from './sync';

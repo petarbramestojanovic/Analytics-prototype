@@ -21,6 +21,7 @@ export const METRIC_KEYS: readonly MetricKey[] = [
   'ctaClicks',
   'ctr',
   'uniqueUsers',
+  'conversions',
 ];
 
 export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'label' | 'cadence' | 'measures'>> = {
@@ -28,7 +29,7 @@ export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'lab
     key: 'atk',
     label: 'ATK',
     cadence: 'nightly',
-    measures: ['impressions', 'viewable', 'viewability', 'plays', 'uniqueUsers'],
+    measures: ['impressions', 'viewable', 'viewability', 'plays', 'uniqueUsers', 'conversions'],
   },
   nexd: {
     key: 'nexd',
@@ -45,7 +46,7 @@ export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'lab
 };
 
 /** Last nightly pull, in the mock backend's pinned timeline. */
-const LAST_NIGHTLY_SYNC = '2026-09-08T04:00:00+02:00';
+const LAST_NIGHTLY_SYNC = '2026-10-28T04:00:00+01:00';
 
 /** A source's definition plus its connection state for one campaign. */
 export function sourceMeta(campaign: Campaign, key: SourceKey): SourceMeta {
@@ -62,6 +63,21 @@ export function sourceMeta(campaign: Campaign, key: SourceKey): SourceMeta {
  *  campaign's own primary source, or null while it has no data yet. */
 export function primarySeries(campaign: Campaign): SourceSeries | null {
   return campaign.sources[campaign.primarySource];
+}
+
+/** Interactions summed over one series' days — null where the source can't see
+ *  inside the unit. Works on any (e.g. device-scoped) series, unlike
+ *  `engagementCount`, which reads the campaign's primary one. */
+export function seriesEngagements(series: SourceSeries): number | null {
+  return series.totals.engagementRate === undefined ? null : series.daily.reduce((sum, d) => sum + d.engagements, 0);
+}
+
+/** Interactions with the unit, summed over the flight — null where the primary
+ *  source can't see inside the unit (an adserver stops at delivery). */
+export function engagementCount(campaign: Campaign): number | null {
+  const series = primarySeries(campaign);
+  if (!series || series.totals.engagementRate === undefined) return null;
+  return series.daily.reduce((sum, d) => sum + d.engagements, 0);
 }
 
 /** Sources that currently report data for this campaign. */

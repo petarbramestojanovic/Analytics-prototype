@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { focusRing } from './buttonStyles';
+import { useLabelTip } from './LabelTip';
 
 export const Dialog = DialogPrimitive.Root;
 
@@ -21,6 +22,7 @@ export function DialogContent({
   onInteractOutside?: (e: Event) => void;
 }) {
   const { t } = useI18n();
+  const closeTip = useLabelTip<HTMLButtonElement>(t('common.close'), { shortcut: 'Esc' });
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] transition-opacity" />
@@ -28,14 +30,15 @@ export function DialogContent({
         onOpenAutoFocus={onOpenAutoFocus}
         onInteractOutside={onInteractOutside}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-xl outline-none dark:border-white/10 dark:bg-brame-dark-light',
+          'fixed left-1/2 top-1/2 z-50 max-h-[85dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-xl outline-none dark:border-white/10 dark:bg-brame-dark-light',
           className
         )}
       >
         {children}
         <DialogPrimitive.Close
+          ref={closeTip.ref}
+          {...closeTip.bind}
           aria-label={t('common.close')}
-          title={t('common.close')}
           className={cn(
             'absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300',
             focusRing
@@ -43,6 +46,7 @@ export function DialogContent({
         >
           <X size={16} />
         </DialogPrimitive.Close>
+        {closeTip.tip}
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
@@ -68,6 +72,6 @@ export function DialogDescription({ children }: { children: ReactNode }) {
   );
 }
 
-export function DialogFooter({ children }: { children: ReactNode }) {
-  return <div className="mt-6 flex items-center justify-end gap-2">{children}</div>;
+export function DialogFooter({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn('mt-6 flex items-center justify-end gap-2', className)}>{children}</div>;
 }

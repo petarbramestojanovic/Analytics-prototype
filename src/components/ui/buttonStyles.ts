@@ -14,8 +14,9 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: 'px-2.5 py-1 text-xs',
-  md: 'px-3 py-1.5 text-sm',
+  // Taller on phones, where a finger is the pointer.
+  sm: 'px-2.5 py-2 text-xs sm:py-1',
+  md: 'px-3 py-2.5 text-sm sm:py-1.5',
 } as const;
 
 export type ButtonVariant = keyof typeof variants;

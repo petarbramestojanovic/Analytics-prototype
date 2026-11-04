@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useId, type ReactNode } from 'react';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useLabelTip } from '@/components/ui';
 
 const focusRing = 'outline-none focus-visible:ring-2 focus-visible:ring-brame-lime/70';
 
@@ -27,10 +28,15 @@ export function NavItem({
   badge?: number;
 }) {
   const hasBadge = !!badge && badge > 0;
+  // In the narrow rail there's no text, so the label appears on hover.
+  const tip = useLabelTip<HTMLAnchorElement>(label, { side: 'right', detail: hasBadge ? String(badge) : undefined, disabled: !collapsed });
   return (
+    <>
     <NavLink
       to={to}
-      title={collapsed ? (hasBadge ? `${label} (${badge})` : label) : undefined}
+      ref={tip.ref}
+      {...tip.bind}
+      aria-describedby={tip.describedBy}
       className={({ isActive }) =>
         cn(
           // Inset pill; the active one gets a lime bar pinned to its left edge.
@@ -56,6 +62,8 @@ export function NavItem({
         </>
       )}
     </NavLink>
+    {tip.tip}
+    </>
   );
 }
 

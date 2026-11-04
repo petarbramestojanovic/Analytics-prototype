@@ -12,7 +12,7 @@ export const Checkbox = forwardRef<
       <input
         ref={ref}
         type="checkbox"
-        className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300 text-brame-teal focus:ring-brame-teal dark:border-white/20 dark:bg-brame-dark-light"
+        className="mt-0.5 h-5 w-5 flex-shrink-0 rounded border-gray-300 sm:h-4 sm:w-4 text-brame-teal focus:ring-brame-teal dark:border-white/20 dark:bg-brame-dark-light"
         {...props}
       />
       <span>{label}</span>

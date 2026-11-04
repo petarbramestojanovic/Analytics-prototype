@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createEmailReport,
   deleteEmailReport,
   fetchEmailReports,
   queryKeys,
+  sendSampleEmailReport,
   sendTestEmailReport,
   setEmailReportEnabled,
   updateEmailReport,
@@ -11,7 +12,7 @@ import {
   type EmailReportInput,
 } from '@/api';
 
-const invalidates = [queryKeys.emailReports.all];
+const invalidates = [queryKeys.emailReports.all, queryKeys.inbox.all];
 
 export function useEmailReports() {
   return useQuery({ queryKey: queryKeys.emailReports.all, queryFn: fetchEmailReports });
@@ -41,4 +42,10 @@ export function useSetEmailReportEnabled() {
 
 export function useSendTestEmailReport() {
   return useInvalidatingMutation(sendTestEmailReport, invalidates);
+}
+
+/** A one-off dummy send to a single address — touches no saved report, so it
+ *  has nothing to invalidate. */
+export function useSendSampleReport() {
+  return useMutation({ mutationFn: sendSampleEmailReport });
 }

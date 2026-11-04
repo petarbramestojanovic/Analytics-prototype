@@ -18,7 +18,7 @@ export function DropdownMenuContent({
       <DropdownPrimitive.Content
         align={align}
         sideOffset={6}
-        className="z-50 min-w-[180px] overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-lg dark:border-white/10 dark:bg-brame-dark-light"
+        className="z-50 max-w-[calc(100vw-1rem)] min-w-[180px] overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-lg dark:border-white/10 dark:bg-brame-dark-light"
       >
         {children}
       </DropdownPrimitive.Content>

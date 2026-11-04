@@ -1,5 +1,5 @@
 import { forwardRef, type ReactNode } from 'react';
-import { Search, X } from 'lucide-react';
+import { ListFilter, Search, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Card, Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui';
 
@@ -53,7 +53,7 @@ export function SearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-sm text-brame-dark outline-none focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
+        className="h-10 w-full rounded-lg border border-gray-300 pl-9 pr-3 text-base text-brame-dark outline-none sm:text-sm focus:border-brame-teal dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:placeholder:text-gray-500"
       />
     </div>
   );
@@ -66,6 +66,7 @@ export function FilterSelect({
   allLabel,
   options,
   className = 'w-56',
+  triggerClassName,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -73,11 +74,13 @@ export function FilterSelect({
   allLabel?: string;
   options: readonly { value: string; label: ReactNode }[];
   className?: string;
+  /** e.g. `h-9` to match a row of small tabs. */
+  triggerClassName?: string;
 }) {
   return (
     <div className={className}>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger />
+        <SelectTrigger className={triggerClassName} />
         <SelectContent>
           {allLabel && <SelectItem value="all">{allLabel}</SelectItem>}
           {options.map((o) => (
@@ -91,7 +94,7 @@ export function FilterSelect({
   );
 }
 
-const TOOLBAR_BUTTON_SIZE = { xs: 'h-8 px-2.5', sm: 'h-9 px-3', md: 'h-10 px-3' } as const;
+const TOOLBAR_BUTTON_SIZE = { xs: 'h-9 px-2.5 sm:h-8', sm: 'h-10 px-3 sm:h-9', md: 'h-10 px-3' } as const;
 
 const toolbarButtonClasses =
   'inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white text-xs font-medium text-brame-dark transition-colors hover:bg-gray-50 dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:hover:bg-white/10';
@@ -144,5 +147,87 @@ export function ToolbarResetButton({
         </button>
       </div>
     </div>
+  );
+}
+
+/** The "Filters" button: opens/closes a filter tray (FilterSheet) and badges how many
+ *  filters inside it are active, so a closed panel never hides state. */
+export function FilterToggleButton({
+  open,
+  count,
+  label,
+  onClick,
+}: {
+  open: boolean;
+  count: number;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-filter-toggle
+      aria-expanded={open}
+      onClick={onClick}
+      className={cn(
+        toolbarButtonClasses,
+        TOOLBAR_BUTTON_SIZE.md,
+        (open || count > 0) && 'border-brame-teal text-brame-teal dark:border-brame-turquoise-light dark:text-brame-turquoise-light'
+      )}
+    >
+      <ListFilter size={13} />
+      {label}
+      {count > 0 && (
+        <span className="tnum inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brame-teal px-1 text-[10px] font-semibold text-white">
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** One field in a filter tray (FilterSheet): a small label over a full-width control. */
+export function FilterField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">{label}</div>
+      {children}
+    </div>
+  );
+}
+
+/** The strip of removable chips shown under the toolbar while the panel is
+ *  closed, one per active filter. */
+export function ActiveFilterChips({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2 dark:border-white/10">{children}</div>
+  );
+}
+
+export function FilterChip({
+  label,
+  children,
+  onRemove,
+  removeLabel,
+}: {
+  /** Which filter this is ("Sales"), shown muted before the value. */
+  label: string;
+  children: ReactNode;
+  onRemove: () => void;
+  removeLabel: string;
+}) {
+  return (
+    <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 pl-2.5 pr-1 text-xs text-brame-dark dark:border-white/15 dark:bg-white/5 dark:text-gray-100">
+      <span className="text-gray-400 dark:text-gray-500">{label}</span>
+      <span className="inline-flex items-center gap-1.5 font-medium">{children}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`${removeLabel}: ${label}`}
+        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-brame-dark dark:hover:bg-white/15 dark:hover:text-white"
+      >
+        <X size={11} />
+      </button>
+    </span>
   );
 }

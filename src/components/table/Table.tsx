@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { focusRing } from '@/components/ui/buttonStyles';
 import { ariaSort } from './ariaSort';
+import { isRowClick } from './isRowClick';
 
 type Align = 'left' | 'center' | 'right';
 
@@ -76,19 +78,22 @@ export function Th({
   align = 'left',
   className = '',
   sort,
+  dense = false,
 }: {
   children?: ReactNode;
   align?: Align;
   className?: string;
   /** Set on sortable columns only, so assistive tech announces the order. */
   sort?: 'ascending' | 'descending' | 'none';
+  dense?: boolean;
 }) {
   return (
     <th
       scope="col"
       aria-sort={sort}
       className={cn(
-        'whitespace-nowrap border-b border-gray-200 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:text-gray-400',
+        'whitespace-nowrap border-b border-gray-200 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:text-gray-400',
+        dense ? 'px-2.5' : 'px-4',
         alignClass[align],
         className
       )}
@@ -102,15 +107,18 @@ export function Td({
   children,
   align = 'left',
   className = '',
+  dense = false,
 }: {
   children?: ReactNode;
   align?: Align;
   className?: string;
+  dense?: boolean;
 }) {
   return (
     <td
       className={cn(
-        'border-b border-gray-100 px-4 py-2 text-sm dark:border-white/5',
+        'border-b border-gray-100 py-2 text-sm dark:border-white/5',
+        dense ? 'px-2.5' : 'px-4',
         align === 'right' && 'tnum',
         alignClass[align],
         className
@@ -121,9 +129,39 @@ export function Td({
   );
 }
 
-/** A body row with the standard hover highlight. */
-export function Tr({ children, className }: { children: ReactNode; className?: string }) {
-  return <tr className={cn('transition-colors hover:bg-gray-50 dark:hover:bg-white/5', className)}>{children}</tr>;
+/**
+ * A body row with the standard hover highlight. Give it `to` and the whole row
+ * is a link: a click goes there, ⌘/Ctrl-click or `newTab` opens a new tab. Put
+ * a real link in one cell as well, so the row is still reachable by keyboard.
+ */
+export function Tr({
+  children,
+  className,
+  to,
+  newTab = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  to?: string;
+  newTab?: boolean;
+}) {
+  const navigate = useNavigate();
+  return (
+    <tr
+      className={cn('transition-colors hover:bg-gray-50 dark:hover:bg-white/5', to && 'cursor-pointer', className)}
+      onClick={
+        to
+          ? (e) => {
+              if (!isRowClick(e)) return;
+              if (newTab || e.metaKey || e.ctrlKey) window.open(to, '_blank', 'noopener');
+              else navigate(to);
+            }
+          : undefined
+      }
+    >
+      {children}
+    </tr>
+  );
 }
 
 /** The single full-width row a table body shows when it has nothing to list. */

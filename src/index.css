@@ -10,7 +10,6 @@
   --color-brame-teal-dark: #055555;
   --color-brame-teal-light: #0a9090;
   --color-brame-lime: #DFFA96;
-  --color-brame-lime-dark: #c5e070;
   --color-brame-cream: #FEFFFA;
   --color-brame-dark: #282929;
   --color-brame-dark-light: #3a3b3b;
@@ -35,6 +34,27 @@ body {
 .dark body {
   background-color: #1c1d1d;
   color: #ececec;
+}
+
+/* Tailwind v4 stopped giving buttons the pointer cursor (v3's preflight did),
+   so every control in the app showed the plain arrow while rows, links and
+   anything with an explicit cursor-pointer showed a hand — the cursor then
+   swapped back and forth as the mouse crossed a row's buttons, header sort
+   controls, menu items and calendar days. Restore the pointer on every
+   enabled interactive control so it is one consistent rule. */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='menuitem'],
+  [role='menuitemcheckbox'],
+  [role='option'],
+  [role='tab'],
+  summary,
+  select:not(:disabled),
+  input[type='checkbox']:not(:disabled),
+  label[for] {
+    cursor: pointer;
+  }
 }
 
 /* Tabular figures everywhere a number is compared vertically in a table or

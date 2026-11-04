@@ -40,14 +40,22 @@ function LiveCampaignRow({ campaign }: { campaign: Campaign }) {
   return (
     <Link to={paths.campaign(campaign.id)} className="block">
       <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-sm font-medium text-brame-dark dark:text-gray-100">{campaign.name}</span>
+        <span className="truncate text-sm font-medium text-brame-dark dark:text-gray-100">
+          {campaign.name}
+        </span>
         {pacing != null && (
           <span className="tnum flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
             {fmtMetric('impressions', primarySeries(campaign)?.totals.impressions ?? 0)}
           </span>
         )}
       </div>
-      <DeliveryBar pacing={pacing} showValue={false} className="mt-1" />
+      <DeliveryBar
+        pacing={pacing}
+        health={campaign.delivery.health}
+        expectedPacing={campaign.delivery.expectedPacing}
+        showValue={false}
+        className="mt-1"
+      />
     </Link>
   );
 }

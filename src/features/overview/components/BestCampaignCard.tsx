@@ -21,7 +21,13 @@ function topCampaignByCtr(campaigns: Campaign[]): { campaign: Campaign; ctr: num
 }
 
 /** Client-side counterpart to TopGroupCard — same "best by CTR" framing. */
-export function BestCampaignCard({ campaigns, avgCtr }: { campaigns: Campaign[]; avgCtr: number | null }) {
+export function BestCampaignCard({
+  campaigns,
+  avgCtr,
+}: {
+  campaigns: Campaign[];
+  avgCtr: number | null;
+}) {
   const { t } = useI18n();
   const top = useMemo(() => topCampaignByCtr(campaigns), [campaigns]);
 
@@ -35,7 +41,12 @@ export function BestCampaignCard({ campaigns, avgCtr }: { campaigns: Campaign[];
           <div className="text-lg font-bold text-brame-dark hover:text-brame-teal dark:text-white dark:hover:text-brame-turquoise-light">
             {top.campaign.name}
           </div>
-          <HeadlineCtr value={top.ctr} comparison={avgCtr != null ? { key: 'overview.vsYourAverage', value: avgCtr } : undefined} />
+          <HeadlineCtr
+            value={top.ctr}
+            comparison={
+              avgCtr != null ? { key: 'overview.vsYourAverage', value: avgCtr } : undefined
+            }
+          />
         </Link>
       )}
     </Card>

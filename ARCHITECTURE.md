@@ -27,13 +27,16 @@ src/
 │
 ├── components/           Shared UI. Knows nothing about campaigns, seats, …
 │   ├── ui/                 Design-system primitives (Button, Card, Pill, Tabs,
-│   │                       Dialog, Select, ProgressBar, Callout, CodeBlock, …)
+│   │                       Dialog, Select, ProgressBar, Callout, CodeBlock,
+│   │                       Popover, Calendar, DateButton, …)
 │   ├── form/               TextField, PasswordField, SelectField, SwitchField,
 │   │                       StaticField, FormField/FieldLabel/FieldMessage, FormModal
 │   ├── table/              Table, Th/Td/Tr, SortableTh, DataTable (TanStack),
-│   │                       Pagination, RowActionsMenu, TableEmptyRow
+│   │                       Pagination, RowActionsMenu, TableEmptyRow (rows can be
+│   │                       made clickable via `onRowClick`)
 │   ├── page/               Page, PageHeader, BackLink, SectionTitle, NotFoundState,
-│   │                       ListToolbar, SearchInput, FilterSelect, Toolbar buttons
+│   │                       ListToolbar, SearchInput, FilterSelect, FilterMultiSelect,
+│   │                       DateFilter, FilterSheet (slide-in tray), Toolbar buttons
 │   ├── display/            StatTile/SummaryTile/StatGrid, ItemCard, ListItemButton,
 │   │                       ReadOnlyRow/SettingRow/ListRow, DeltaValue, TextLink, …
 │   ├── feedback/           LoadingState, ErrorState, EmptyState/EmptyText, ConfirmDialog
@@ -70,10 +73,10 @@ features/<name>/
 
 | Feature | Owns |
 |---|---|
-| `campaigns` | The core domain: campaign queries, source/metric rules (`lib/sources.ts`), source comparison (`lib/divergence.ts`), delivery, trends, portfolio summaries; Campaigns list, Campaign detail, Campaign setup |
-| `overview` | The landing page and its cards |
+| `campaigns` | The core domain: campaign queries, source/metric rules (`lib/sources.ts`), source comparison (`lib/divergence.ts`), delivery, goal/guarantee (`lib/goal.ts`), device split, trends, portfolio summaries (optionally over a date range); Campaigns list (filter sheet), Campaign detail, Campaign setup |
+| `overview` | The landing page: period + entity filters (`lib/dateRange.ts`, `lib/overviewFilters.ts`), the period picker, KPI tiles and benchmark cards |
 | `clients` | Company/agency queries; Clients directory and client detail |
-| `benchmarks` | Benchmark grouping rules, `useIndustryBenchmark`; Benchmarks pages |
+| `benchmarks` | The benchmark engine (`lib/benchmarks.ts`: window, active-day floor, 3-campaign minimum, ladder, market split, mechanics over creatives, per-client context); the Context card every seat sees; Benchmarks pages (Rankings / Compare / Mechanics, Brame-only) |
 | `alerts` | Thresholds + custom rules (state), the rule engine, the alert log (`useAlertLog`, also drives the sidebar badge); Alerts page |
 | `reports` | Email reports: queries, scoping, the create/edit modal; Reports page |
 | `seats` | Seats and members: queries, `useCurrentSeat`, member panel, modals; Seats and Users pages |
@@ -107,6 +110,9 @@ Not lint-enforced, but the same idea:
 - **Named exports everywhere**; barrels (`index.ts`) at each folder boundary.
 - **URLs** come from `paths` (`paths.campaign(id)`), never string literals.
 - **localStorage** only via `usePersistentState` with a key from `STORAGE_KEYS`.
+- **Multi-select filters** are one comma-separated string (`lib/selection.ts`:
+  `parseSelection` / `serializeSelection` / `matchesSelection`); `all` means
+  nothing picked.
 - **Missing values** render as `EMPTY_VALUE` / `fmtMetric(metric, null)` —
   never `0`. A source that doesn't measure a metric shows "n/a"
   (`MetricValueCell`).

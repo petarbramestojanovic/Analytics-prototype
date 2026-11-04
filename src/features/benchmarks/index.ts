@@ -1,11 +1,6 @@
-export { useBenchmarks, useBenchmarkGroup } from '@/api/hooks/useBenchmarks';
+export { useBenchmarks } from '@/api/hooks/useBenchmarks';
 export { useIndustryBenchmark } from './hooks/useIndustryBenchmark';
 export { LowSamplePill } from './components/LowSamplePill';
-export {
-  BENCHMARK_METRICS,
-  DIMENSIONS,
-  LOW_SAMPLE,
-  type BenchmarkGroup,
-  type BenchmarkMetric,
-  type Dimension,
-} from './lib/benchmarks';
+export { ContextComparison } from './components/ContextComparison';
+export { BenchmarkValue } from './components/BenchmarkValue';
+export { DIMENSIONS, type BenchmarkGroup, type BenchmarkScope, type Dimension } from './lib/benchmarks';

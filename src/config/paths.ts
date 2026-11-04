@@ -14,6 +14,7 @@ export const paths = {
   campaigns: '/campaigns',
   campaign: (id: string) => `/campaigns/${id}`,
   reports: '/reports',
+  inbox: '/inbox',
 
   users: '/users',
   apiAccess: '/api-access',
@@ -25,7 +26,12 @@ export const paths = {
   benchmarkGroup: (dimension: string, key: string) => `/benchmarks/${dimension}/${encodeURIComponent(key)}`,
   clients: '/admin/clients',
   client: (id: string) => `/admin/clients/${id}`,
+  // Alerts sit on two levels, each with an overview and a detail page: the
+  // alerts that have triggered, and the rules (definitions) that trigger them.
   alerts: '/admin/alerts',
+  alert: (key: string) => `/admin/alerts/${encodeURIComponent(key)}`,
+  alertRules: '/admin/alerts/rules',
+  alertRule: (id: string) => `/admin/alerts/rules/${id}`,
 
   setup: (campaignId?: string) => (campaignId ? `/admin/setup?campaign=${campaignId}` : '/admin/setup'),
   connectors: '/admin/connectors',

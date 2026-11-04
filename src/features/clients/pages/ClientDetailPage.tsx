@@ -8,6 +8,8 @@ import { Pill } from '@/components/ui';
 import { PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader } from '@/components/page';
 import { SummaryTile } from '@/components/display';
+import { TODAY } from '@/lib/clock';
+import { ContextComparison } from '@/features/benchmarks';
 import { buildPortfolioSummary, ChartCard, computePortfolioAlerts, PortfolioSummaryTiles, useCampaigns } from '@/features/campaigns';
 import { useAlertThresholds } from '@/features/alerts';
 import { useIndustryBenchmark } from '@/features/benchmarks';
@@ -43,7 +45,7 @@ export function ClientDetailPage() {
     () => (allReports ?? []).filter((r) => reportScopeCompanyId(r.scope, allCampaigns ?? []) === id),
     [allReports, allCampaigns, id]
   );
-  const summary = useMemo(() => buildPortfolioSummary(campaigns, new Date()), [campaigns]);
+  const summary = useMemo(() => buildPortfolioSummary(campaigns, TODAY), [campaigns]);
   // Same standing check the portfolio Alerts page runs, pre-filtered to this
   // client's own campaigns — so a problem here can't read differently from
   // what the Alerts page already shows.
@@ -95,6 +97,9 @@ export function ClientDetailPage() {
           </Link>
         }
       />
+
+      {/* The client against its industry and against BRAME. */}
+      <ContextComparison companyId={company.id} isInternal className="mb-4" />
 
       <ClientCampaignsCard campaigns={campaigns} />
       <ClientAlertsCard alerts={alerts} campaigns={campaigns} />

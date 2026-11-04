@@ -7,6 +7,7 @@ import { Card, ProgressBar } from '@/components/ui';
 import { SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
 import type { Campaign } from '@/types';
+import { deviceBuckets } from '../../lib/devices';
 
 // The per-source detail cards under a campaign's headline metrics. Each is
 // shown or hidden by SourceView depending on what the source measures.
@@ -84,12 +85,15 @@ export function CtaCard({ campaign }: { campaign: Campaign }) {
 export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; showEngagement: boolean }) {
   const { t } = useI18n();
   const { axis, grid, cursorFill, tooltipStyle, animate } = useAxisStyle();
+  // Two buckets, same as the Total/Mobile/Desktop tabs above: Tablet is part
+  // of Mobile. The data keeps it separate, so it is shown as a sub-line.
+  const buckets = deviceBuckets(campaign);
   return (
     <Card>
       <SectionTitle hint={t('detail.devicesHint')}>{t('detail.devicesTitle')}</SectionTitle>
-      <div className="h-56">
+      <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={campaign.devices} layout="vertical" barSize={22}>
+          <BarChart data={buckets} layout="vertical" barSize={26}>
             <CartesianGrid strokeDasharray="3 3" stroke={grid} horizontal={false} />
             <XAxis type="number" tickFormatter={fmtCompact} tick={axis} tickLine={false} axisLine={false} />
             <YAxis type="category" dataKey="device" tick={axis} tickLine={false} axisLine={false} width={60} />
@@ -98,17 +102,24 @@ export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; 
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-2 space-y-1">
-        {campaign.devices.map((d) => (
-          <div key={d.device} className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-              <Monitor size={11} />
-              {d.device}
-            </span>
-            <span className="tnum text-gray-500 dark:text-gray-400">
-              {fmtPct(d.viewability)} {t('detail.viewableSuffix')}
-              {showEngagement && ` · ${fmtPct(d.engagementRate)} ${t('detail.engagedSuffix')}`}
-            </span>
+      <div className="mt-2 space-y-2">
+        {buckets.map((d) => (
+          <div key={d.device} className="text-xs">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <Monitor size={11} />
+                {t(`detail.device.${d.device}`)}
+              </span>
+              <span className="tnum text-gray-500 dark:text-gray-400">
+                {fmtPct(d.viewability)} {t('detail.viewableSuffix')}
+                {showEngagement && ` · ${fmtPct(d.engagementRate)} ${t('detail.engagedSuffix')}`}
+              </span>
+            </div>
+            {d.tabletImpressions != null && d.tabletImpressions > 0 && (
+              <div className="tnum mt-0.5 pl-[17px] text-[11px] text-gray-400 dark:text-gray-500">
+                {t('detail.device.tabletIncluded', { value: fmtCompact(d.tabletImpressions) })}
+              </div>
+            )}
           </div>
         ))}
       </div>

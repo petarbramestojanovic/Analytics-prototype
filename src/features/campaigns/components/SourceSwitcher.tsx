@@ -57,7 +57,7 @@ export function SourceSwitcher({
             tab={key}
             active={isActive}
             onClick={() => onChange(key)}
-            ariaLabel={`${t(`connectors.source.${meta.key}`)} — ${role}${missing ? `, ${t('source.noConnector')}` : ''}`}
+            ariaLabel={`${t(`connectors.source.${meta.key}`)}: ${role}${missing ? `, ${t('source.noConnector')}` : ''}`}
             title={
               <>
                 {isPrimary && (
@@ -72,7 +72,7 @@ export function SourceSwitcher({
         );
       })}
 
-      <div className="mx-1 h-8 w-px bg-gray-200 dark:bg-white/10" />
+      <div className="mx-1 hidden h-8 w-px bg-gray-200 dark:bg-white/10 sm:block" />
 
       <SwitcherTab
         tab="compare"

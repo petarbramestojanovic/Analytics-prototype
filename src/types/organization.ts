@@ -1,7 +1,6 @@
 export interface Company {
   id: string;
   name: string;
-  campaignCount: number;
   /** Industry taxonomy shared with the KPI platform's `categories` table —
    *  the grouping dimension behind industry benchmarks. Salesforce-owned in a
    *  real deployment, which is why it lives on the company and not the campaign. */

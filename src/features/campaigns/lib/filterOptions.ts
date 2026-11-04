@@ -1,4 +1,4 @@
-import type { Campaign } from '@/types';
+import type { Campaign, Person } from '@/types';
 
 export interface Option {
   value: string;
@@ -26,4 +26,22 @@ export function agencyOptions(campaigns: Campaign[], directLabel: string): Optio
 /** The distinct Salesforce markets in a campaign list, sorted. */
 export function marketOptions(campaigns: Campaign[]): Option[] {
   return [...new Set(campaigns.map((c) => c.salesforce.market))].sort().map((m) => ({ value: m, label: m }));
+}
+
+/** The distinct Salesforce categories in a campaign list, sorted. */
+export function categoryOptions(campaigns: Campaign[]): Option[] {
+  return [...new Set(campaigns.map((c) => c.salesforce.category))].sort().map((m) => ({ value: m, label: m }));
+}
+
+export interface PersonOption extends Option {
+  avatarUrl: string | null;
+}
+
+/** The distinct people in one Salesforce role (`pick`) across a campaign
+ *  list, sorted by name — for the sales / campaign manager filters. */
+export function personOptions(campaigns: Campaign[], pick: (c: Campaign) => Person): PersonOption[] {
+  const people = new Map(campaigns.map((c) => [pick(c).id, pick(c)]));
+  return [...people.values()]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((p) => ({ value: p.id, label: p.name, avatarUrl: p.avatarUrl }));
 }

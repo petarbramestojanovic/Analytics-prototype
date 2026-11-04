@@ -4,10 +4,10 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { codecs, type StorageCodec } from '@/lib/storage';
 import { AlertThresholdsContext } from './alertThresholdsContext';
 
-// Defaults match the values that used to be hardcoded in the Compare tab
-// (3% / 10%), so nothing changes visually until an admin edits them.
+// Yellow from 3%, red from 8% — the DSP vs ad server thresholds the team uses.
+// An admin can change them; a value they saved earlier wins over these.
 const DEFAULT_WATCH = 0.03;
-const DEFAULT_INVESTIGATE = 0.1;
+const DEFAULT_INVESTIGATE = 0.08;
 
 const fractionCodec: StorageCodec<number> = {
   ...codecs.number,

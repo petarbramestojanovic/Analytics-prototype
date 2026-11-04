@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { CalendarDays, Images, LayoutDashboard } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useSearchParamState } from '@/hooks/useSearchParamState';
+import { Tabs } from '@/components/ui';
 import { PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page } from '@/components/page';
 import { useSession } from '@/features/session';
@@ -10,17 +13,29 @@ import { useCampaign } from '@/api/hooks/useCampaigns';
 import type { SourceTab } from '../../components/SourceSwitcher';
 import { canSeeCampaign } from '../../lib/scope';
 import { CampaignHeader } from './CampaignHeader';
+import { CampaignAlertsBox } from '../../components/CampaignAlertsBox';
+import { DeliveryPacingCard } from '../../components/DeliveryPacingCard';
+import { GoalCard } from '../../components/GoalCard';
 import { CompareView } from './CompareView';
+import { CreativesView } from './CreativesView';
+import { DailyView } from './DailyView';
 import { MeasurementSourcePanel } from './MeasurementSourcePanel';
 import { SourceView } from './SourceView';
 
-/** One campaign's analytics — one tab per measurement source, plus Compare. */
+const VIEWS = ['overview', 'daily', 'creatives'] as const;
+type View = (typeof VIEWS)[number];
+const VIEW_ICONS = { overview: LayoutDashboard, daily: CalendarDays, creatives: Images } as const;
+
+/** One campaign's analytics — one tab per measurement source, plus Compare.
+ *  Under a source, a second row picks the view: Overview, Daily, Creatives. */
 export function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const session = useSession();
   const { data: fetched, isLoading } = useCampaign(id);
   const { t } = useI18n();
   const [tab, setTab] = useState<SourceTab | null>(null);
+  const [viewParam, setViewParam] = useSearchParamState('view', 'overview');
+  const view: View = (VIEWS as readonly string[]).includes(viewParam) ? (viewParam as View) : 'overview';
 
   // Out of scope reads exactly like "doesn't exist" — not an access-denied
   // message, which would itself leak that the campaign exists.
@@ -48,9 +63,42 @@ export function CampaignDetailPage() {
   return (
     <Page>
       <CampaignHeader campaign={campaign} />
-      <MeasurementSourcePanel campaign={campaign} activeTab={activeTab} onTabChange={setTab} />
+      {/* By priority: how delivery is going and the goal, then anything that is
+          wrong, then the numbers. */}
+      <div className="mb-5 grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
+        <DeliveryPacingCard campaign={campaign} className="lg:col-span-2" />
+        <GoalCard campaign={campaign} isInternal={session.isInternal} />
+      </div>
+      {session.isInternal && <CampaignAlertsBox campaignId={campaign.id} />}
+      <MeasurementSourcePanel campaign={campaign} activeTab={activeTab} onTabChange={setTab}>
+        {/* Views only make sense where the source has data; without it
+            SourceView shows the "no connector" state on its own. */}
+        {activeTab !== 'compare' && campaign.sources[activeTab] && (
+          <Tabs
+            value={view}
+            onChange={setViewParam}
+            groupLabel={t('detail.view.label')}
+            options={VIEWS.map((value) => {
+              const Icon = VIEW_ICONS[value];
+              return {
+                value,
+                label: (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Icon size={13} />
+                    {t(`detail.view.${value}`)}
+                  </span>
+                ),
+              };
+            })}
+          />
+        )}
+      </MeasurementSourcePanel>
       {activeTab === 'compare' ? (
         <CompareView campaign={campaign} />
+      ) : campaign.sources[activeTab] && view === 'daily' ? (
+        <DailyView campaign={campaign} source={activeTab} />
+      ) : campaign.sources[activeTab] && view === 'creatives' ? (
+        <CreativesView campaign={campaign} source={activeTab} />
       ) : (
         <SourceView campaign={campaign} source={activeTab} onSwitchSource={setTab} />
       )}

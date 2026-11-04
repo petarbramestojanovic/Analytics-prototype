@@ -10,7 +10,7 @@ import { Dialog, DialogContent } from '@/components/ui';
 import { hasAccess, useSession } from '@/features/session';
 import { CampaignStatusPill, useScopedCampaigns } from '@/features/campaigns';
 import { useCompanies } from '@/features/clients';
-import { NAV_SECTIONS } from '../navigation';
+import { NAV_SECTIONS, NAV_TOP_ITEMS } from '../navigation';
 
 /** Per group, so one broad query can't bury the other groups. */
 const MAX_PER_GROUP = 6;
@@ -54,8 +54,12 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
 
   const groups = useMemo<Group[]>(() => {
     const q = query.trim();
-    const pages: Result[] = NAV_SECTIONS.filter((s) => hasAccess(session, s.access))
-      .flatMap((s) => s.items.map((item) => ({ ...item, section: t(s.labelKey) })))
+    const pages: Result[] = [
+      ...NAV_TOP_ITEMS.map((item) => ({ ...item, section: '' })),
+      ...NAV_SECTIONS.filter((s) => hasAccess(session, s.access)).flatMap((s) =>
+        s.items.filter((item) => !item.access || hasAccess(session, item.access)).map((item) => ({ ...item, section: t(s.labelKey) }))
+      ),
+    ]
       .filter((item) => matchesQuery(q, t(item.labelKey), item.section))
       .map((item) => ({ id: `page:${item.to}`, to: item.to, label: t(item.labelKey), icon: item.icon, meta: item.section }));
 
@@ -145,7 +149,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
           aria-controls={listId}
           aria-activedescendant={flat.length ? optionId(activeIndex) : undefined}
           aria-autocomplete="list"
-          className="min-w-0 flex-1 bg-transparent text-sm text-brame-dark outline-none placeholder:text-gray-400 dark:text-gray-100"
+          className="min-w-0 flex-1 bg-transparent text-base text-brame-dark outline-none sm:text-sm placeholder:text-gray-400 dark:text-gray-100"
         />
       </div>
 

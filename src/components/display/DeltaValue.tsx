@@ -1,4 +1,4 @@
-import { fmtSignedPct } from '@/lib/format';
+import { fmtSignedPct, fmtSignedPp } from '@/lib/format';
 import { cn } from '@/lib/cn';
 
 const SEVERITY_TEXT = {
@@ -10,6 +10,17 @@ const SEVERITY_TEXT = {
 export type DeltaSeverity = keyof typeof SEVERITY_TEXT;
 
 /** A signed percentage change ("+4.2%"), coloured by how much it matters. */
-export function DeltaValue({ delta, severity, className }: { delta: number; severity: DeltaSeverity; className?: string }) {
-  return <span className={cn(SEVERITY_TEXT[severity], className)}>{fmtSignedPct(delta, 1)}</span>;
+export function DeltaValue({
+  delta,
+  severity,
+  unit = 'pct',
+  className,
+}: {
+  delta: number;
+  severity: DeltaSeverity;
+  /** `pp` shows a difference in percentage points instead of a relative change. */
+  unit?: 'pct' | 'pp';
+  className?: string;
+}) {
+  return <span className={cn(SEVERITY_TEXT[severity], className)}>{unit === 'pp' ? fmtSignedPp(delta) : fmtSignedPct(delta, 1)}</span>;
 }

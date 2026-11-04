@@ -1,3 +1,4 @@
+import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { Card, CardHeader } from '@/components/ui';
 import { EmptyText } from '@/components/feedback';
@@ -32,7 +33,7 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
           </thead>
           <tbody>
             {campaigns.map((c) => (
-              <Tr key={c.id}>
+              <Tr key={c.id} to={paths.campaign(c.id)} newTab>
                 <Td>
                   <CampaignNameCell campaign={c} newTab />
                 </Td>
@@ -44,7 +45,7 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
                   </Td>
                 ))}
                 <Td align="right">
-                  <DeliveryBar pacing={deliveryPacing(c)} />
+                  <DeliveryBar pacing={deliveryPacing(c)} health={c.delivery.health} expectedPacing={c.delivery.expectedPacing} />
                 </Td>
               </Tr>
             ))}

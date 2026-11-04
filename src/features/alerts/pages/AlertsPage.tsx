@@ -1,73 +1,43 @@
-import { useMemo, useState } from 'react';
-import { Download, Plus, ShieldCheck } from 'lucide-react';
+import { useMemo } from 'react';
+import { Download, ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { usePagination } from '@/hooks/usePagination';
 import { exportToXlsx } from '@/lib/exportXlsx';
-import { fmtPct } from '@/lib/format';
+import { fmtPct, fmtSignedPp } from '@/lib/format';
 import { matchesQuery } from '@/lib/text';
-import { Button, Card, Tabs } from '@/components/ui';
-import { ConfirmDialog, EmptyState, EmptyText, PageSkeleton } from '@/components/feedback';
-import { FilterSelect, Page, PageHeader, SearchInput, SectionTitle } from '@/components/page';
+import { Button, Card } from '@/components/ui';
+import { EmptyState, EmptyText } from '@/components/feedback';
+import { FilterSelect, PageHeader, SearchInput, SectionTitle } from '@/components/page';
 import { Pagination } from '@/components/table';
-import { EmptyCard } from '@/components/display';
 import { useSession } from '@/features/session';
 import { companyOptions, useCampaigns } from '@/features/campaigns';
-import { useAlertRules } from '../alertRulesContext';
 import { AlertLogTable } from '../components/AlertLogTable';
-import { AlertRuleCard } from '../components/AlertRuleCard';
-import { AlertRuleDialog } from '../components/AlertRuleDialog';
 import { ThresholdSettings } from '../components/ThresholdSettings';
-import { useAlertLog } from '../hooks/useAlertLog';
-import type { AlertRule } from '../types';
+import type { AlertLogRow } from '../lib/alertLog';
 
 const PAGE_SIZE = 10;
 
-/**
- * Standing alert configuration and the log it produces. Two tabs:
- * "Log" — every campaign currently tripping either the fixed default
- * thresholds or a custom rule; "Rules" — where those custom rules are
- * defined, Outlook-rules-style (condition + KPI + scope, no drag-and-drop).
- *
- * The default thresholds stay wired to the exact same computation the
- * Compare tab uses — so nothing here can disagree with what a reviewer sees
- * on an individual campaign's Compare tab. Custom rules are purely additive.
- */
-export function AlertsPage() {
+/** The title block of the Triggered alerts level: title, subtitle and the
+ *  default watch/investigate thresholds. */
+export function AlertsHeader() {
   const { t } = useI18n();
-  usePageTitle(t('alerts.title'));
-  const [view, setView] = useState<'log' | 'rules'>('log');
-  const { rows, isLoading } = useAlertLog();
-
-  if (isLoading) return <PageSkeleton variant="list" />;
-
   return (
-    <Page>
-      <div className="mb-6 grid grid-cols-1 items-center gap-4 lg:grid-cols-12">
-        <PageHeader title={t('alerts.title')} subtitle={t('alerts.subtitle')} className="mb-0 lg:col-span-6" />
-        {view === 'log' && <ThresholdSettings className="lg:col-span-6" />}
-      </div>
-
-      <Tabs
-        fill
-        size="lg"
-        value={view}
-        onChange={setView}
-        groupLabel={t('alerts.title')}
-        className="mb-6 w-[220px]"
-        options={[
-          { value: 'log', label: t('alerts.tab.log') },
-          { value: 'rules', label: t('alerts.tab.rules') },
-        ]}
-      />
-
-      {view === 'log' ? <AlertLog rows={rows} /> : <AlertRules />}
-    </Page>
+    <div className="mb-6 grid grid-cols-1 items-center gap-4 lg:grid-cols-12">
+      <PageHeader title={t('alerts.title')} subtitle={t('alerts.subtitle')} className="mb-0 lg:col-span-6" />
+      <ThresholdSettings className="lg:col-span-6" />
+    </div>
   );
 }
 
-function AlertLog({ rows: allRows }: { rows: ReturnType<typeof useAlertLog>['rows'] }) {
+/**
+ * The alerts that have triggered: the list level. Each row opens its own
+ * detail page. The rules behind them live on the other level, one tab over
+ * (see AlertsHomePage). The default thresholds stay wired to the exact same
+ * computation the Compare tab uses, so nothing here can disagree with a
+ * campaign's Compare tab; rules only ever add rows.
+ */
+export function AlertLog({ rows: allRows }: { rows: AlertLogRow[] }) {
   const { t } = useI18n();
   const { isInternal } = useSession();
   const { data: campaigns = [] } = useCampaigns();
@@ -92,7 +62,7 @@ function AlertLog({ rows: allRows }: { rows: ReturnType<typeof useAlertLog>['row
       { key: 'ruleLabel', header: t('alerts.col.rule') },
       { key: 'detail', header: t('alerts.col.comparing') },
       { key: 'metric', header: t('alerts.col.metric'), format: (r) => t(`metric.${r.metric}.label`) },
-      { key: 'delta', header: t('alerts.col.delta'), format: (r) => fmtPct(r.delta, 1) },
+      { key: 'delta', header: t('alerts.col.delta'), format: (r) => (r.deltaKind === 'pp' ? fmtSignedPp(r.delta) : fmtPct(r.delta, 1)) },
       { key: 'severity', header: t('alerts.col.read'), format: (r) => t(`detail.read.${r.severity}`) },
     ]);
 
@@ -141,58 +111,5 @@ function AlertLog({ rows: allRows }: { rows: ReturnType<typeof useAlertLog>['row
         </>
       )}
     </Card>
-  );
-}
-
-function AlertRules() {
-  const { t } = useI18n();
-  const { rules, removeRule, setRuleEnabled } = useAlertRules();
-  const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<AlertRule | null>(null);
-  const [deleting, setDeleting] = useState<AlertRule | null>(null);
-
-  return (
-    <div className="space-y-5">
-      <SectionTitle
-        className="mb-0 items-center"
-        hint={t('alerts.rules.customHint')}
-        action={
-          <Button variant="primary" icon={<Plus size={13} />} onClick={() => setCreating(true)}>
-            {t('alerts.rules.new')}
-          </Button>
-        }
-      >
-        {t('alerts.rules.customTitle')}
-      </SectionTitle>
-
-      {rules.length === 0 ? (
-        <EmptyCard>{t('alerts.rules.empty')}</EmptyCard>
-      ) : (
-        <div className="space-y-3">
-          {rules.map((rule) => (
-            <AlertRuleCard
-              key={rule.id}
-              rule={rule}
-              onToggle={(enabled) => setRuleEnabled(rule.id, enabled)}
-              onEdit={() => setEditing(rule)}
-              onDelete={() => setDeleting(rule)}
-            />
-          ))}
-        </div>
-      )}
-
-      <AlertRuleDialog open={creating} onOpenChange={setCreating} />
-      <AlertRuleDialog rule={editing ?? undefined} open={editing !== null} onOpenChange={(open) => !open && setEditing(null)} />
-      <ConfirmDialog
-        open={deleting !== null}
-        onOpenChange={(open) => !open && setDeleting(null)}
-        title={t('alerts.rules.deleteTitle')}
-        description={deleting ? t('alerts.rules.deleteBody', { name: deleting.name }) : ''}
-        onConfirm={() => {
-          if (deleting) removeRule(deleting.id);
-          setDeleting(null);
-        }}
-      />
-    </div>
   );
 }

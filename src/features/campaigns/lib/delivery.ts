@@ -1,29 +1,23 @@
-import type { Campaign } from '@/types';
+import type { Campaign, DeliveryHealth } from '@/types';
 import type { PillTone } from '@/components/ui';
 import { primarySeries } from './sources';
 
+export type { DeliveryHealth };
+
 /**
- * How good a campaign's delivery is — delivered impressions (its primary
- * source's own count, same rule as everywhere else) against what Salesforce
- * booked. A single, reused judgment call so the color never disagrees
- * between the Campaigns list, Overview and Campaign Details.
+ * Delivery has two separate reads, and they must not be confused:
+ *  - the **percentage** is the current status — delivered impressions (the
+ *    primary source's own count, same rule as everywhere else) ÷ what
+ *    Salesforce booked;
+ *  - the **colour** is the trend — `campaign.delivery.health`, the backend's
+ *    judgement of that percentage against how much of the runtime has
+ *    elapsed. 50% after day 5 of 10 is green; 50% on day 7 (target 70%) is
+ *    not. The UI never derives the colour from the percentage.
  */
-export type DeliveryHealth = 'good' | 'okay' | 'poor';
-
-const GOOD_THRESHOLD = 0.8;
-const OKAY_THRESHOLD = 0.5;
-
 export function deliveryPacing(campaign: Campaign): number | null {
   const series = primarySeries(campaign);
   if (!series?.totals.impressions || !campaign.salesforce.bookedImpressions) return null;
   return series.totals.impressions / campaign.salesforce.bookedImpressions;
-}
-
-export function deliveryHealth(pacing: number | null): DeliveryHealth | null {
-  if (pacing == null) return null;
-  if (pacing >= GOOD_THRESHOLD) return 'good';
-  if (pacing >= OKAY_THRESHOLD) return 'okay';
-  return 'poor';
 }
 
 export const DELIVERY_HEALTH_TONE: Record<DeliveryHealth, PillTone> = {
