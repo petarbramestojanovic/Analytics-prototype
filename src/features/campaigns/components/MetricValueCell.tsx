@@ -1,8 +1,8 @@
-import { Unplug } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { fmtCompact, fmtMetric } from '@/lib/format';
 import { BenchmarkValue } from '@/features/benchmarks';
 import type { Campaign, MetricKey } from '@/types';
+import { NotMeasured } from './NotMeasured';
 import { engagementCount, primarySeries, sourceMeta } from '../lib/sources';
 
 /** A table metric: any MetricKey, plus the engagement count, which is derived
@@ -33,14 +33,10 @@ export function MetricValueCell({ campaign, metric }: { campaign: Campaign; metr
     );
   }
 
-  const meta = sourceMeta(campaign, campaign.primarySource);
   return (
-    <span
-      className="inline-flex items-center gap-1 text-gray-400 dark:text-gray-500"
-      title={t('campaigns.metricNATitle', { source: meta.label, metric: t(`metric.${metric}.label`) })}
-    >
-      <Unplug size={11} />
-      {t('campaigns.metricNA')}
-    </span>
+    <NotMeasured
+      source={sourceMeta(campaign, campaign.primarySource).label}
+      metric={t(`metric.${metric}.label`)}
+    />
   );
 }

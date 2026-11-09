@@ -5,7 +5,7 @@ import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Pill } from '@/components/ui';
-import { PageSkeleton } from '@/components/feedback';
+import { ErrorState, PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader } from '@/components/page';
 import { SummaryTile } from '@/components/display';
 import { TODAY } from '@/lib/clock';
@@ -28,8 +28,8 @@ import { ClientReportsCard } from '../components/ClientReportsCard';
 export function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useI18n();
-  const { data: companies, isLoading: companiesLoading } = useCompanies();
-  const { data: allCampaigns, isLoading: campaignsLoading } = useCampaigns();
+  const { data: companies, isLoading: companiesLoading, isError: companiesError, refetch: refetchCompanies } = useCompanies();
+  const { data: allCampaigns, isLoading: campaignsLoading, isError: campaignsError, refetch: refetchCampaigns } = useCampaigns();
   const { data: allReports } = useEmailReports();
   const { seat, members: users } = useClientSeat(id);
   const thresholds = useAlertThresholds();
@@ -52,6 +52,15 @@ export function ClientDetailPage() {
   const alerts = useMemo(() => computePortfolioAlerts(campaigns, thresholds), [campaigns, thresholds]);
 
   if (companiesLoading || campaignsLoading) return <PageSkeleton variant="dashboard" />;
+  if (companiesError || campaignsError)
+    return (
+      <ErrorState
+        onRetry={() => {
+          refetchCompanies();
+          refetchCampaigns();
+        }}
+      />
+    );
 
   if (!company) {
     return (
@@ -98,7 +107,7 @@ export function ClientDetailPage() {
         }
       />
 
-      {/* The client against its industry and against BRAME. */}
+      {/* The client against its industry and against KLEA. */}
       <ContextComparison companyId={company.id} isInternal className="mb-4" />
 
       <ClientCampaignsCard campaigns={campaigns} />

@@ -4,7 +4,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSimulatedAction } from '@/hooks/useSimulatedAction';
 import { EMPTY_VALUE, fmtDuration, fmtInt } from '@/lib/format';
 import { Button, Card, Pill, ProgressBar } from '@/components/ui';
-import { PageSkeleton } from '@/components/feedback';
+import { ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
 import { LivePill, SOURCE_KEYS, useCampaigns } from '@/features/campaigns';
@@ -20,20 +20,29 @@ import { lastRunFor } from '../lib/syncStatus';
  *
  * Salesforce, ATK and NEXD always run in that order — Salesforce first
  * (campaign/client metadata), then the two analytics pulls — each polled
- * every 6 hours. Brame's own instrumentation is the only live source and has
+ * every 6 hours. Klea's own instrumentation is the only live source and has
  * no "last sync" of its own.
  */
 export function ConnectorsPage() {
   const { t } = useI18n();
   usePageTitle(t('connectors.title'));
   const { fmtTime, relativeTime } = useFormatters();
-  const { data: campaigns = [], isLoading } = useCampaigns();
-  const { data: runs = [], isLoading: runsLoading } = useSyncRuns();
+  const { data: campaigns = [], isLoading, isError, refetch } = useCampaigns();
+  const { data: runs = [], isLoading: runsLoading, isError: runsError, refetch: refetchRuns } = useSyncRuns();
   const [running, runAllNow] = useSimulatedAction();
 
   const sourceLabel = (source: SyncRun['source']) => t(`connectors.source.${source}`);
 
   if (isLoading || runsLoading) return <PageSkeleton variant="list" />;
+  if (isError || runsError)
+    return (
+      <ErrorState
+        onRetry={() => {
+          refetch();
+          refetchRuns();
+        }}
+      />
+    );
 
   const started = campaigns.filter((c) => c.sources[c.primarySource] || c.status !== 'scheduled');
   const salesforceRun = lastRunFor(runs, 'salesforce');

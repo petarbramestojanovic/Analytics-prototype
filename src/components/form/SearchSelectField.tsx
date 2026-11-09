@@ -33,14 +33,16 @@ export function SearchSelectField<TValues extends FieldValues, TName extends Pat
   help?: ReactNode;
   error?: ReactNode;
 }) {
+  const id = useId();
   return (
     <div>
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel id={`${id}-label`}>{label}</FieldLabel>
       <Controller
         control={control}
         name={name}
         render={({ field }) => (
           <SearchSelect
+            id={id}
             value={field.value as string}
             onChange={field.onChange}
             options={options}
@@ -54,18 +56,19 @@ export function SearchSelectField<TValues extends FieldValues, TName extends Pat
 }
 
 function SearchSelect({
+  id,
   value,
   onChange,
   options,
   placeholder,
 }: {
+  id: string;
   value: string;
   onChange: (value: string) => void;
   options: readonly ComboboxOption[];
   placeholder?: string;
 }) {
   const { t } = useI18n();
-  const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -143,9 +146,11 @@ function SearchSelect({
     <div ref={rootRef}>
       <button
         ref={triggerRef}
+        id={`${id}-trigger`}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-labelledby={`${id}-label ${id}-value`}
         onClick={() => (open ? close() : setOpen(true))}
         className={cn(
           'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 text-base text-brame-dark outline-none focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100',
@@ -153,7 +158,7 @@ function SearchSelect({
           focusRing,
         )}
       >
-        <span className="min-w-0 flex-1 truncate text-left">
+        <span id={`${id}-value`} className="min-w-0 flex-1 truncate text-left">
           {selected ? (
             <>
               {selected.label}

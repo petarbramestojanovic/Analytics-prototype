@@ -9,7 +9,7 @@ import { buildAlertLog } from '../lib/alertLog';
  *  investigating (the sidebar badge). */
 export function useAlertLog() {
   const { t } = useI18n();
-  const { data: campaigns, isLoading } = useCampaigns();
+  const { data: campaigns, isLoading, isError, refetch } = useCampaigns();
   const thresholds = useAlertThresholds();
   const { rules } = useAlertRules();
 
@@ -19,5 +19,5 @@ export function useAlertLog() {
   );
   const investigateCount = useMemo(() => rows.filter((r) => r.severity === 'investigate').length, [rows]);
 
-  return { rows, investigateCount, isLoading };
+  return { rows, investigateCount, isLoading, isError, refetch };
 }

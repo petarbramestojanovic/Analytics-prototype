@@ -5,11 +5,11 @@ import { z } from 'zod';
 import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { FieldMessage, FormModal, SelectField, StaticField } from '@/components/form';
-import { useAgencies, useCompanies } from '@/features/clients';
+import { useAccounts, useCompanies } from '@/features/clients';
 import { useCreateSeat, useSeats } from '@/api/hooks/useSeats';
 
 const schema = z.object({
-  category: z.enum(['agency', 'client']),
+  category: z.enum(['account', 'client']),
   entityId: z.string().min(1, 'required'),
 });
 
@@ -18,7 +18,7 @@ type FormValues = z.infer<typeof schema>;
 const defaultValues: FormValues = { category: 'client', entityId: '' };
 
 /**
- * Agencies and clients themselves are never created here — they live in
+ * Accounts and clients themselves are never created here — they live in
  * Salesforce and arrive through the sync, same as campaigns. This only ever
  * links a seat to one already pulled in, so it's a picker over the ones that
  * don't have a seat yet, never a free-text "type a name" field.
@@ -35,12 +35,12 @@ export function CreateSeatModal({
   const { t } = useI18n();
   const createSeat = useCreateSeat();
   const { data: seats } = useSeats();
-  const { data: agencies } = useAgencies();
+  const { data: accounts } = useAccounts();
   const { data: companies } = useCompanies();
 
-  const eligibleAgencies = useMemo(
-    () => (agencies ?? []).filter((a) => !(seats ?? []).some((s) => s.category === 'agency' && s.agencyId === a.id)),
-    [agencies, seats]
+  const eligibleAccounts = useMemo(
+    () => (accounts ?? []).filter((a) => !(seats ?? []).some((s) => s.category === 'account' && s.accountId === a.id)),
+    [accounts, seats]
   );
   const eligibleCompanies = useMemo(
     () => (companies ?? []).filter((c) => !(seats ?? []).some((s) => s.category === 'client' && s.companyId === c.id)),
@@ -60,8 +60,8 @@ export function CreateSeatModal({
   });
 
   const category = watch('category');
-  const isAgency = category === 'agency';
-  const options = isAgency ? eligibleAgencies : eligibleCompanies;
+  const isAccount = category === 'account';
+  const options = isAccount ? eligibleAccounts : eligibleCompanies;
 
   const close = () => {
     onOpenChange(false);
@@ -70,8 +70,8 @@ export function CreateSeatModal({
 
   const onSubmit = (values: FormValues) => {
     const input =
-      values.category === 'agency'
-        ? ({ category: 'agency', agencyId: values.entityId } as const)
+      values.category === 'account'
+        ? ({ category: 'account', accountId: values.entityId } as const)
         : ({ category: 'client', companyId: values.entityId } as const);
     createSeat.mutate(input, {
       onSuccess: (seat) => {
@@ -100,21 +100,21 @@ export function CreateSeatModal({
         onValueChange={() => setValue('entityId', '')}
         options={[
           { value: 'client', label: t('seats.category.client') },
-          { value: 'agency', label: t('seats.category.agency') },
+          { value: 'account', label: t('seats.category.account') },
         ]}
       />
 
       <div>
         {options.length === 0 ? (
-          <StaticField label={isAgency ? t('seats.create.agencyPick') : t('seats.create.clientPick')}>
-            {isAgency ? t('seats.create.noneEligibleAgency') : t('seats.create.noneEligibleClient')}
+          <StaticField label={isAccount ? t('seats.create.accountPick') : t('seats.create.clientPick')}>
+            {isAccount ? t('seats.create.noneEligibleAccount') : t('seats.create.noneEligibleClient')}
           </StaticField>
         ) : (
           <SelectField
             control={control}
             name="entityId"
-            label={isAgency ? t('seats.create.agencyPick') : t('seats.create.clientPick')}
-            placeholder={isAgency ? t('seats.create.agencyPlaceholder') : t('seats.create.clientPlaceholder')}
+            label={isAccount ? t('seats.create.accountPick') : t('seats.create.clientPick')}
+            placeholder={isAccount ? t('seats.create.accountPlaceholder') : t('seats.create.clientPlaceholder')}
             options={options.map((o) => ({ value: o.id, label: o.name }))}
             error={errors.entityId && t('common.required')}
           />

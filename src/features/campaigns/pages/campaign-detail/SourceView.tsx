@@ -185,7 +185,7 @@ export function SourceView({
       </section>
 
       {/* The headline numbers put in context: this campaign against its client
-          and industry (and BRAME, for Brame seats only). */}
+          and industry (and KLEA, for Klea seats only). */}
       {source === campaign.primarySource && (
         <ContextComparison
           companyId={campaign.companyId}

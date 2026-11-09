@@ -8,8 +8,8 @@ import type { Session } from './sessionContext';
  *
  *   everyone  — any signed-in seat
  *   seatAdmin — a seat's own admin (manage members / API keys of that seat)
- *   internal  — Admin and Brame seats: every tenant's data, read-only
- *   admin     — the Admin seat: Brame-operational configuration screens
+ *   internal  — Admin and Klea seats: every tenant's data, read-only
+ *   admin     — the Admin seat: Klea-operational configuration screens
  *
  * The RFC's RLS model would reject these reads/writes at the database for any
  * other seat, so the client app refuses the routes too — not just the links.

@@ -58,7 +58,7 @@ export const appRoutes: AppRoute[] = [
   { path: paths.users, Page: page(() => import('@/features/seats/pages/MyUsersPage'), 'MyUsersPage'), access: 'seatAdmin' },
   { path: paths.apiAccess, Page: page(() => import('@/features/api-access/pages/ApiAccessPage'), 'ApiAccessPage'), access: 'seatAdmin' },
 
-  // Cross-tenant data reads — Brame staff and sales, not a client's own view.
+  // Cross-tenant data reads — Klea staff and sales, not a client's own view.
   { path: paths.benchmarks(), Page: page(() => import('@/features/benchmarks/pages/BenchmarksPage'), 'BenchmarksPage'), access: 'internal' },
   {
     // Mirrors paths.benchmarkGroup() — spelled out because that helper URL-encodes the key.
@@ -82,7 +82,7 @@ export const appRoutes: AppRoute[] = [
   },
   { path: '/admin/alerts/:key', Page: page(() => import('@/features/alerts/pages/AlertDetailPage'), 'AlertDetailPage'), access: 'internal' },
 
-  // Brame-operational configuration — Admin seat only.
+  // Klea-operational configuration — Admin seat only.
   {
     path: paths.setup(),
     Page: page(() => import('@/features/campaigns/pages/campaign-setup/CampaignSetupPage'), 'CampaignSetupPage'),

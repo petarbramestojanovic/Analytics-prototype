@@ -9,10 +9,10 @@ import { scopeCampaigns } from '../lib/scope';
 export function useScopedCampaigns() {
   const session = useSession();
   const query = useCampaigns();
-  const { seatCategory, companyId, agencyId } = session;
+  const { seatCategory, companyId, accountId } = session;
   const campaigns = useMemo(
-    () => (query.data ? scopeCampaigns(query.data, { seatCategory, companyId, agencyId }) : []),
-    [query.data, seatCategory, companyId, agencyId]
+    () => (query.data ? scopeCampaigns(query.data, { seatCategory, companyId, accountId }) : []),
+    [query.data, seatCategory, companyId, accountId]
   );
   return { ...query, campaigns };
 }

@@ -1,20 +1,26 @@
 import type { TranslateFn } from '@/i18n';
-import { fmtPct } from '@/lib/format';
+import { fmtPct, fmtPp } from '@/lib/format';
 import { paths } from '@/config/paths';
-import { alertTriggeredAt, type AlertLogRow } from '@/features/alerts';
+import { alertTriggeredAt, DEFAULT_RULE_ID, type AlertLogRow } from '@/features/alerts';
 import { reportFormatLabel } from '@/features/reports';
 import type { InboxEvent } from '@/types';
 import type { InboxItem } from '../types';
 
 export function alertItem(row: AlertLogRow, t: TranslateFn): InboxItem {
-  const change = row.deltaKind === 'pp' ? `${(row.delta * 100).toFixed(1)} pp` : fmtPct(row.delta, 1);
+  const change = row.deltaKind === 'pp' ? fmtPp(row.delta, 1) : fmtPct(row.delta, 1);
+  // Lead with what is wrong, then where: a default-threshold row is two sources
+  // disagreeing; a custom rule already names its own problem.
+  const title =
+    row.ruleId === DEFAULT_RULE_ID
+      ? t('inbox.alert.sourceGap', { metric: t(`metric.${row.metric}.label`), change: fmtPct(Math.abs(row.delta), 1) })
+      : row.ruleLabel;
   return {
     id: `alert:${row.key}`,
     kind: 'alert',
     createdAt: alertTriggeredAt(row.key),
-    title: row.campaignName,
-    summary: `${row.ruleLabel}: ${row.detail}`,
-    tone: 'red',
+    title,
+    summary: `${row.campaignName} · ${row.detail}`,
+    tone: row.severity === 'watch' ? 'amber' : 'red',
     facts: [
       { label: t('alerts.col.rule'), value: row.ruleLabel },
       { label: t('alerts.col.campaign'), value: row.campaignName },

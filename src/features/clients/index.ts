@@ -1,1 +1,1 @@
-export { useAgencies, useCompanies } from '@/api/hooks/useOrganizations';
+export { useAccounts, useCompanies } from '@/api/hooks/useOrganizations';

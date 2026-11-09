@@ -7,6 +7,7 @@ import { useSession } from '@/features/session';
 import type { Campaign } from '@/types';
 import { CampaignStatusPill } from '../../components/CampaignStatusPill';
 import { FlightTimeline } from '../../components/FlightTimeline';
+import { isLiveCampaign } from '../../lib/sources';
 
 /**
  * Title row: the name, its status and — while the campaign runs — the flight
@@ -22,9 +23,9 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
     <span key="company" className="font-medium text-brame-dark dark:text-gray-200">
       {campaign.companyName}
     </span>,
-    // Who booked the campaign is Brame/sales business — never shown to the
+    // Who booked the campaign is Klea/sales business — never shown to the
     // client whose campaign it is.
-    ...(isInternal ? [campaign.agencyName ?? t('campaigns.agency.direct')] : []),
+    ...(isInternal ? [campaign.accountName ?? t('campaigns.account.direct')] : []),
     campaign.salesforce.productLine,
     campaign.salesforce.market,
   ];
@@ -46,7 +47,7 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
           {campaign.status === 'archived' && <Pill tone="amber">{t('detail.archivedBadge')}</Pill>}
         </div>
 
-        {campaign.status === 'live' ? (
+        {isLiveCampaign(campaign) ? (
           <FlightTimeline
             campaign={campaign}
             className="order-last basis-full md:order-none md:basis-auto"
@@ -56,7 +57,7 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
         )}
 
         {
-          // Setup stays Brame-operational — not a client permission,
+          // Setup stays Klea-operational — not a client permission,
           // regardless of that client's own Admin/Viewer role.
           isAdmin && (
             <ButtonLink to={paths.setup(campaign.id)} icon={<Settings2 size={14} />}>

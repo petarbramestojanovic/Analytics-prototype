@@ -2,6 +2,7 @@ import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, Responsiv
 import { useFormatters, useI18n } from '@/i18n';
 import { fmtCompact, fmtMetric, fmtPct } from '@/lib/format';
 import { CHART_COLORS, useAxisStyle } from '@/components/charts';
+import { EmptyText } from '@/components/feedback';
 import { deviceSplit, sourceMeta } from '@/features/campaigns';
 import type { Campaign, MetricKey } from '@/types';
 import type { AlertLogRow } from '../lib/alertLog';
@@ -25,7 +26,7 @@ export function AlertMetricChart({ campaign, row, rule }: { campaign: Campaign; 
   if (rule?.type === 'deviceShare') return <DeviceShareComparison campaign={campaign} rule={rule} />;
 
   const main = metricDailySeries(campaign, row.metric);
-  if (main.length === 0) return <p className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">{t('alerts.detail.noSeries')}</p>;
+  if (main.length === 0) return <EmptyText className="px-0">{t('alerts.detail.noSeries')}</EmptyText>;
 
   const other = rule?.type === 'metricBelowMetric' ? rule.otherMetric : null;
   const otherSeries = other ? metricDailySeries(campaign, other) : [];
@@ -94,7 +95,7 @@ export function AlertMetricChart({ campaign, row, rule }: { campaign: Campaign; 
 function DeviceShareComparison({ campaign, rule }: { campaign: Campaign; rule: DeviceShareRule }) {
   const { t } = useI18n();
   const split = deviceSplit(campaign);
-  if (!split) return <p className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">{t('alerts.detail.noSeries')}</p>;
+  if (!split) return <EmptyText className="px-0">{t('alerts.detail.noSeries')}</EmptyText>;
   return (
     <div>
       <div className="grid grid-cols-2 gap-3">

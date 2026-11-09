@@ -17,7 +17,7 @@ const BAR_CLASS = {
 
 /**
  * The campaign's main goal — the metric it was sold on — with where it stands
- * against target. Brame seats also see the performance guarantee and the total
+ * against target. Klea seats also see the performance guarantee and the total
  * budget underneath (never the client). All of it is briefed in Salesforce.
  */
 export function GoalCard({

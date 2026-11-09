@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n';
 import { fmtMetric } from '@/lib/format';
 import { Card } from '@/components/ui';
 import { Eyebrow, TextLink } from '@/components/display';
-import { DeliveryBar, deliveryPacing, primarySeries } from '@/features/campaigns';
+import { DeliveryBar, deliveryPacing, isLiveCampaign, primarySeries } from '@/features/campaigns';
 import type { Campaign } from '@/types';
 
 /** A few live campaigns with delivery pacing — the "is anything at risk right
@@ -14,7 +14,7 @@ import type { Campaign } from '@/types';
  *  to get to. */
 export function LiveCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
   const { t } = useI18n();
-  const live = useMemo(() => campaigns.filter((c) => c.status === 'live').slice(0, 3), [campaigns]);
+  const live = useMemo(() => campaigns.filter(isLiveCampaign).slice(0, 3), [campaigns]);
 
   return (
     <Card className="h-full">

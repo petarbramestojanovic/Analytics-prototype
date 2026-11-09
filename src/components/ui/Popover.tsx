@@ -42,7 +42,14 @@ export function Popover({
     const width = panel.offsetWidth;
     const wanted = align === 'end' ? rect.right - width : rect.left;
     const left = Math.max(MARGIN, Math.min(wanted, window.innerWidth - width - MARGIN));
-    const top = rect.bottom + MARGIN;
+    // Under the trigger — unless that runs off the bottom of the window and
+    // there is room above, as when the trigger is in the last card of a page.
+    const below = rect.bottom + MARGIN;
+    const height = panel.offsetHeight;
+    const top =
+      below + height > window.innerHeight - MARGIN && rect.top - MARGIN - height >= MARGIN
+        ? rect.top - MARGIN - height
+        : below;
     setPos((prev) => (prev && prev.top === top && prev.left === left ? prev : { top, left }));
   };
 

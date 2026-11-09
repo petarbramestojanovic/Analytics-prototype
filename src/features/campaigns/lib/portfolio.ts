@@ -1,5 +1,5 @@
 import type { Campaign } from '@/types';
-import { primarySeries as primary } from './sources';
+import { isLiveCampaign, primarySeries as primary } from './sources';
 import type { TrendPoint } from './trend';
 
 /**
@@ -7,7 +7,7 @@ import type { TrendPoint } from './trend';
  * one client's detail page and each Clients directory row all run this, so a
  * number never disagrees between them. Pure functions, no React — the caller
  * passes an already tenant-scoped campaign list (useScopedCampaigns), so an
- * agency or client seat's Overview is their own numbers, not the whole
+ * account or client seat's Overview is their own numbers, not the whole
  * portfolio's.
  */
 
@@ -138,7 +138,7 @@ function buildRangeSummary(campaigns: Campaign[], today: Date, range: DateRange)
   const active = campaigns
     .map((campaign) => ({ campaign, totals: totalsInRange(campaign, range) }))
     .filter((a): a is { campaign: Campaign; totals: NonNullable<ReturnType<typeof totalsInRange>> } => a.totals !== null);
-  const live = active.filter((a) => a.campaign.status === 'live');
+  const live = active.filter((a) => isLiveCampaign(a.campaign));
   const mean = (pick: (t: (typeof active)[number]['totals']) => number | null) =>
     average(active.map((a) => pick(a.totals)).filter((v): v is number => v !== null));
 
@@ -160,7 +160,7 @@ function buildRangeSummary(campaigns: Campaign[], today: Date, range: DateRange)
 
 export function buildPortfolioSummary(campaigns: Campaign[], today: Date, range?: DateRange): PortfolioSummary {
   if (range) return buildRangeSummary(campaigns, today, range);
-  const live = campaigns.filter((c) => c.status === 'live');
+  const live = campaigns.filter(isLiveCampaign);
   const liveImpressions = live.reduce((sum, c) => sum + (primary(c)?.totals.impressions ?? 0), 0);
 
   const ctrValues = live.map((c) => primary(c)?.totals.ctr).filter((v): v is number => v != null);

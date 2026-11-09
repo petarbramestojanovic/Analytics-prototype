@@ -31,9 +31,9 @@ const sortValue = (c: Campaign, metric: CellMetric) =>
   (metric === 'engagements' ? engagementCount(c) : primarySeries(c)?.totals[metric]) ?? -1;
 
 /** Columns only internal seats see — who booked a client's campaign is
- *  Brame/sales business, never something a client needs (or should be able
+ *  Klea/sales business, never something a client needs (or should be able
  *  to) see on their own campaigns. */
-const INTERNAL_ONLY = new Set(['company', 'agency']);
+const INTERNAL_ONLY = new Set(['company', 'account']);
 
 const HEADER_KEY: Record<string, string> = {
   impressions: 'campaigns.col.impressions',
@@ -43,7 +43,7 @@ const HEADER_KEY: Record<string, string> = {
   clicks: 'campaigns.col.clicks',
 };
 
-const agencyLabel = (c: Campaign, t: TranslateFn) => c.agencyName ?? t('campaigns.agency.direct');
+const accountLabel = (c: Campaign, t: TranslateFn) => c.accountName ?? t('campaigns.account.direct');
 
 export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[] {
   const { t } = useI18n();
@@ -58,9 +58,9 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
         enableHiding: false,
       },
       {
-        id: 'agency',
-        accessorFn: (c) => agencyLabel(c, t),
-        header: t('campaigns.col.agency'),
+        id: 'account',
+        accessorFn: (c) => accountLabel(c, t),
+        header: t('campaigns.col.account'),
         cell: ({ getValue }) => <TruncatedText text={String(getValue())} />,
       },
       {
@@ -146,7 +146,7 @@ export function campaignExportColumns(t: TranslateFn, showInternal: boolean): Ex
   return [
     { key: 'name', header: t('campaigns.col.campaign') },
     { key: 'companyName', header: t('campaigns.col.company') },
-    ...(showInternal ? [{ key: 'agencyName', header: t('campaigns.col.agency'), format: (c: Campaign) => agencyLabel(c, t) }] : []),
+    ...(showInternal ? [{ key: 'accountName', header: t('campaigns.col.account'), format: (c: Campaign) => accountLabel(c, t) }] : []),
     { key: 'market', header: t('campaigns.col.country'), format: (c) => c.salesforce.market },
     { key: 'category', header: t('campaigns.col.category'), format: (c) => c.salesforce.category },
     { key: 'flightStart', header: t('campaigns.col.startDate') },

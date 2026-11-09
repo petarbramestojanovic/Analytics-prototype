@@ -1,5 +1,5 @@
 import type { TranslateFn } from '@/i18n';
-import { fmtMetric } from '@/lib/format';
+import { fmtMetric, fmtPp } from '@/lib/format';
 import type { AlertRule } from '../types';
 
 /** A rule's name as shown: standard rules are translated, the user's own are
@@ -30,14 +30,14 @@ export function ruleCondition(rule: AlertRule, t: TranslateFn): string {
     case 'startDecline':
       return t(rule.mode === 'absolute' ? 'alerts.rules.conditionDeclineAbs' : 'alerts.rules.conditionDeclineRel', {
         metric,
-        amount: rule.mode === 'absolute' ? `${(rule.thresholdPct * 100).toFixed(1)} pp` : fmtMetric('viewability', rule.thresholdPct),
+        amount: rule.mode === 'absolute' ? fmtPp(rule.thresholdPct, 1) : fmtMetric('viewability', rule.thresholdPct),
       });
     case 'metricBelowMetric':
       return t('alerts.rules.conditionBelow', { metric, other: t(`metric.${rule.otherMetric}.label`) });
     case 'consecutiveDrop':
       return t('alerts.rules.conditionConsecutive', {
         metric,
-        amount: `${(rule.dropPct * 100).toFixed(1)} pp`,
+        amount: fmtPp(rule.dropPct, 1),
         days: rule.days,
       });
     case 'deviceShare':

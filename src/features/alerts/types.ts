@@ -23,7 +23,7 @@ interface AlertRuleBase {
    *  key picks their translated name and description. */
   builtInKey?: string;
   /** Whose inbox gets an item when this rule flags a campaign. Left out, it
-   *  is everyone in the Admin and Brame seats — the people who work with
+   *  is everyone in the Admin and Klea seats — the people who work with
    *  alerts. Empty lists mean the rule only fills the alert log. */
   notify?: AlertNotify;
 }

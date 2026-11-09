@@ -41,7 +41,7 @@ import { TopGroupCard } from '../components/TopGroupCard';
 /**
  * The portfolio-snapshot landing page — KPI tiles plus a trend chart, the one
  * thing the Benchmarks page (industry/client/market breakdowns) doesn't cover.
- * Tenant-scoped like Campaigns, so an agency or client seat sees their own
+ * Tenant-scoped like Campaigns, so an account or client seat sees their own
  * numbers here rather than the whole portfolio's.
  */
 export function OverviewPage() {
@@ -151,7 +151,7 @@ export function OverviewPage() {
           )}
 
           {/* A client seat sees its own client against its industry — never
-              BRAME, never another client. (An agency seat spans several
+              KLEA, never another client. (An account seat spans several
               clients, so it gets this per campaign instead.) */}
           {!isInternal && singleCompanyId && (
             <ContextComparison companyId={singleCompanyId} isInternal={false} className="mb-4" />

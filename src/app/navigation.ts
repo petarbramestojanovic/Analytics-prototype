@@ -64,7 +64,7 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     ],
   },
   {
-    // Data reads, not configuration — Admin and Brame seats both get these.
+    // Data reads, not configuration — Admin and Klea seats both get these.
     labelKey: 'nav.sectionSales',
     access: 'internal',
     collapsible: true,

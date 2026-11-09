@@ -2,7 +2,7 @@ import type { TranslateFn } from '@/i18n';
 import type { Seat, SeatMember } from '@/types';
 import type { AlertNotify, AlertRule } from '../types';
 
-/** Alerts, their detail pages and the rules are Admin/Brame-only screens, so
+/** Alerts, their detail pages and the rules are Admin/Klea-only screens, so
  *  only people in those two seats can be told about one. */
 export const isInternalSeat = (seat: Seat) => seat.category === 'admin' || seat.category === 'brame';
 
@@ -23,7 +23,7 @@ export function notifiesPerson(
   return (!!who.seatId && notify.seatIds.includes(who.seatId)) || (!!who.memberId && notify.memberIds.includes(who.memberId));
 }
 
-/** A short, readable "who gets this": "Admin, Brame", "Alex Weber", "Nobody". */
+/** A short, readable "who gets this": "Admin, Klea", "Alex Weber", "Nobody". */
 export function notifyLabel(
   rule: Pick<AlertRule, 'notify'> | undefined,
   seats: Seat[],

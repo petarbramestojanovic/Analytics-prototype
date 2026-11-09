@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Button, Callout, Card, CodeBlock } from '@/components/ui';
-import { PageSkeleton } from '@/components/feedback';
+import { ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SectionTitle } from '@/components/page';
 import { useCurrentUser } from '@/features/profile';
 import { NoSeatState, useCurrentSeat } from '@/features/seats';
@@ -23,10 +23,11 @@ export function ApiAccessPage() {
   const { t } = useI18n();
   usePageTitle(t('apiAccess.title'));
   const user = useCurrentUser();
-  const { seat, isLoading } = useCurrentSeat();
+  const { seat, isLoading, isError, refetch } = useCurrentSeat();
   const [creating, setCreating] = useState(false);
 
   if (isLoading) return <PageSkeleton variant="list" />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   return (
     <Page>

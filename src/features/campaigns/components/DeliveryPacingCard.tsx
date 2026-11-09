@@ -6,7 +6,7 @@ import { Card, Pill } from '@/components/ui';
 import type { Campaign } from '@/types';
 import { DELIVERY_HEALTH_BAR_CLASS, DELIVERY_HEALTH_TONE, deliveryPacing } from '../lib/delivery';
 import { flightProgress } from '../lib/flight';
-import { primarySeries } from '../lib/sources';
+import { isLiveCampaign, primarySeries } from '../lib/sources';
 import { DeliveryTip } from './DeliveryTip';
 
 /**
@@ -149,7 +149,7 @@ export function DeliveryPacingCard({
       )}
 
       {/* A live campaign shows its timeline in the page header instead. */}
-      {campaign.status !== 'live' && (
+      {!isLiveCampaign(campaign) && (
         <div className="space-y-2 border-t border-gray-100 pt-4 dark:border-white/10">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 text-sm">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">

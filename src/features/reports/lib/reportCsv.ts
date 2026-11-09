@@ -1,5 +1,5 @@
 import type { TranslateFn } from '@/i18n';
-import { EMPTY_VALUE, fmtInt, fmtMetric } from '@/lib/format';
+import { EMPTY_VALUE, fmtInt, fmtMetric, fmtPct } from '@/lib/format';
 import type { MetricValues, ReportContent } from './reportContent';
 import type { ReportMetric } from './reportMetrics';
 
@@ -40,7 +40,7 @@ export function reportToCsv(
       [t('detail.col.creative'), t('creatives.col.share'), ...metricHeaders],
       ...content.creatives.map((c) => [
         c.format,
-        `${(c.share * 100).toFixed(0)}%`,
+        fmtPct(c.share, 0),
         ...valueCells(c.values),
       ]),
     ],

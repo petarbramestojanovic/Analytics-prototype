@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { BarChart3, Bell, Building2, Menu, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { paths } from '@/config/paths';
@@ -21,8 +22,21 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
   const { t } = useI18n();
   const ScopeIcon = !isInternal ? Building2 : seatCategory === 'brame' ? BarChart3 : ShieldCheck;
 
+  // Publish the bar's height so a page can pin its own sticky strip right
+  // underneath it (`top-[var(--topbar-h)]`) instead of sliding under it.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const publish = () => document.documentElement.style.setProperty('--topbar-h', `${el.offsetHeight}px`);
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="sticky top-0 z-20 flex-shrink-0 border-b border-gray-200 bg-white/70 px-4 py-2.5 backdrop-blur dark:border-white/10 dark:bg-brame-dark/70 sm:px-6 lg:px-8">
+    <div ref={ref} className="sticky top-0 z-20 flex-shrink-0 border-b border-gray-200 bg-white/70 px-4 py-2.5 backdrop-blur dark:border-white/10 dark:bg-brame-dark/70 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <IconButton
@@ -47,9 +61,9 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
           <SearchButton onClick={onOpenSearch} />
           <RecentMenu />
           <InboxButton />
-          {/* Below `sm` these three live at the bottom of the menu drawer, so
-              the bar keeps room for the page's name. */}
           <RefreshDataButton />
+          {/* Below `sm` language and theme live in the account menu, so the
+              bar keeps room for the page's name. */}
           <div className="hidden sm:flex">
             <LanguageSwitch />
           </div>
@@ -104,7 +118,6 @@ function RefreshDataButton() {
       icon={<RefreshCw size={14} className={fetching ? 'animate-spin' : ''} />}
       onClick={() => queryClient.invalidateQueries()}
       disabled={fetching}
-      className="hidden sm:flex"
     />
   );
 }

@@ -8,7 +8,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { cn } from '@/lib/cn';
 import { matchesQuery } from '@/lib/text';
 import { Button, Card, CardFooter, Tabs } from '@/components/ui';
-import { EmptyText, PageSkeleton } from '@/components/feedback';
+import { EmptyText, ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, SearchInput } from '@/components/page';
 import { Pagination } from '@/components/table';
 import { ListItemButton } from '@/components/display';
@@ -27,13 +27,13 @@ const countBy = <T,>(items: T[], key: (item: T) => string) => {
 };
 
 /**
- * Every seat in the system — the Admin/Brame singletons, one per agency, one
- * per client — with a "Create seat" flow for new agencies/clients. Admin-seat
+ * Every seat in the system — the Admin/Klea singletons, one per account, one
+ * per client — with a "Create seat" flow for new accounts/clients. Admin-seat
  * only; every other seat gets the lighter, own-seat-only view at /users
  * instead (MyUsersPage), which reuses the same SeatMembersPanel.
  *
  * Category tabs plus per-tab search/pagination, rather than one long list —
- * a portfolio with 100 clients and a dozen agencies would otherwise turn the
+ * a portfolio with 100 clients and a dozen accounts would otherwise turn the
  * list into an unbrowsable wall of rows. Member counts come from a single
  * unscoped fetch (one request, a Map lookup per row) instead of one query
  * per seat, which is the part that would actually fall over at that scale.
@@ -42,7 +42,7 @@ export function SeatsPage() {
   const { t } = useI18n();
   usePageTitle(t('seats.title'));
   const [params, setParams] = useSearchParams();
-  const { data: seats, isLoading } = useSeats();
+  const { data: seats, isLoading, isError, refetch } = useSeats();
   const { data: allMembers = [] } = useSeatMembers();
   const [creating, setCreating] = useState(false);
   const [q, setQ] = useSearchParamState('q');
@@ -89,6 +89,7 @@ export function SeatsPage() {
   };
 
   if (isLoading || !seats) return <PageSkeleton variant="list" />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   return (
     <Page fill>

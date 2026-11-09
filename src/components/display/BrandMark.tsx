@@ -8,7 +8,7 @@ const SIZES = {
 } as const;
 
 /**
- * The BRAME Analytics logo lockup — icon, name, and (unless `compact`) the
+ * The KLEA Analytics logo lockup — icon, name, and (unless `compact`) the
  * "Analytics" subtitle. `onDark` is for the teal sidebar/brand panels.
  */
 export function BrandMark({

@@ -17,7 +17,7 @@ import {
   TextField,
 } from '@/components/form';
 import { useCampaigns } from '@/features/campaigns';
-import { useAgencies, useCompanies } from '@/features/clients';
+import { useAccounts, useCompanies } from '@/features/clients';
 import type { EmailReport, ReportScope } from '@/types';
 import {
   useCreateEmailReport,
@@ -49,7 +49,7 @@ type FormValues = {
   // Only the one matching `level` is actually read on submit — see the
   // per-level zod .refine calls below for which is required when.
   companyId: string;
-  agencyId: string;
+  accountId: string;
   campaignId: string;
   name: string;
   recipients: string;
@@ -64,14 +64,14 @@ type FormValues = {
 function toFormValues(
   report: EmailReport | undefined,
   fixedCompanyId: string | undefined,
-  fixedAgencyId: string | undefined,
+  fixedAccountId: string | undefined,
 ): FormValues {
   if (report) {
     const { scope } = report;
     return {
       level: scope.level,
       companyId: scope.level === 'client' ? scope.companyId : '',
-      agencyId: scope.level === 'agency' ? scope.agencyId : '',
+      accountId: scope.level === 'account' ? scope.accountId : '',
       campaignId: scope.level === 'campaign' ? scope.campaignId : '',
       name: report.name,
       recipients: report.recipients.join(', '),
@@ -84,9 +84,9 @@ function toFormValues(
     };
   }
   return {
-    level: fixedCompanyId ? 'client' : fixedAgencyId ? 'agency' : 'client',
+    level: fixedCompanyId ? 'client' : fixedAccountId ? 'account' : 'client',
     companyId: fixedCompanyId ?? '',
-    agencyId: fixedAgencyId ?? '',
+    accountId: fixedAccountId ?? '',
     campaignId: '',
     name: '',
     recipients: '',
@@ -102,7 +102,7 @@ function toFormValues(
 /**
  * One modal, two modes: pass `report` to edit an existing one, omit it to
  * create a new one. Pass `companyId`/`companyName` when opened from a
- * client-scoped context, or `agencyId`/`agencyName` from an agency-scoped
+ * client-scoped context, or `accountId`/`accountName` from an account-scoped
  * one (at most one pair — a seat is scoped to one or the other, never
  * both); leave all four undefined for an internal user, who picks the
  * level and target freely.
@@ -117,16 +117,16 @@ export function EmailReportModal({
   report,
   companyId: fixedCompanyId,
   companyName: fixedCompanyName,
-  agencyId: fixedAgencyId,
-  agencyName: fixedAgencyName,
+  accountId: fixedAccountId,
+  accountName: fixedAccountName,
   open,
   onOpenChange,
 }: {
   report?: EmailReport;
   companyId?: string;
   companyName?: string;
-  agencyId?: string;
-  agencyName?: string;
+  accountId?: string;
+  accountName?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -134,7 +134,7 @@ export function EmailReportModal({
   const createReport = useCreateEmailReport();
   const updateReport = useUpdateEmailReport();
   const { data: companies } = useCompanies();
-  const { data: agencies } = useAgencies();
+  const { data: accounts } = useAccounts();
   const { data: campaigns } = useCampaigns();
 
   // Scope is set once at creation and never reassigned after — same rule as
@@ -143,21 +143,21 @@ export function EmailReportModal({
 
   const availableLevels: readonly ReportLevel[] = fixedCompanyId
     ? (['client', 'campaign'] as const)
-    : fixedAgencyId
-      ? (['agency', 'campaign'] as const)
-      : (['client', 'agency', 'campaign'] as const);
+    : fixedAccountId
+      ? (['account', 'campaign'] as const)
+      : (['client', 'account', 'campaign'] as const);
 
   const scopedCampaigns = (campaigns ?? []).filter(
     (c) =>
       (!fixedCompanyId || c.companyId === fixedCompanyId) &&
-      (!fixedAgencyId || c.agencyId === fixedAgencyId),
+      (!fixedAccountId || c.accountId === fixedAccountId),
   );
 
   const schema = z
     .object({
-      level: z.enum(['client', 'agency', 'campaign']),
+      level: z.enum(['client', 'account', 'campaign']),
       companyId: z.string(),
-      agencyId: z.string(),
+      accountId: z.string(),
       campaignId: z.string(),
       name: z.string().min(1, 'required'),
       recipients: z.string().min(1, 'required').refine(isValidRecipients, 'invalid'),
@@ -172,9 +172,9 @@ export function EmailReportModal({
       message: 'required',
       path: ['companyId'],
     })
-    .refine((v) => v.level !== 'agency' || !!fixedAgencyId || !!v.agencyId, {
+    .refine((v) => v.level !== 'account' || !!fixedAccountId || !!v.accountId, {
       message: 'required',
-      path: ['agencyId'],
+      path: ['accountId'],
     })
     .refine((v) => v.level !== 'campaign' || !!v.campaignId, {
       message: 'required',
@@ -191,15 +191,15 @@ export function EmailReportModal({
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    values: toFormValues(report, fixedCompanyId, fixedAgencyId),
+    values: toFormValues(report, fixedCompanyId, fixedAccountId),
   });
 
   // Reset dirty/error state each time the modal opens, whether for a fresh
   // create or a different report's edit — not just when `report` changes,
   // since two consecutive "New report" opens share the same `undefined`.
   useEffect(() => {
-    if (open) reset(toFormValues(report, fixedCompanyId, fixedAgencyId));
-  }, [open, report?.id, fixedCompanyId, fixedAgencyId, reset]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (open) reset(toFormValues(report, fixedCompanyId, fixedAccountId));
+  }, [open, report?.id, fixedCompanyId, fixedAccountId, reset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const level = watch('level');
   const cadence = watch('cadence');
@@ -214,10 +214,10 @@ export function EmailReportModal({
       const name = fixedCompanyName ?? companies?.find((c) => c.id === id)?.name;
       return id && name ? { level: 'client', companyId: id, companyName: name } : undefined;
     }
-    if (values.level === 'agency') {
-      const id = fixedAgencyId ?? values.agencyId;
-      const name = fixedAgencyName ?? agencies?.find((a) => a.id === id)?.name;
-      return id && name ? { level: 'agency', agencyId: id, agencyName: name } : undefined;
+    if (values.level === 'account') {
+      const id = fixedAccountId ?? values.accountId;
+      const name = fixedAccountName ?? accounts?.find((a) => a.id === id)?.name;
+      return id && name ? { level: 'account', accountId: id, accountName: name } : undefined;
     }
     const c = campaigns?.find((x) => x.id === values.campaignId);
     return c ? { level: 'campaign', campaignId: c.id, campaignName: c.name } : undefined;
@@ -234,7 +234,7 @@ export function EmailReportModal({
     }),
     // draftKey covers every form value the draft reads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [draftKey, companies, agencies, campaigns],
+    [draftKey, companies, accounts, campaigns],
   );
 
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -273,12 +273,12 @@ export function EmailReportModal({
         companyId,
         companyName: fixedCompanyName ?? companies?.find((c) => c.id === companyId)?.name ?? '',
       };
-    } else if (values.level === 'agency') {
-      const agencyId = fixedAgencyId ?? values.agencyId;
+    } else if (values.level === 'account') {
+      const accountId = fixedAccountId ?? values.accountId;
       scope = {
-        level: 'agency',
-        agencyId,
-        agencyName: fixedAgencyName ?? agencies?.find((a) => a.id === agencyId)?.name ?? '',
+        level: 'account',
+        accountId,
+        accountName: fixedAccountName ?? accounts?.find((a) => a.id === accountId)?.name ?? '',
       };
     } else {
       scope = {
@@ -362,14 +362,14 @@ export function EmailReportModal({
             />
           )}
 
-          {showScopePicker && level === 'agency' && !fixedAgencyId && (
+          {showScopePicker && level === 'account' && !fixedAccountId && (
             <SelectField
               control={control}
-              name="agencyId"
-              label={t('reports.email.agency')}
-              placeholder={t('reports.email.agencyPlaceholder')}
-              options={(agencies ?? []).map((a) => ({ value: a.id, label: a.name }))}
-              error={errors.agencyId && t('common.required')}
+              name="accountId"
+              label={t('reports.email.account')}
+              placeholder={t('reports.email.accountPlaceholder')}
+              options={(accounts ?? []).map((a) => ({ value: a.id, label: a.name }))}
+              error={errors.accountId && t('common.required')}
             />
           )}
 

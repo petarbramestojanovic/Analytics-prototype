@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const SUFFIX = 'Brame Analytics';
+const SUFFIX = 'Klea Analytics';
 
 /** Fired whenever a page sets a real title, so something outside the page (the
  *  ⌘K "recently viewed" list) can note the page without every page knowing. */

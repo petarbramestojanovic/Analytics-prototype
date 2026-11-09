@@ -21,7 +21,7 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
           <thead>
             <tr>
               <Th>{t('campaigns.col.campaign')}</Th>
-              <Th>{t('campaigns.col.agency')}</Th>
+              <Th>{t('campaigns.col.account')}</Th>
               <Th>{t('campaigns.col.primarySource')}</Th>
               {METRICS.map((m) => (
                 <Th key={m} align="right">
@@ -37,7 +37,7 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
                 <Td>
                   <CampaignNameCell campaign={c} newTab />
                 </Td>
-                <Td>{c.agencyName ?? t('campaigns.agency.direct')}</Td>
+                <Td>{c.accountName ?? t('campaigns.account.direct')}</Td>
                 <Td>{sourceMeta(c, c.primarySource).label}</Td>
                 {METRICS.map((m) => (
                   <Td key={m} align="right">

@@ -1,4 +1,4 @@
-// Brame accent colors, excluding lime/cream (too low-contrast for white
+// Klea accent colors, excluding lime/cream (too low-contrast for white
 // initials) and dark/teal (too close to the sidebar and card backgrounds
 // this renders against).
 const PALETTE = ['#077070', '#6b5b95', '#40b8b8', '#8b7bb5', '#c5772e', '#2e6ac5'];

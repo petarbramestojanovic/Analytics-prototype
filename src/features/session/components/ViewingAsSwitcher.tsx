@@ -1,7 +1,7 @@
 import { ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { SegmentedControl, Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui';
-import { useAgencies, useCompanies } from '@/features/clients';
+import { useAccounts, useCompanies } from '@/features/clients';
 import type { SeatCategory, SeatRole } from '@/types';
 import { useSession } from '../sessionContext';
 
@@ -20,16 +20,16 @@ const SIDEBAR_SELECT = 'h-8 border-brame-teal-light bg-brame-teal-dark/60 text-x
  * a different seat. Fully self-contained: reads and writes the session.
  */
 export function ViewingAsSwitcher() {
-  const { seatCategory, setSeatCategory, seatRole, setSeatRole, companyId, setCompanyId, agencyId, setAgencyId } =
+  const { seatCategory, setSeatCategory, seatRole, setSeatRole, companyId, setCompanyId, accountId, setAccountId } =
     useSession();
   const { t } = useI18n();
   const { data: companies = [] } = useCompanies();
-  const { data: agencies = [] } = useAgencies();
+  const { data: accounts = [] } = useAccounts();
 
   const categories: { value: SeatCategory; label: string }[] = [
     { value: 'admin', label: t('viewingAs.admin') },
     { value: 'brame', label: t('viewingAs.brame') },
-    { value: 'agency', label: t('viewingAs.agency') },
+    { value: 'account', label: t('viewingAs.account') },
     { value: 'client', label: t('viewingAs.client') },
   ];
   const roles: { value: SeatRole; label: string }[] = [
@@ -39,8 +39,8 @@ export function ViewingAsSwitcher() {
   const picker =
     seatCategory === 'client'
       ? { value: companyId, onChange: setCompanyId, options: companies }
-      : seatCategory === 'agency'
-        ? { value: agencyId, onChange: setAgencyId, options: agencies }
+      : seatCategory === 'account'
+        ? { value: accountId, onChange: setAccountId, options: accounts }
         : null;
 
   return (

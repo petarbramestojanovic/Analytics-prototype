@@ -16,7 +16,7 @@ const day = (i: number, over: Partial<DailyPoint> = {}): DailyPoint => ({
   ...over,
 });
 
-/** A campaign whose primary source (Brame, which measures everything unless
+/** A campaign whose primary source (Klea, which measures everything unless
  *  `source` says otherwise) reported `days`. */
 function campaign(days: DailyPoint[], source: SourceKey = 'custom'): Campaign {
   return {

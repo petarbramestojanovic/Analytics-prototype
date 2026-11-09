@@ -9,7 +9,7 @@ import { useCurrentSeat } from '../hooks/useCurrentSeat';
 /**
  * The "light" version of the Seats page — a seat's own admin managing just
  * their own seat's members, with no list of every other seat and no
- * create-seat flow. Available to any seat category, not just Admin/Brame.
+ * create-seat flow. Available to any seat category, not just Admin/Klea.
  */
 export function MyUsersPage() {
   const { t } = useI18n();

@@ -27,7 +27,7 @@ const PAGE_SIZE = 5;
  * tenant-scoped like Campaigns, so a client seat manages only their own.
  */
 export function ReportsPage() {
-  const { seatCategory, companyId, companyName, agencyId, agencyName, isInternal } = useSession();
+  const { seatCategory, companyId, companyName, accountId, accountName, isInternal } = useSession();
   const { t } = useI18n();
   usePageTitle(t('reports.title'));
   const { reports, isLoading } = useScopedReports();
@@ -77,7 +77,7 @@ export function ReportsPage() {
               onChange={setLevelFilter}
               options={[
                 { value: 'all', label: t('reports.filter.all') },
-                ...(['client', 'agency', 'campaign'] as const).map((value) => ({
+                ...(['client', 'account', 'campaign'] as const).map((value) => ({
                   value,
                   label: t(`reports.email.level.${value}`),
                 })),
@@ -116,8 +116,8 @@ export function ReportsPage() {
         onOpenChange={setCreating}
         companyId={seatCategory === 'client' ? companyId : undefined}
         companyName={seatCategory === 'client' ? companyName : undefined}
-        agencyId={seatCategory === 'agency' ? agencyId : undefined}
-        agencyName={seatCategory === 'agency' ? agencyName : undefined}
+        accountId={seatCategory === 'account' ? accountId : undefined}
+        accountName={seatCategory === 'account' ? accountName : undefined}
       />
       <EmailReportModal
         report={editing ?? undefined}

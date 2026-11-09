@@ -1,4 +1,4 @@
-import { Download, Unplug } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useFormatters, useI18n, type TranslateFn } from '@/i18n';
 import { EMPTY_VALUE, fmtInt, fmtPct } from '@/lib/format';
 import { exportToXlsx, type ExportColumn } from '@/lib/exportXlsx';
@@ -7,6 +7,7 @@ import { SectionTitle } from '@/components/page';
 import { HeaderHint, Table, Td, Th } from '@/components/table';
 import type { ReactNode } from 'react';
 import type { DailyRow } from '../lib/dailyMetrics';
+import { NotMeasured } from './NotMeasured';
 
 type ColumnId = 'engagements' | 'engagementRate' | 'clicks' | 'ctr' | 'viewability' | 'conversions';
 
@@ -51,15 +52,7 @@ export function DailyMetricsTable({
   const cell = (id: ColumnId, row: DailyRow): ReactNode => {
     const value = row[id];
     if (value == null) {
-      return (
-        <span
-          className="inline-flex items-center gap-1 text-gray-400 dark:text-gray-500"
-          title={t('campaigns.metricNATitle', { source: sourceLabel, metric: label(id) })}
-        >
-          <Unplug size={11} />
-          {t('campaigns.metricNA')}
-        </span>
-      );
+      return <NotMeasured source={sourceLabel} metric={label(id)} />;
     }
     return id === 'engagements' || id === 'clicks' || id === 'conversions'
       ? fmtInt(value)

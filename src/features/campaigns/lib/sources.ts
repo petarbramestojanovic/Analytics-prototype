@@ -39,7 +39,7 @@ export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'lab
   },
   custom: {
     key: 'custom',
-    label: 'Brame',
+    label: 'Klea',
     cadence: 'live',
     measures: [...METRIC_KEYS],
   },
@@ -63,6 +63,12 @@ export function sourceMeta(campaign: Campaign, key: SourceKey): SourceMeta {
  *  campaign's own primary source, or null while it has no data yet. */
 export function primarySeries(campaign: Campaign): SourceSeries | null {
   return campaign.sources[campaign.primarySource];
+}
+
+/** Whether a campaign is currently flighting — the single check every "live
+ *  campaigns" count, filter and card runs, so they never disagree. */
+export function isLiveCampaign(campaign: Pick<Campaign, 'status'>): boolean {
+  return campaign.status === 'live';
 }
 
 /** Interactions summed over one series' days — null where the source can't see

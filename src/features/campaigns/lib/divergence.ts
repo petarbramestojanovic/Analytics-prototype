@@ -42,10 +42,22 @@ export function relativeChange(from: number, to: number): number {
   return from ? (to - from) / from : 0;
 }
 
+export interface SourceDelta {
+  baselineValue: number;
+  checkValue: number;
+  delta: number;
+  absDelta: number;
+}
+
 /** One metric, two sources of one campaign — or null when either source has
  *  no data or does not measure that metric at all (a comparison against
  *  absence is not a comparison). */
-export function sourceDelta(campaign: Campaign, baseline: SourceKey, check: SourceKey, metric: MetricKey) {
+export function sourceDelta(
+  campaign: Campaign,
+  baseline: SourceKey,
+  check: SourceKey,
+  metric: MetricKey
+): SourceDelta | null {
   // Conversions are attributed per source (ATK's post-view window vs ours), not a
   // count two sources are expected to agree on — never compared.
   if (metric === 'conversions') return null;

@@ -17,6 +17,7 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { fmtCompact, fmtMetric, fmtPct, EMPTY_VALUE } from '@/lib/format';
 import { codecs, type StorageCodec } from '@/lib/storage';
 import { useAxisStyle } from '@/components/charts';
+import { EmptyText } from '@/components/feedback';
 import { SectionTitle, ToolbarButton } from '@/components/page';
 import {
   DropdownMenu,
@@ -81,7 +82,7 @@ export function TrendChart({
   /** The metrics this chart offers in its dropdown; a remembered pick the
    *  chart can't plot (e.g. delivery on a per-creative chart) is ignored. */
   availableMetrics?: readonly TrendMetric[];
-  /** Brame's own portfolio-wide average — never scoped to one tenant. */
+  /** Klea's own portfolio-wide average — never scoped to one tenant. */
   frameBenchmark?: BenchmarkValues;
   /** Average for this campaign/client's own industry bucket. */
   industryBenchmark?: BenchmarkValues;
@@ -159,7 +160,7 @@ export function TrendChart({
       </SectionTitle>
 
       {selected.length === 0 ? (
-        <p className="py-16 text-center text-sm text-gray-500 dark:text-gray-400">{t('trend.selectAtLeastOne')}</p>
+        <EmptyText className="px-0 py-16">{t('trend.selectAtLeastOne')}</EmptyText>
       ) : (
         <>
           <div className="relative h-56 min-h-56 flex-1">

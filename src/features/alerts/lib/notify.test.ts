@@ -4,7 +4,7 @@ import { notifiesPerson, resolveNotify } from './notify';
 
 const seats: Seat[] = [
   { id: 'seat-admin', category: 'admin', name: 'Admin' },
-  { id: 'seat-brame', category: 'brame', name: 'Brame' },
+  { id: 'seat-brame', category: 'brame', name: 'Klea' },
   { id: 'seat-client', category: 'client', name: 'Migros', companyId: 'c1' },
 ];
 

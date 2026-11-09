@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Activity, ChevronLeft, ChevronsUpDown, LogOut, RefreshCw, UserCog } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { Activity, ChevronLeft, ChevronsUpDown, LogOut, UserCog } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
@@ -10,7 +9,6 @@ import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import {
   Avatar,
-  IconButton,
   useLabelTip,
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +33,6 @@ import { NavItem, NavSection } from './NavItem';
  */
 export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; onToggleCollapsed: () => void }) {
   const session = useSession();
-  const queryClient = useQueryClient();
   const { t } = useI18n();
   // Same log (and same thresholds) the Alerts page itself shows, so the badge
   // and the page never disagree on how many campaigns need attention.
@@ -128,18 +125,6 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
 
       {/* Stand-in for the auth session. Demonstrates that authorization is
           tenant-scoped rather than a UI filter. */}
-      {/* Phone-only: the controls the slim top bar gives up. */}
-      {!collapsed && (
-        <div className="flex items-center gap-2 px-4 pb-3 sm:hidden">
-          <LanguageSwitch />
-          <ThemeToggleButton />
-          <IconButton
-            label={t('common.refresh')}
-            icon={<RefreshCw size={14} />}
-            onClick={() => queryClient.invalidateQueries()}
-          />
-        </div>
-      )}
       {!collapsed && <ViewingAsSwitcher />}
 
       <AccountMenu collapsed={collapsed} />
@@ -198,6 +183,16 @@ function AccountMenu({ collapsed }: { collapsed: boolean }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Phones only — from `sm` up the top bar carries these. Kept in plain
+          sight beside the account rather than inside its menu, where nobody
+          would think to look. */}
+      {!collapsed && (
+        <div className="mt-2 flex items-center justify-between gap-2 px-2 sm:hidden">
+          <LanguageSwitch />
+          <ThemeToggleButton />
+        </div>
+      )}
 
       {tip.tip}
       <ProfileSettingsModal open={profileOpen} onOpenChange={setProfileOpen} />

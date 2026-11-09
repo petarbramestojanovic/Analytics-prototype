@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useI18n } from '@/i18n';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -31,9 +31,14 @@ export function AppLayout() {
   const location = useLocation();
 
   const [searchOpen, setSearchOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMobileOpen(false);
+    // The page scrolls inside <main>, not the window, so the browser doesn't
+    // reset it on navigation: without this a new page opens part-way down.
+    // Only the path counts — a filter or tab change (search params) keeps place.
+    mainRef.current?.scrollTo({ top: 0 });
   }, [location.pathname]);
 
   // ⌘K / Ctrl+K from anywhere in the app, including inside inputs — it's the
@@ -66,10 +71,13 @@ export function AppLayout() {
           {!sidebar.collapsed && (
             <div
               onMouseDown={sidebar.onResizeStart}
+              onKeyDown={sidebar.onResizeKeyDown}
               role="separator"
+              tabIndex={0}
               aria-orientation="vertical"
               aria-label={t('nav.resize')}
-              className="group absolute inset-y-0 right-0 w-2 cursor-col-resize touch-none"
+              aria-valuenow={sidebar.width}
+              className="group absolute inset-y-0 right-0 w-2 cursor-col-resize touch-none focus:outline-none focus-visible:bg-white/40"
             >
               <div className="mx-auto h-full w-px bg-white/0 transition-colors group-hover:bg-white/40" />
             </div>
@@ -83,7 +91,7 @@ export function AppLayout() {
         </Drawer>
       )}
 
-      <main className="scrollbar-hidden flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+      <main ref={mainRef} className="scrollbar-hidden flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <TopBar onOpenMobileMenu={() => setMobileOpen(true)} onOpenSearch={() => setSearchOpen(true)} />
         {/* Inside the shell, so the sidebar stays put while a page's chunk loads. */}
         <Suspense fallback={<LoadingState />}>

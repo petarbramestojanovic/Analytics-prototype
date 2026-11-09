@@ -6,12 +6,12 @@ import { scopeReports } from '../lib/reportScope';
 
 /** The email reports the current seat may see and manage. */
 export function useScopedReports() {
-  const { isInternal, seatCategory, companyId, agencyId } = useSession();
+  const { isInternal, seatCategory, companyId, accountId } = useSession();
   const query = useEmailReports();
   const { data: campaigns } = useCampaigns();
   const reports = useMemo(
-    () => scopeReports(query.data ?? [], campaigns ?? [], { isInternal, seatCategory, companyId, agencyId }),
-    [query.data, campaigns, isInternal, seatCategory, companyId, agencyId]
+    () => scopeReports(query.data ?? [], campaigns ?? [], { isInternal, seatCategory, companyId, accountId }),
+    [query.data, campaigns, isInternal, seatCategory, companyId, accountId]
   );
   return { ...query, reports };
 }

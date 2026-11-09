@@ -2,13 +2,13 @@ import { seatMembers, seats } from '@/api/mock/data';
 import type { Seat } from '@/types';
 import type { Session } from './sessionContext';
 
-type SeatScope = Pick<Session, 'seatCategory' | 'companyId' | 'agencyId'>;
+type SeatScope = Pick<Session, 'seatCategory' | 'companyId' | 'accountId'>;
 
 /** Whether `seat` is the one the current session is signed in under — there
- *  is exactly one Admin and one Brame seat, and one seat per agency/client. */
-export function isSessionSeat(seat: Seat, { seatCategory, companyId, agencyId }: SeatScope): boolean {
+ *  is exactly one Admin and one Klea seat, and one seat per account/client. */
+export function isSessionSeat(seat: Seat, { seatCategory, companyId, accountId }: SeatScope): boolean {
   if (seatCategory === 'admin' || seatCategory === 'brame') return seat.category === seatCategory;
-  if (seatCategory === 'agency') return seat.category === 'agency' && seat.agencyId === agencyId;
+  if (seatCategory === 'account') return seat.category === 'account' && seat.accountId === accountId;
   return seat.category === 'client' && seat.companyId === companyId;
 }
 

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { FileSpreadsheet, FileText, Paperclip } from 'lucide-react';
 import { useFormatters, useI18n } from '@/i18n';
+import { fmtPct } from '@/lib/format';
 import {
   Button,
   Dialog,
@@ -45,7 +46,7 @@ export function ReportPreviewDialog({
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white text-gray-800 shadow-sm">
           <dl className="space-y-1 border-b border-gray-200 bg-gray-50 px-5 py-3 text-xs">
             <Envelope label={t('reports.preview.from')}>
-              Brame Analytics &lt;reports@brame.io&gt;
+              Klea Analytics &lt;reports@klea.io&gt;
             </Envelope>
             <Envelope label={t('reports.preview.to')}>
               {recipients.length ? recipients.join(', ') : t('reports.preview.sampleRecipient')}
@@ -209,7 +210,7 @@ function ReportBody({ content }: { content: ReportContent }) {
             {content.creatives.map((c) => (
               <tr key={c.format}>
                 <td className={`${cellCls} font-medium`}>{c.format}</td>
-                <td className={cellCls}>{(c.share * 100).toFixed(0)}%</td>
+                <td className={cellCls}>{fmtPct(c.share, 0)}</td>
                 {content.metrics.map((m) => (
                   <td key={m} className={cellCls}>
                     {formatReportValue(m, c.values[m])}

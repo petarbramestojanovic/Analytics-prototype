@@ -36,7 +36,7 @@ export function OverviewFilters({
   onChange: (patch: Partial<OverviewFilterState>) => void;
   onReset: () => void;
   active: boolean;
-  /** Sales and campaign manager are Brame-side cuts — hidden from clients. */
+  /** Sales and campaign manager are Klea-side cuts — hidden from clients. */
   isInternal: boolean;
 }) {
   const { t } = useI18n();

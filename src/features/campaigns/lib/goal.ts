@@ -1,9 +1,9 @@
 import type { PillTone } from '@/components/ui';
 import type { Campaign, GoalMetric } from '@/types';
-import { primarySeries } from './sources';
+import { isLiveCampaign, primarySeries } from './sources';
 
 /**
- * The campaign's main goal (primary KPI) and, for Brame, its performance
+ * The campaign's main goal (primary KPI) and, for Klea, its performance
  * guarantee — both briefed in Salesforce, read-only here. The actual value
  * comes from the campaign's own primary source, like every other headline
  * number; a source that doesn't measure the metric reads `no-data`, never zero.
@@ -94,7 +94,7 @@ export interface GoalGroup {
 export function buildGoalGroups(campaigns: Campaign[]): { groups: GoalGroup[]; unbriefed: number } {
   const byMetric = new Map<GoalMetric, GoalRead[]>();
   let unbriefed = 0;
-  for (const c of campaigns.filter((x) => x.status === 'live')) {
+  for (const c of campaigns.filter(isLiveCampaign)) {
     const read = goalRead(c);
     if (!read) {
       unbriefed += 1;

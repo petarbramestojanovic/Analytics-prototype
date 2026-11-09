@@ -17,7 +17,7 @@ export function CampaignRowActions({ campaign }: { campaign: Campaign }) {
         <ExternalLink size={13} />
         {t('campaigns.rowMenu.viewAnalytics')}
       </DropdownMenuItem>
-      {/* Setup stays Brame-operational — not a client permission, regardless
+      {/* Setup stays Klea-operational — not a client permission, regardless
           of that client's own Admin/Viewer role. */}
       {isAdmin && (
         <DropdownMenuItem onSelect={() => navigate(paths.setup(campaign.id))}>

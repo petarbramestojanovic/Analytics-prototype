@@ -12,17 +12,20 @@ export function FieldLabel({
   variant = 'default',
   hint,
   htmlFor,
+  id,
   className,
 }: {
   children: ReactNode;
   variant?: 'default' | 'caps';
   hint?: string;
   htmlFor?: string;
+  id?: string;
   className?: string;
 }) {
   const Tag = htmlFor ? 'label' : 'span';
   return (
     <Tag
+      id={id}
       htmlFor={htmlFor}
       className={cn(
         'flex items-center gap-1.5',

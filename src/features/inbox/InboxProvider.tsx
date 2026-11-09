@@ -25,7 +25,7 @@ const EMPTY: PersonState = { read: [], archived: [] };
  * triggered right now, minus whatever they've switched off in Notifications.
  * Reading, un-reading and archiving are theirs alone.
  *
- * Who gets what: alerts go to Admin/Brame seats (the ones with an Alerts
+ * Who gets what: alerts go to Admin/Klea seats (the ones with an Alerts
  * page); a finished report to the seats that can see that report; an accepted
  * invitation to the Admin seat and to the admins of the seat that was joined.
  */
@@ -56,7 +56,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
       ...(session.isInternal && settings.inboxAlerts
         ? alertRows
             .filter((r) => r.severity === 'investigate')
-            // Only the people the rule names (by default, the Admin and Brame seats).
+            // Only the people the rule names (by default, the Admin and Klea seats).
             .filter((r) => notifiesPerson(rules.find((rule) => rule.id === r.ruleId), seats, { seatId: seat?.id, memberId: me?.id }))
             .map((r) => alertItem(r, t))
         : []),

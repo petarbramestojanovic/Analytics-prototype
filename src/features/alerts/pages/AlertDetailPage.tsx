@@ -6,7 +6,7 @@ import { useFormatters, useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { fmtPct, fmtSignedPp } from '@/lib/format';
 import { ButtonLink, Card, Pill } from '@/components/ui';
-import { PageSkeleton } from '@/components/feedback';
+import { ErrorState, PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader, SectionTitle } from '@/components/page';
 import { DeltaValue, TextLink } from '@/components/display';
 import { useCampaign } from '@/features/campaigns';
@@ -27,7 +27,7 @@ export function AlertDetailPage() {
   const { key } = useParams<{ key: string }>();
   const { t } = useI18n();
   const { fmtDateLong, fmtTime } = useFormatters();
-  const { rows, isLoading } = useAlertLog();
+  const { rows, isLoading, isError, refetch } = useAlertLog();
   const { rules } = useAlertRules();
   const { watch, investigate } = useAlertThresholds();
   const row = rows.find((r) => r.key === key);
@@ -35,6 +35,7 @@ export function AlertDetailPage() {
   usePageTitle(row?.campaignName);
 
   if (isLoading) return <PageSkeleton variant="dashboard" />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!row) {
     return (
       <NotFoundState

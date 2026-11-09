@@ -47,14 +47,14 @@ import type { Campaign } from '@/types';
 import { useScopedCampaigns } from '../../hooks/useScopedCampaigns';
 import { PersonLabel } from '../../components/PersonLabel';
 import {
-  agencyOptions,
+  accountOptions,
   categoryOptions,
   companyOptions,
-  DIRECT_AGENCY_KEY,
+  DIRECT_ACCOUNT_KEY,
   marketOptions,
   personOptions,
 } from '../../lib/filterOptions';
-import { primarySeries, SOURCE_KEYS } from '../../lib/sources';
+import { isLiveCampaign, primarySeries, SOURCE_KEYS } from '../../lib/sources';
 import {
   campaignExportColumns,
   useCampaignColumns,
@@ -73,7 +73,7 @@ const DEFAULT_FILTERS = {
   statusFilter: 'all' as StatusFilter,
   companyFilter: 'all',
   countryFilter: 'all',
-  agencyFilter: 'all',
+  accountFilter: 'all',
   categoryFilter: 'all',
   salesFilter: 'all',
   managerFilter: 'all',
@@ -89,6 +89,8 @@ const decodeSort = (raw: string): SortingState =>
 
 const resolve = <T,>(updater: Updater<T>, prev: T) =>
   typeof updater === 'function' ? (updater as (p: T) => T)(prev) : updater;
+
+const DEFAULT_COLUMN_VISIBILITY: VisibilityState = { engagements: false };
 
 export function CampaignsPage() {
   const { isInternal } = useSession();
@@ -109,7 +111,7 @@ export function CampaignsPage() {
     statusFilter,
     companyFilter,
     countryFilter,
-    agencyFilter,
+    accountFilter,
     categoryFilter,
     salesFilter,
     managerFilter,
@@ -119,11 +121,12 @@ export function CampaignsPage() {
   // link — so it lives in localStorage only.
   const [columnVisibility, setColumnVisibility] = usePersistentState<VisibilityState>(
     STORAGE_KEYS.campaignsColumns,
-    {},
+    // Engagements (the raw count) is opt-in; the rate column covers the default view.
+    DEFAULT_COLUMN_VISIBILITY,
     codecs.json<VisibilityState>(),
   );
 
-  // Company/country/agency/category and the Salesforce people are internal-only
+  // Company/country/account/category and the Salesforce people are internal-only
   // cuts across the whole portfolio — a client is already scoped to one
   // company, so narrowing further would be pointless for them.
   const rows = useMemo(
@@ -135,7 +138,7 @@ export function CampaignsPage() {
           (!filters.endTo || c.flightEnd <= filters.endTo) &&
           (!isInternal || matchesSelection(companyFilter, c.companyId)) &&
           (!isInternal || matchesSelection(countryFilter, c.salesforce.market)) &&
-          (!isInternal || matchesSelection(agencyFilter, c.agencyId ?? DIRECT_AGENCY_KEY)) &&
+          (!isInternal || matchesSelection(accountFilter, c.accountId ?? DIRECT_ACCOUNT_KEY)) &&
           (!isInternal || matchesSelection(categoryFilter, c.salesforce.category)) &&
           (!isInternal || matchesSelection(salesFilter, c.salesforce.salesPerson.id)) &&
           (!isInternal || matchesSelection(managerFilter, c.salesforce.campaignManager.id)),
@@ -148,7 +151,7 @@ export function CampaignsPage() {
       isInternal,
       companyFilter,
       countryFilter,
-      agencyFilter,
+      accountFilter,
       categoryFilter,
       salesFilter,
       managerFilter,
@@ -157,7 +160,7 @@ export function CampaignsPage() {
 
   // The dropdowns offer every value in the scoped portfolio, not just the
   // rows left after other filters — so a filter is never a dead end.
-  const agencies = useMemo(() => agencyOptions(scoped, t('campaigns.agency.direct')), [scoped, t]);
+  const accounts = useMemo(() => accountOptions(scoped, t('campaigns.account.direct')), [scoped, t]);
   const companies = useMemo(() => companyOptions(scoped), [scoped]);
   const markets = useMemo(() => marketOptions(scoped), [scoped]);
   const categories = useMemo(() => categoryOptions(scoped), [scoped]);
@@ -172,7 +175,7 @@ export function CampaignsPage() {
 
   type PanelFilter = {
     key:
-      | 'agencyFilter'
+      | 'accountFilter'
       | 'companyFilter'
       | 'countryFilter'
       | 'categoryFilter'
@@ -225,11 +228,11 @@ export function CampaignsPage() {
       chip: plain(companies),
     },
     {
-      key: 'agencyFilter',
-      label: t('campaigns.filter.label.agency'),
-      allLabel: t('campaigns.filter.allAgencies'),
-      options: agencies,
-      chip: plain(agencies),
+      key: 'accountFilter',
+      label: t('campaigns.filter.label.account'),
+      allLabel: t('campaigns.filter.allAccounts'),
+      options: accounts,
+      chip: plain(accounts),
     },
     {
       key: 'countryFilter',
@@ -328,7 +331,7 @@ export function CampaignsPage() {
   // instead of ballooning its rows.
   const fillsPage = table.getRowModel().rows.length >= table.getState().pagination.pageSize;
 
-  const live = scoped.filter((c) => c.status === 'live');
+  const live = scoped.filter(isLiveCampaign);
   const exportRows = () =>
     exportToXlsx(
       'campaigns.xlsx',

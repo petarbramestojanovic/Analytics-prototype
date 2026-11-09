@@ -5,7 +5,7 @@
 export { useCampaign, useCampaigns } from '@/api/hooks/useCampaigns';
 export { useScopedCampaigns } from './hooks/useScopedCampaigns';
 
-export { SOURCE_KEYS, METRIC_KEYS, checkSources, primarySeries, sourceMeta } from './lib/sources';
+export { SOURCE_KEYS, METRIC_KEYS, checkSources, isLiveCampaign, primarySeries, sourceMeta } from './lib/sources';
 export {
   computePortfolioAlerts,
   relativeChange,

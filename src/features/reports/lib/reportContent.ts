@@ -93,7 +93,7 @@ function campaignsInScope(
 ): Campaign[] {
   if (!scope) return campaigns;
   if (scope.level === 'client') return campaigns.filter((c) => c.companyId === scope.companyId);
-  if (scope.level === 'agency') return campaigns.filter((c) => c.agencyId === scope.agencyId);
+  if (scope.level === 'account') return campaigns.filter((c) => c.accountId === scope.accountId);
   return campaigns.filter((c) => c.id === scope.campaignId);
 }
 

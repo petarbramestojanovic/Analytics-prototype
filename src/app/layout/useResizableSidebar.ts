@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { codecs, type StorageCodec } from '@/lib/storage';
@@ -7,6 +14,7 @@ const SIDEBAR_MIN_WIDTH = 216;
 const SIDEBAR_MAX_WIDTH = 400;
 const SIDEBAR_DEFAULT_WIDTH = 264;
 const SIDEBAR_COLLAPSED_WIDTH = 76;
+const SIDEBAR_KEYBOARD_STEP = 16;
 
 const clampWidth = (w: number) => Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, w));
 
@@ -42,6 +50,21 @@ export function useResizableSidebar(enabled: boolean) {
     [effectiveCollapsed]
   );
 
+  // WAI-ARIA separator pattern: Left/Right nudges the width like the drag handle does.
+  const onResizeKeyDown = useCallback(
+    (e: ReactKeyboardEvent) => {
+      if (effectiveCollapsed) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setWidth((w) => clampWidth(w - SIDEBAR_KEYBOARD_STEP));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setWidth((w) => clampWidth(w + SIDEBAR_KEYBOARD_STEP));
+      }
+    },
+    [effectiveCollapsed, setWidth]
+  );
+
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (draggingRef.current) setWidth(clampWidth(e.clientX));
@@ -75,5 +98,6 @@ export function useResizableSidebar(enabled: boolean) {
     width: effectiveCollapsed ? SIDEBAR_COLLAPSED_WIDTH : width,
     dragging,
     onResizeStart,
+    onResizeKeyDown,
   };
 }
