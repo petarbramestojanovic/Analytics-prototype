@@ -22,10 +22,11 @@ export const STORAGE_KEYS = {
   inboxState: 'brame-prototype-inbox-state',
   recentPages: 'brame-prototype-recent-pages',
   campaignsFilters: 'brame-prototype-campaigns-filters',
-  campaignsColumns: 'brame-prototype-campaigns-columns',
+  campaignsColumns: 'brame-prototype-campaigns-columns-v2',
   overviewFilters: 'brame-prototype-overview-filters',
   clientsFilters: 'brame-prototype-clients-filters',
   trendMetrics: 'brame-prototype-trend-metrics',
+  benchmarkCompare: 'brame-prototype-benchmark-compare',
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

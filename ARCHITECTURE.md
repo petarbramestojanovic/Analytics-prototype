@@ -23,7 +23,7 @@ src/
 │   ├── index.ts            Public surface: fetchers, queryClient, queryKeys
 │   ├── queryClient.ts      TanStack Query client + every query key
 │   ├── useInvalidatingMutation.ts
-│   └── mock/               The mock backend (data.ts, store.ts)
+│   └── mock/               The mock backend (data.ts, store.ts, seeds/)
 │
 ├── components/           Shared UI. Knows nothing about campaigns, seats, …
 │   ├── ui/                 Design-system primitives (Button, Card, Pill, Tabs,
@@ -75,8 +75,8 @@ features/<name>/
 |---|---|
 | `campaigns` | The core domain: campaign queries, source/metric rules (`lib/sources.ts`), source comparison (`lib/divergence.ts`), delivery, goal/guarantee (`lib/goal.ts`), device split, trends, portfolio summaries (optionally over a date range); Campaigns list (filter sheet), Campaign detail, Campaign setup |
 | `overview` | The landing page: period + entity filters (`lib/dateRange.ts`, `lib/overviewFilters.ts`), the period picker, KPI tiles and benchmark cards |
-| `clients` | Company/agency queries; Clients directory and client detail |
-| `benchmarks` | The benchmark engine (`lib/benchmarks.ts`: window, active-day floor, 3-campaign minimum, ladder, market split, mechanics over creatives, per-client context); the Context card every seat sees; Benchmarks pages (Rankings / Compare / Mechanics, Brame-only) |
+| `clients` | Company/account queries; Clients directory and client detail |
+| `benchmarks` | The benchmark engine (`lib/benchmarks.ts`: window, active-day floor, 3-campaign minimum, slice stats, bucket ranking, market split, mechanics over creatives, per-client context; `lib/compareViews.ts` holds the Compare workspace's columns, charts and saved views); the Context card every seat sees; Benchmarks pages (Rankings / Compare / Mechanics, Klea-only) |
 | `alerts` | Thresholds + custom rules (state), the rule engine, the alert log (`useAlertLog`, also drives the sidebar badge); Alerts page |
 | `reports` | Email reports: queries, scoping, the create/edit modal; Reports page |
 | `seats` | Seats and members: queries, `useCurrentSeat`, member panel, modals; Seats and Users pages |

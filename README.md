@@ -1,10 +1,11 @@
-# Brame Analytics — frontend prototype
+# Klea Analytics — frontend prototype
 
 A clickable UI prototype of the analytics platform described in
 `RFC-analytics-platform.pdf`, built to test the concept with a business
 stakeholder before any backend work starts.
 
-**Frontend only.** All numbers are mock data generated in `src/api/mock/data.ts`.
+**Frontend only.** All numbers are mock data generated in `src/api/mock/data.ts`
+(literal seed data lives alongside it in `src/api/mock/seeds/`).
 Nothing talks to a database, and nothing here decides how the three analytics
 sources get reconciled — that is deliberately left to the backend discussion.
 
@@ -15,7 +16,7 @@ npm run dev
 
 Visual language (teal/lime/cream, Inter, Recharts, lucide) is carried over from
 the existing `brame-kpi-dashboard-mvp` dashboard so the prototype reads as
-Brame rather than as a generic template.
+Klea rather than as a generic template.
 
 ## A five-minute demo path
 
@@ -24,10 +25,10 @@ Brame rather than as a generic template.
    interesting bit: an adserver cannot measure engagement, so the cell says so
    rather than showing 0%.
 2. **Migros Cumulus Summer** → the source card under the delivery and goal
-   cards. ATK is the primary source; NEXD and Brame are checks. Note the amber
+   cards. ATK is the primary source; NEXD and Klea are checks. Note the amber
    "complete through …" — a nightly source does not include today.
 3. Scroll down on that campaign. There is no page-flow or CTA detail, and the
-   card explains why: the adserver stops at delivery. Click through to Brame
+   card explains why: the adserver stops at delivery. Click through to Klea
    instrumentation to see in-unit behaviour.
 4. **Compare** — the same campaign counted by two platforms, with a per-metric
    difference and a plain-language read (in line / watch / investigate). Only
@@ -111,7 +112,7 @@ own state and TanStack Query already cover.
   width/collapse and dark mode/language already use plain `useState` +
   `localStorage`, and server-shaped state lives in TanStack Query.
 - **Tremor** (marked optional in the source table) — the existing hand-built
-  `KPICard`/chart components are already Brame-themed and dark-mode-aware;
+  `KPICard`/chart components are already Klea-themed and dark-mode-aware;
   a second charting kit would fight with that rather than add anything.
 - **Testing (Vitest/RTL/MSW/Playwright) and CI** — real engineering
   investments with no payoff for a stakeholder demo. Worth doing once this
@@ -122,7 +123,7 @@ own state and TanStack Query already cover.
 Two independent axes, kept deliberately separate:
 
 - **Tenant scope** (`seatCategory` in `src/features/session`: `admin` / `brame`
-  see every tenant, `agency` / `client` see only their own) — *which data*.
+  see every tenant, `account` / `client` see only their own) — *which data*.
   This is what the "Viewing as" switcher demonstrates, standing in for
   Supabase Auth + RLS.
 - **Seat role** (`SeatMember.role`: `admin` vs `viewer`, managed on the Seats
@@ -142,7 +143,7 @@ Enforcement, not just hidden nav:
   access" message that would itself confirm the campaign exists.
 - Editing a campaign (including primary source) and the Setup page stay
   admin-only regardless of a client's own Admin/Viewer role — that's a
-  Brame-operational decision in the RFC's model, not a client permission.
+  Klea-operational decision in the RFC's model, not a client permission.
 
 Scheduled reports remain visible to client seats — the RFC has clients
 receiving their own report deliveries, so that page is scoped by company
@@ -157,7 +158,7 @@ rather than hidden entirely.
   combinable multi-select dropdowns for sales
   person, campaign manager, campaign and country. The period works on delivery
   *days*: a campaign counts only for the days it delivered inside it. Sales and
-  campaign manager are Brame-side cuts and hidden from clients. Everything
+  campaign manager are Klea-side cuts and hidden from clients. Everything
   (tiles, trend, benchmark cards) follows the selection and it is kept in the
   URL, so a link reproduces the view. A **Primary KPI performance** card groups
   live campaigns by the KPI they were briefed on and shows how many are on
@@ -165,14 +166,14 @@ rather than hidden entirely.
   comparison has something to compare against.
 - **Campaigns list** — search and status tabs in the toolbar; everything else in
   a **Filters** panel that slides in from the right (start date, end date, and,
-  for Brame seats, sales, campaign manager, client, agency, country,
+  for Klea seats, sales, campaign manager, client, account, country,
   category). Every dropdown takes several picks (checkboxes appear on hover);
   with the panel closed, each active filter is one chip ("4 sales people").
   Rows open their campaign on click.
 - Multi-select values travel as one comma-separated string (`lib/selection.ts`),
   so a link from before multi-select still works.
 
-## Alerts & thresholds (Brame-internal)
+## Alerts & thresholds (Klea-internal)
 
 Karsten, on the comparison sources: *"we define thresholds... have alerts in place."* `/admin/alerts` is a portfolio-wide, standing list of every campaign currently over threshold — every primary source checked against every other reporting source, across all campaigns, not one at a time inside Compare.
 
@@ -181,27 +182,29 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 - **Default thresholds are 3% (watch, yellow) and 8% (investigate, red)** for a primary source against another source (DSP vs ad server). A value an admin saved earlier still wins.
 - **Rule types** (the *Alert rules* tab, in `lib/ruleEngine.ts`): source difference, KPI trend, fixed limit, decline since start, below another KPI, **falling day after day** (a rate down ≥ X pp on each of N days in a row) and **device split** (mobile or desktop share of impressions against a limit; tablet counts as mobile). Fixed limits and below-another-KPI work on any KPI with a daily value, in its own unit — two KPIs are only compared when they share one (two rates, or two counts). Eight standard rules ship on; the last two are viewability falling 5 days in a row (1 pp) and mobile share below 50%.
 - **Sidebar badge** on the Alerts nav item shows the current investigate-severity count, computed the same way as the page.
-- Brame-internal (Admin and Brame seats) — Karsten's framing was internal monitoring, not something shown to clients.
+- Klea-internal (Admin and Klea seats) — Karsten's framing was internal monitoring, not something shown to clients.
 
 ## Benchmarks
 
-Brame seats get a **Benchmarks** page with three views; every seat gets a light
+Klea seats get a **Benchmarks** page with three views; every seat gets a light
 "How it compares" read on its own campaigns.
 
 - **Rankings** — industry / client / market over a rolling 12 months, with a
-  "vs. BRAME" column and the industries furthest above the BRAME average.
-- **Compare** — each campaign (or client) next to the averages of its client,
-  industry, market and BRAME; and one industry or client split by market
-  (Automotive AT vs. DE, IKEA AT vs. DE).
+  "vs. KLEA" column and the industries furthest above the KLEA average.
+- **Compare** — pick a campaign (sticky autocomplete) and read it against a
+  matrix of benchmark columns (client, market, industry, account, KLEA, or any
+  specific bucket; up to 10, removable) and up to 4 ranked charts. Layouts can
+  be saved as named views (kept in this browser). Below, a cross-market card
+  that needs no campaign: one industry, several countries, one metric.
 - **Mechanics** — Tap to Reveal, Matchmaker, Carousel …, across *creatives*: a
   mechanic belongs to a creative (one size + one mechanic), and a campaign can
   run several. The mechanic list is whatever the data holds. One level only —
   no mechanic × market or × industry — so an average never rests on one or two
   flights; it appears once 3+ creatives back it (`MIN_COMPARE_SAMPLE`), while
   how often a mechanic is booked always shows.
-- **Visibility** — clients and agencies only ever get their own client against
-  its industry (`useBenchmarkContext`, no BRAME figure, no other clients, no
-  agency benchmarks). The pool, the matrix and the mechanics are Brame-only and
+- **Visibility** — clients and accounts only ever get their own client against
+  its industry (`useBenchmarkContext`, no KLEA figure, no other clients, no
+  account benchmarks). The pool, the matrix and the mechanics are Klea-only and
   enforced in the data layer, not just hidden in the UI.
 - Demo data: benchmarks are built from exactly the campaigns in the Campaigns
   list — no hidden or generated history — so every count on a benchmark page can
@@ -219,11 +222,11 @@ Brame seats get a **Benchmarks** page with three views; every seat gets a light
   whether clients should see it is an open question.
 - **Conversions** are dummy data, shown only for campaigns whose Salesforce
   "conversion tracking" flag is on, and only from sources that measure them
-  (ATK, Brame). They are never compared across sources — each attributes them
+  (ATK, Klea). They are never compared across sources — each attributes them
   differently. No revenue anywhere.
 - **Main goal, performance guarantee and total budget** are dummy stand-ins for
   Salesforce fields not yet in the API. Clients see the goal; the guarantee and
-  budget are Brame-only.
+  budget are Klea-only.
 - **Device split**: Tablet counts as mobile (smartphone + tablet) in the tabs,
   the chart and the list column; the data keeps Tablet as its own row.
 - **Auth is a demonstration, not a real flow.** No account is created, no
@@ -239,7 +242,7 @@ that keep it that way (enforced by ESLint), and where to put new code.
 | Path | What it is |
 |---|---|
 | `src/app/` | Providers, the route table, sidebar navigation config, the app shell |
-| `src/api/` | Query client + keys, and the mock backend (`mock/data.ts`, `mock/store.ts`) |
+| `src/api/` | Query client + keys, and the mock backend (`mock/data.ts`, `mock/store.ts`, `mock/seeds/`) |
 | `src/components/` | Shared, domain-agnostic UI: `ui/`, `form/`, `table/`, `page/`, `display/`, `feedback/`, `charts/`, `theme/` |
 | `src/features/` | One folder per product area — campaigns, overview, clients, benchmarks, alerts, reports, seats, api-access, connectors, auth, session, profile, preferences |
 | `src/hooks/`, `src/lib/` | Generic hooks and pure utilities (formatting, storage, search, sort, export) |
