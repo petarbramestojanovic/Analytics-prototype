@@ -136,8 +136,8 @@ export interface PrimaryKpi {
   target: number | null;
 }
 
-/** What Brame contractually guarantees the client — a floor on a rate.
- *  Brame-internal: never shown to the client. */
+/** What Klea contractually guarantees the client — a floor on a rate.
+ *  Klea-internal: never shown to the client. */
 interface PerformanceGuarantee {
   metric: GoalMetric;
   value: number;
@@ -158,9 +158,9 @@ export interface Campaign {
   companyId: string;
   companyName: string;
   status: CampaignStatus;
-  /** Null means booked directly with the client, no agency in the middle. */
-  agencyId: string | null;
-  agencyName: string | null;
+  /** Null means booked directly with the client, no account in the middle. */
+  accountId: string | null;
+  accountName: string | null;
   /** App-owned (RFC §4 rule 3) — editable in Campaign setup, never synced
    *  from Salesforce. Headline numbers everywhere key off this field. */
   primarySource: SourceKey;
@@ -177,9 +177,9 @@ export interface Campaign {
     productLine: string;
     /** The main goal, briefed in Salesforce. Null until sales has set one. */
     primaryKpi: PrimaryKpi | null;
-    /** Brame-internal: the performance floor guaranteed to the client. */
+    /** Klea-internal: the performance floor guaranteed to the client. */
     performanceGuarantee: PerformanceGuarantee | null;
-    /** Brame-internal: the campaign's total budget. */
+    /** Klea-internal: the campaign's total budget. */
     totalBudget: Money | null;
     /** Whether the campaign tracks conversions at all; the conversion metric
      *  only shows (and is only delivered by the sources that measure it) when on. */

@@ -1,11 +1,11 @@
 import type { MetricKey } from './campaign';
 
-/** What a report summarizes — one client's whole portfolio, one agency's
+/** What a report summarizes — one client's whole portfolio, one account's
  *  whole book, or a single campaign. Same shape as AlertRuleScope
- *  (lib/alertRules.tsx), one level added for the agency case. */
+ *  (lib/alertRules.tsx), one level added for the account case. */
 export type ReportScope =
   | { level: 'client'; companyId: string; companyName: string }
-  | { level: 'agency'; agencyId: string; agencyName: string }
+  | { level: 'account'; accountId: string; accountName: string }
   | { level: 'campaign'; campaignId: string; campaignName: string };
 
 /**

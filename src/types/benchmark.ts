@@ -12,9 +12,9 @@ export interface BenchmarkCampaign {
   companyId: string;
   companyName: string;
   industry: string;
-  /** Null for direct bookings, same convention as Campaign.agencyId. */
-  agencyId: string | null;
-  agencyName: string | null;
+  /** Null for direct bookings, same convention as Campaign.accountId. */
+  accountId: string | null;
+  accountName: string | null;
   /** Salesforce's market — the country dimension. */
   market: string;
   flightStart: string;
@@ -29,6 +29,8 @@ export interface BenchmarkCampaign {
   /** Null when the flight was measured by an adserver alone — engagement is
    *  unmeasurable there, and null must never be flattened to 0. */
   engagementRate: number | null;
+  /** Total CTA clicks over the flight — null when the source can't count them. */
+  ctaClicks: number | null;
   /** Delivered impressions against what Salesforce booked — same
    *  `deliveryPacing()` judgment call as the Campaigns list and Campaign
    *  Details, computed once at projection time from the full Campaign. */

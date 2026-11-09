@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import type { BenchmarkScope, Dimension } from '@/features/benchmarks/lib/benchmarks';
 
 // staleTime is deliberately generous — the RFC's dashboard reads are
 // pull-based (nightly sync + manual refresh), not push/real-time, so nothing
@@ -24,7 +25,7 @@ export const queryKeys = {
     detail: (id: string) => ['campaigns', id] as const,
   },
   companies: { all: ['companies'] as const },
-  agencies: { all: ['agencies'] as const },
+  accounts: { all: ['accounts'] as const },
   seats: { all: ['seats'] as const },
   seatMembers: {
     all: ['seatMembers'] as const,
@@ -38,8 +39,8 @@ export const queryKeys = {
   inbox: { all: ['inbox'] as const },
   benchmarks: {
     all: ['benchmarks'] as const,
-    byDimension: (dimension: string, scope?: object) => ['benchmarks', dimension, scope ?? null] as const,
-    group: (dimension: string, key: string) => ['benchmarks', dimension, 'group', key] as const,
+    byDimension: (dimension: Dimension, scope?: BenchmarkScope) => ['benchmarks', dimension, scope ?? null] as const,
+    group: (dimension: Dimension, key: string) => ['benchmarks', dimension, 'group', key] as const,
     pool: ['benchmarks', 'pool'] as const,
     creatives: ['benchmarks', 'creatives'] as const,
     context: (companyId: string, includeBrame: boolean) => ['benchmarks', 'context', companyId, includeBrame] as const,

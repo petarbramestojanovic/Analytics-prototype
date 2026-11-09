@@ -11,7 +11,7 @@
 
 import { addDays } from 'date-fns';
 import {
-  agencies,
+  accounts,
   apiKeys,
   benchmarkCreatives,
   benchmarkPool,
@@ -19,7 +19,7 @@ import {
   companies,
   emailReports,
   inboxEvents,
-  seatIdForAgency,
+  seatIdForAccount,
   seatIdForCompany,
   seatMembers,
   seats,
@@ -38,7 +38,7 @@ import {
   type Stats,
 } from '@/features/benchmarks/lib/benchmarks';
 import type {
-  Agency,
+  Account,
   ApiKey,
   BenchmarkCampaign,
   BenchmarkCreative,
@@ -118,9 +118,9 @@ export async function fetchCompanies() {
   return [...companies];
 }
 
-export async function fetchAgencies(): Promise<Agency[]> {
+export async function fetchAccounts(): Promise<Account[]> {
   await delay(200);
-  return [...agencies];
+  return [...accounts];
 }
 
 // ---------------------------------------------------------------------------
@@ -138,23 +138,23 @@ export async function fetchSeatMembers(seatId?: string): Promise<SeatMember[]> {
 }
 
 /**
- * Agencies and clients are never created here — they live in Salesforce and
+ * Accounts and clients are never created here — they live in Salesforce and
  * arrive through the nightly sync, same as campaigns. Creating a seat only
- * ever links to one that's already been pulled in; only 'agency' and
+ * ever links to one that's already been pulled in; only 'account' and
  * 'client' are ever created by hand — there is exactly one Admin seat and
- * one Brame seat, both pre-seeded.
+ * one Klea seat, both pre-seeded.
  */
-export type CreateSeatInput = { category: 'agency'; agencyId: string } | { category: 'client'; companyId: string };
+export type CreateSeatInput = { category: 'account'; accountId: string } | { category: 'client'; companyId: string };
 
 export async function createSeat(input: CreateSeatInput): Promise<Seat> {
   await delay(300);
 
-  if (input.category === 'agency') {
-    const agency = agencies.find((a) => a.id === input.agencyId);
-    if (!agency) throw new Error(`Unknown agency ${input.agencyId}`);
-    const existing = seats.find((s) => s.category === 'agency' && s.agencyId === agency.id);
+  if (input.category === 'account') {
+    const account = accounts.find((a) => a.id === input.accountId);
+    if (!account) throw new Error(`Unknown account ${input.accountId}`);
+    const existing = seats.find((s) => s.category === 'account' && s.accountId === account.id);
     if (existing) return existing;
-    const seat: Seat = { id: seatIdForAgency(agency.id), category: 'agency', name: agency.name, agencyId: agency.id };
+    const seat: Seat = { id: seatIdForAccount(account.id), category: 'account', name: account.name, accountId: account.id };
     seats.push(seat);
     return seat;
   }
@@ -427,7 +427,7 @@ export async function fetchBenchmarks(dimension: Dimension, scope?: BenchmarkSco
 
 /** Every benchmark campaign (the 12-month window is applied by the caller's
  *  comparisons). Internal-only: the matrix and the mechanic view are cut from
- *  it, and clients/agencies never get it — they get `fetchBenchmarkContext`. */
+ *  it, and clients/accounts never get it — they get `fetchBenchmarkContext`. */
 export async function fetchBenchmarkPool(): Promise<BenchmarkCampaign[]> {
   await delay(300);
   return benchmarkPool;
@@ -440,9 +440,9 @@ export async function fetchBenchmarkCreatives(): Promise<BenchmarkCreative[]> {
   return benchmarkCreatives;
 }
 
-/** A client against its industry (and, for Brame seats only, against BRAME).
- *  What a client or agency seat is allowed to see — never another client's
- *  numbers, never an agency's, never the wider pool. */
+/** A client against its industry (and, for Klea seats only, against KLEA).
+ *  What a client or account seat is allowed to see — never another client's
+ *  numbers, never an account's, never the wider pool. */
 export async function fetchBenchmarkContext(companyId: string, includeBrame: boolean): Promise<BenchmarkContext> {
   await delay(250);
   return benchmarkContext(benchmarkPool, companyId, TODAY, includeBrame);

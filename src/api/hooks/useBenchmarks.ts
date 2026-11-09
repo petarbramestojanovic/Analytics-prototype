@@ -39,8 +39,8 @@ export function useBenchmarkPool(enabled = true) {
   });
 }
 
-/** One client against its industry — and against BRAME only for Brame seats.
- *  The one benchmark read a client or agency seat is allowed. */
+/** One client against its industry — and against KLEA only for Klea seats.
+ *  The one benchmark read a client or account seat is allowed. */
 export function useBenchmarkContext(companyId: string | undefined, includeBrame: boolean) {
   return useQuery({
     queryKey: queryKeys.benchmarks.context(companyId ?? '', includeBrame),

@@ -7,11 +7,11 @@ export interface Company {
   industry: string;
 }
 
-/** The media agency that booked a campaign on a client's behalf, if any.
+/** The media account that booked a campaign on a client's behalf, if any.
  *  Salesforce-owned commercial metadata, same family as `salesforce.owner` —
  *  internal staff need to know who they're coordinating with, a client
  *  viewing their own campaigns never needs (or should see) this. */
-export interface Agency {
+export interface Account {
   id: string;
   name: string;
 }

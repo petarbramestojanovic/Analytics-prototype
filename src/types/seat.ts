@@ -7,24 +7,24 @@
  *
  *   admin  — full app, every tenant's data, can edit (setup, connectors, …)
  *   brame  — every tenant's data, read-only (replaces the old "sales" role)
- *   agency — only campaigns booked through this seat's own agency
+ *   account — only campaigns booked through this seat's own account
  *   client — only this seat's own company's campaigns
  *
  * There is exactly one 'admin' seat and one 'brame' seat system-wide;
- * 'agency' and 'client' seats are one-per-agency / one-per-company.
+ * 'account' and 'client' seats are one-per-account / one-per-company.
  */
-export type SeatCategory = 'admin' | 'brame' | 'agency' | 'client';
+export type SeatCategory = 'admin' | 'brame' | 'account' | 'client';
 
 export interface Seat {
   id: string;
   category: SeatCategory;
-  /** Display name — "Admin"/"Brame" for the two singleton seats, otherwise
-   *  the linked agency's or company's own name. */
+  /** Display name — "Admin"/"Klea" for the two singleton seats, otherwise
+   *  the linked account's or company's own name. */
   name: string;
   /** Set only when category === 'client'. */
   companyId?: string;
-  /** Set only when category === 'agency'. */
-  agencyId?: string;
+  /** Set only when category === 'account'. */
+  accountId?: string;
 }
 
 /** A member's standing within their OWN seat — distinct from the seat's
