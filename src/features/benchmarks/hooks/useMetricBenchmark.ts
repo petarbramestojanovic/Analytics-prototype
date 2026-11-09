@@ -10,8 +10,8 @@ import { isToneMetric } from '../lib/benchmarkTone';
  * the average of the campaign's own industry (given, or its client's). Undefined for any other
  * metric and a client with no industry.
  *
- * Brame seats read it from the cross-tenant industry benchmarks. Clients and
- * agencies get only their own client's industry average, through the benchmark
+ * Klea seats read it from the cross-tenant industry benchmarks. Clients and
+ * accounts get only their own client's industry average, through the benchmark
  * context — never the wider benchmark pool.
  */
 export function useMetricBenchmark(companyId: string | undefined, metric: MetricKey, industryName?: string) {

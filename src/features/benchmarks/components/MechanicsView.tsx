@@ -33,7 +33,7 @@ function demandTrend(group: MechanicGroup) {
 }
 
 /**
- * Benchmarks by game mechanic (Tap to Reveal, Matchmaker, Carousel …), BRAME
+ * Benchmarks by game mechanic (Tap to Reveal, Matchmaker, Carousel …), KLEA
  * view only. A mechanic belongs to a creative — one size, one mechanic — and a
  * campaign can run several, so this counts and averages creatives, not
  * campaigns. The list of mechanics is whatever the data holds, so a new one

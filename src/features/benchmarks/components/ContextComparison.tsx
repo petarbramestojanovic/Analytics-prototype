@@ -22,7 +22,7 @@ interface Bar {
 
 /**
  * A value put in context: this campaign (optionally), its client, its
- * industry and — for Brame seats only — BRAME overall, as bars on one scale
+ * industry and — for Klea seats only — KLEA overall, as bars on one scale
  * per metric. So "2.4% CTR" reads as above or below the peers it competes with.
  * A bar whose average rests on fewer than MIN_COMPARE_SAMPLE campaigns is not
  * drawn; it says so instead of setting an expectation the data can't carry.
@@ -35,7 +35,7 @@ export function ContextComparison({
   className,
 }: {
   companyId: string;
-  /** Brame seats also get the BRAME bar; clients and agencies never do. */
+  /** Klea seats also get the KLEA bar; clients and accounts never do. */
   isInternal: boolean;
   /** The campaign's own values, when this sits on a campaign page. */
   own?: Partial<Record<BenchmarkMetric, number | null | undefined>>;

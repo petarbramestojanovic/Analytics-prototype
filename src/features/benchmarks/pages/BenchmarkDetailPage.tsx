@@ -4,7 +4,7 @@ import { useFormatters, useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { fmtCompact, fmtMetric } from '@/lib/format';
 import { Card, CardHeader, Pill } from '@/components/ui';
-import { PageSkeleton } from '@/components/feedback';
+import { ErrorState, PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader, SectionTitle } from '@/components/page';
 import { Table, Td, Th, Tr } from '@/components/table';
 import { StatGrid, TextLink } from '@/components/display';
@@ -39,12 +39,13 @@ export function BenchmarkDetailPage() {
   // whichever metric the user was already looking at.
   const metric = parseBenchmarkMetric(params.get('metric'));
 
-  const { data, isLoading } = useBenchmarkGroup(dimension, key);
+  const { data, isLoading, isError, refetch } = useBenchmarkGroup(dimension, key);
   usePageTitle(data?.group.displayName);
 
   const backTo = paths.benchmarks({ dimension, metric });
 
   if (isLoading) return <PageSkeleton variant="dashboard" />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   if (!data) {
     return (
@@ -105,7 +106,7 @@ export function BenchmarkDetailPage() {
           <thead>
             <tr>
               <Th>{t('benchmarkDetail.col.campaign')}</Th>
-              <Th>{t('campaigns.col.agency')}</Th>
+              <Th>{t('campaigns.col.account')}</Th>
               {dimension !== 'client' && <Th>{t('benchmarkDetail.col.client')}</Th>}
               {dimension !== 'market' && <Th>{t('benchmarkDetail.col.market')}</Th>}
               <Th>{t('benchmarkDetail.col.flight')}</Th>
@@ -162,7 +163,7 @@ function CampaignRow({
           </span>
         )}
       </Td>
-      <Td>{campaign.agencyName ?? t('campaigns.agency.direct')}</Td>
+      <Td>{campaign.accountName ?? t('campaigns.account.direct')}</Td>
       {dimension !== 'client' && <Td>{campaign.companyName}</Td>}
       {dimension !== 'market' && (
         <Td>

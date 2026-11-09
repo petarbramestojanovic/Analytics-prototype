@@ -276,146 +276,9 @@ const statsWhere = (win: BenchmarkCampaign[], keep: (c: BenchmarkCampaign) => bo
 export const meetsSample = (stats: Stats | null | undefined): stats is Stats =>
   !!stats && stats.n >= MIN_COMPARE_SAMPLE;
 
-export type LadderLevel = 'campaign' | 'client';
-
-/** One row of the benchmark ladder: a campaign (or a client) and, in the same
- *  line, the average of every level above it — its client, its industry, its
- *  market, and BRAME overall. */
-export interface LadderRow {
-  key: string;
-  label: string;
-  sublabel: string;
-  /** This row's own value for the metric. */
-  value: number;
-  /** Campaigns behind `value` (1 for a campaign row). */
-  n: number;
-  client: Stats | null;
-  industry: Stats | null;
-  market: Stats | null;
-  brame: Stats | null;
-}
-
-/**
- * The matrix across levels. Campaign rows read "this campaign vs its client,
- * its industry, its market, BRAME"; client rows read "this client vs its
- * industry, BRAME" (a client spans markets, so there is no single one).
- * Sorted best first.
- */
-export function buildLadder(
-  pool: BenchmarkCampaign[],
-  level: LadderLevel,
-  metric: BenchmarkMetric,
-  now: Date,
-  scope?: BenchmarkScope
-): LadderRow[] {
-  const win = withinWindow(pool, now, scope);
-  const brame = statsFor(win)[metric];
-  const memo = new Map<string, Stats | null>();
-  const levelStats = (dim: 'client' | 'industry' | 'market', value: string) => {
-    const k = `${dim}:${value}`;
-    if (!memo.has(k)) {
-      const pick = (c: BenchmarkCampaign) => (dim === 'client' ? c.companyId : dim === 'industry' ? c.industry : c.market);
-      memo.set(k, statsWhere(win, (c) => pick(c) === value)[metric]);
-    }
-    return memo.get(k)!;
-  };
-
-  const usable = eligible(win).filter((c) => c[metric] !== null);
-
-  if (level === 'campaign') {
-    return usable
-      .map((c) => ({
-        key: c.id,
-        label: c.name,
-        sublabel: `${c.companyName} · ${c.market}`,
-        value: c[metric]!,
-        n: 1,
-        client: levelStats('client', c.companyId),
-        industry: levelStats('industry', c.industry),
-        market: levelStats('market', c.market),
-        brame,
-      }))
-      .sort((a, b) => b.value - a.value);
-  }
-
-  const clients = new Map<string, BenchmarkCampaign>();
-  for (const c of usable) if (!clients.has(c.companyId)) clients.set(c.companyId, c);
-  return [...clients.values()]
-    .flatMap((c) => {
-      const own = levelStats('client', c.companyId);
-      return own
-        ? [{ key: c.companyId, label: c.companyName, sublabel: c.industry, value: own.avg, n: own.n, client: null, industry: levelStats('industry', c.industry), market: null, brame }]
-        : [];
-    })
-    .sort((a, b) => b.value - a.value);
-}
-
-interface CrossColumn {
-  market: string;
-  stats: MetricStats;
-  campaigns: number;
-}
-
-export interface CrossComparison {
-  columns: CrossColumn[];
-  /** The subject across every market. */
-  all: MetricStats;
-  brame: MetricStats;
-}
-
-export interface CrossSubject {
-  key: string;
-  label: string;
-  /** Distinct markets it has campaigns in — a split needs at least two. */
-  markets: number;
-}
-
-/** The industries or clients that can be split by market. */
-export function crossSubjects(
-  pool: BenchmarkCampaign[],
-  dimension: 'industry' | 'client',
-  now: Date,
-  scope?: BenchmarkScope
-): CrossSubject[] {
-  const by = new Map<string, { label: string; markets: Set<string> }>();
-  for (const c of withinWindow(pool, now, scope)) {
-    const key = dimension === 'industry' ? c.industry : c.companyId;
-    const label = dimension === 'industry' ? c.industry : c.companyName;
-    const entry = by.get(key) ?? { label, markets: new Set<string>() };
-    entry.markets.add(c.market);
-    by.set(key, entry);
-  }
-  return [...by.entries()]
-    .map(([key, v]) => ({ key, label: v.label, markets: v.markets.size }))
-    .sort((a, b) => b.markets - a.markets || a.label.localeCompare(b.label));
-}
-
-/** One industry or client split by market — "Automotive: AT vs DE",
- *  "IKEA: AT vs DE" — next to its all-market average and BRAME's. */
-export function crossCompareByMarket(
-  pool: BenchmarkCampaign[],
-  subject: { dimension: 'industry' | 'client'; key: string },
-  now: Date,
-  scope?: BenchmarkScope
-): CrossComparison {
-  const win = withinWindow(pool, now, scope);
-  const inSubject = (c: BenchmarkCampaign) => (subject.dimension === 'industry' ? c.industry : c.companyId) === subject.key;
-  const subjectRows = win.filter(inSubject);
-  const markets = [...new Set(subjectRows.map((c) => c.market))].sort();
-  return {
-    columns: markets.map((market) => ({
-      market,
-      stats: statsFor(subjectRows.filter((c) => c.market === market)),
-      campaigns: subjectRows.filter((c) => c.market === market).length,
-    })),
-    all: statsFor(subjectRows),
-    brame: statsFor(win),
-  };
-}
-
 /** A client's place among its peers: its own average, its industry's, and —
- *  only when asked for — BRAME's. The BRAME row is left out for clients and
- *  agencies, who see their client and its industry and nothing wider. */
+ *  only when asked for — KLEA's. The KLEA row is left out for clients and
+ *  accounts, who see their client and its industry and nothing wider. */
 export interface BenchmarkContext {
   industryName: string | null;
   client: MetricStats;
@@ -479,4 +342,131 @@ export function groupMechanics(creatives: BenchmarkCreative[], now: Date, scope?
       creatives: rows,
     }))
     .sort((a, b) => b.creativeCount - a.creativeCount);
+}
+
+// ---------------------------------------------------------------------------
+// The Compare workspace
+//
+// A campaign picked on top, columns of "who it is measured against" (any mix of
+// client, market, industry, account, or KLEA), charts that rank whole buckets,
+// and a cross-market view that needs no campaign at all. All of it reads the
+// same window, active-day floor and sample floor as everything above.
+// ---------------------------------------------------------------------------
+
+/** The cuts a benchmark can be taken along. `account` is who booked it. */
+export type SliceDim = 'industry' | 'market' | 'client' | 'account';
+
+export const SLICE_DIMS: SliceDim[] = ['industry', 'market', 'client', 'account'];
+
+/** Direct bookings have no account id; they form one bucket of their own. */
+export const DIRECT_ACCOUNT_KEY = 'direct';
+
+export const sliceKey = (c: BenchmarkCampaign, dim: SliceDim): string =>
+  dim === 'client' ? c.companyId : dim === 'industry' ? c.industry : dim === 'market' ? c.market : (c.accountId ?? DIRECT_ACCOUNT_KEY);
+
+/** Display name of a campaign's bucket; null for direct bookings (the view
+ *  words that itself, since it is translated). */
+export const sliceLabel = (c: BenchmarkCampaign, dim: SliceDim): string | null =>
+  dim === 'client' ? c.companyName : dim === 'account' ? c.accountName : sliceKey(c, dim);
+
+export interface SlicePart {
+  dim: SliceDim;
+  value: string;
+}
+
+/** Stats for the campaigns sitting in every given bucket at once (industry ×
+ *  market = one bucket per pair). `excludeId` leaves the campaign being judged
+ *  out of its own benchmark. No parts = all of KLEA. */
+export function sliceStats(
+  pool: BenchmarkCampaign[],
+  now: Date,
+  parts: SlicePart[],
+  excludeId?: string
+): MetricStats {
+  return statsFor(
+    withinWindow(pool, now).filter((c) => c.id !== excludeId && parts.every((p) => sliceKey(c, p.dim) === p.value))
+  );
+}
+
+export interface SliceOption {
+  value: string;
+  /** Null = direct bookings. */
+  label: string | null;
+  campaigns: number;
+}
+
+/** Every bucket of a dimension that has campaigns in the window. */
+export function sliceOptions(pool: BenchmarkCampaign[], now: Date, dim: SliceDim): SliceOption[] {
+  const by = new Map<string, SliceOption>();
+  for (const c of withinWindow(pool, now)) {
+    const value = sliceKey(c, dim);
+    const entry = by.get(value) ?? { value, label: sliceLabel(c, dim), campaigns: 0 };
+    entry.campaigns += 1;
+    by.set(value, entry);
+  }
+  return [...by.values()].sort((a, b) => (a.label ?? '').localeCompare(b.label ?? ''));
+}
+
+export interface BucketRank {
+  key: string;
+  label: string | null;
+  avg: number;
+  n: number;
+}
+
+/** Every bucket of a dimension ranked by its average for one metric, best
+ *  first. Buckets under the sample floor are left out rather than ranked on
+ *  one or two flights. */
+export function rankBuckets(
+  pool: BenchmarkCampaign[],
+  now: Date,
+  dim: SliceDim,
+  metric: BenchmarkMetric
+): BucketRank[] {
+  const win = withinWindow(pool, now);
+  const keys = new Map<string, string | null>();
+  for (const c of win) keys.set(sliceKey(c, dim), sliceLabel(c, dim));
+  const ranked: BucketRank[] = [];
+  for (const [key, label] of keys) {
+    const stats = statsFor(win.filter((c) => sliceKey(c, dim) === key))[metric];
+    if (meetsSample(stats)) ranked.push({ key, label, avg: stats.avg, n: stats.n });
+  }
+  return ranked.sort((a, b) => b.avg - a.avg);
+}
+
+export interface MarketSplitRow {
+  market: string;
+  stats: MetricStats;
+  /** Average clicks per campaign — a count, so it has no rate in `stats`. */
+  clicks: Stats | null;
+  campaigns: number;
+}
+
+/** Clicks per campaign over the campaigns that clear the active-day floor and
+ *  whose source counts clicks. */
+const clicksStats = (rows: BenchmarkCampaign[]): Stats | null =>
+  computeStats(
+    eligible(rows)
+      .map((c) => c.ctaClicks)
+      .filter((v): v is number => v !== null)
+  );
+
+/** Markets side by side — for everything BRAME ran, or only the given
+ *  industries (none = all) — with the all-market average beside them.
+ *  Independent of any campaign. */
+export function marketSplit(
+  pool: BenchmarkCampaign[],
+  now: Date,
+  industries: string[] = []
+): { rows: MarketSplitRow[]; all: MetricStats; allClicks: Stats | null } {
+  const rows = withinWindow(pool, now).filter((c) => !industries.length || industries.includes(c.industry));
+  const markets = [...new Set(rows.map((c) => c.market))].sort();
+  return {
+    rows: markets.map((market) => {
+      const inMarket = rows.filter((c) => c.market === market);
+      return { market, stats: statsFor(inMarket), clicks: clicksStats(inMarket), campaigns: inMarket.length };
+    }),
+    all: statsFor(rows),
+    allClicks: clicksStats(rows),
+  };
 }

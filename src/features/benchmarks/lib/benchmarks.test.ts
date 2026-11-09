@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { BenchmarkCampaign, BenchmarkCreative } from '@/types';
-import { benchmarkContext, buildLadder, crossCompareByMarket, groupMechanics, meetsSample } from './benchmarks';
+import {
+  benchmarkContext,
+  DIRECT_ACCOUNT_KEY,
+  groupMechanics,
+  marketSplit,
+  meetsSample,
+  rankBuckets,
+  sliceStats,
+} from './benchmarks';
 
 const NOW = new Date('2026-10-28T09:00:00+01:00');
 
@@ -11,8 +19,8 @@ const bm = (over: Partial<BenchmarkCampaign>): BenchmarkCampaign => ({
   companyId: 'co-a',
   companyName: 'A',
   industry: 'Automotive',
-  agencyId: null,
-  agencyName: null,
+  accountId: null,
+  accountName: null,
   market: 'AT',
   flightStart: '2026-08-01',
   flightEnd: '2026-09-01',
@@ -22,59 +30,81 @@ const bm = (over: Partial<BenchmarkCampaign>): BenchmarkCampaign => ({
   viewability: 0.8,
   engagementRate: 0.05,
   deliveryPacing: 1,
+  ctaClicks: null,
   deliveryHealth: 'good',
   ...over,
 });
 
-describe('buildLadder', () => {
+describe('sliceStats', () => {
   const pool = [
-    bm({ id: 'a1', companyId: 'co-a', market: 'AT', engagementRate: 0.06 }),
-    bm({ id: 'a2', companyId: 'co-a', market: 'DE', engagementRate: 0.04 }),
-    bm({ id: 'b1', companyId: 'co-b', companyName: 'B', industry: 'Retail', market: 'AT', engagementRate: 0.08 }),
+    bm({ id: 'a1', market: 'AT', engagementRate: 0.06 }),
+    bm({ id: 'a2', market: 'AT', engagementRate: 0.08 }),
+    bm({ id: 'a3', market: 'DE', engagementRate: 0.04 }),
+    bm({ id: 'b1', companyId: 'co-b', industry: 'Retail', market: 'DE', engagementRate: 0.1 }),
   ];
 
-  it('puts a campaign next to its client, industry, market and BRAME averages', () => {
-    const rows = buildLadder(pool, 'campaign', 'engagementRate', NOW);
-    const a1 = rows.find((r) => r.key === 'a1')!;
-    expect(a1.value).toBe(0.06);
-    expect(a1.client?.avg).toBeCloseTo(0.05);
-    expect(a1.industry?.avg).toBeCloseTo(0.05);
-    expect(a1.market?.avg).toBeCloseTo(0.07);
-    expect(a1.brame?.avg).toBeCloseTo(0.06);
+  it('averages every campaign in all the given buckets at once', () => {
+    const stats = sliceStats(pool, NOW, [
+      { dim: 'industry', value: 'Automotive' },
+      { dim: 'market', value: 'AT' },
+    ]);
+    expect(stats.engagementRate?.avg).toBeCloseTo(0.07);
+    expect(stats.engagementRate?.n).toBe(2);
   });
 
-  it('sorts best first and drops campaigns that do not measure the metric', () => {
-    const rows = buildLadder([...pool, bm({ id: 'x', engagementRate: null })], 'campaign', 'engagementRate', NOW);
-    expect(rows.map((r) => r.key)).toEqual(['b1', 'a1', 'a2']);
+  it('is all of KLEA with no buckets', () => {
+    expect(sliceStats(pool, NOW, []).engagementRate?.n).toBe(4);
   });
 
-  it('has no market column for a client row', () => {
-    const [first] = buildLadder(pool, 'client', 'engagementRate', NOW);
-    expect(first.key).toBe('co-b');
-    expect(first.market).toBeNull();
+  it('leaves the campaign being judged out of its own benchmark', () => {
+    const stats = sliceStats(pool, NOW, [{ dim: 'market', value: 'AT' }], 'a1');
+    expect(stats.engagementRate?.n).toBe(1);
+    expect(stats.engagementRate?.avg).toBeCloseTo(0.08);
+  });
+
+  it('puts direct bookings in one bucket of their own', () => {
+    const direct = [bm({ id: 'd1' }), bm({ id: 'd2', accountId: 'ag-x', accountName: 'X' })];
+    expect(sliceStats(direct, NOW, [{ dim: 'account', value: DIRECT_ACCOUNT_KEY }]).ctr?.n).toBe(1);
   });
 });
 
-describe('crossCompareByMarket', () => {
-  it('splits one industry by market', () => {
+describe('rankBuckets', () => {
+  it('ranks buckets best first and drops those under the sample floor', () => {
     const pool = [
-      bm({ market: 'AT', engagementRate: 0.06 }),
-      bm({ market: 'AT', engagementRate: 0.08 }),
-      bm({ market: 'DE', engagementRate: 0.04 }),
-      bm({ companyId: 'co-b', industry: 'Retail', market: 'DE', engagementRate: 0.1 }),
+      ...[0.05, 0.05, 0.05].map((engagementRate) => bm({ market: 'AT', engagementRate })),
+      ...[0.07, 0.07, 0.07].map((engagementRate) => bm({ market: 'DE', engagementRate })),
+      bm({ market: 'FR', engagementRate: 0.2 }),
     ];
-    const result = crossCompareByMarket(pool, { dimension: 'industry', key: 'Automotive' }, NOW);
-    expect(result.columns.map((c) => c.market)).toEqual(['AT', 'DE']);
-    expect(result.columns[0].stats.engagementRate?.avg).toBeCloseTo(0.07);
-    expect(result.columns[1].campaigns).toBe(1);
-    expect(result.brame.engagementRate?.n).toBe(4);
+    const ranked = rankBuckets(pool, NOW, 'market', 'engagementRate');
+    expect(ranked.map((r) => r.key)).toEqual(['DE', 'AT']);
+  });
+});
+
+describe('marketSplit', () => {
+  const pool = [
+    bm({ market: 'AT', ctaClicks: 100 }),
+    bm({ market: 'AT', ctaClicks: 300 }),
+    bm({ market: 'DE', ctaClicks: 50 }),
+    bm({ companyId: 'co-b', industry: 'Retail', market: 'DE', ctaClicks: 900 }),
+  ];
+
+  it('splits everything by market, with clicks averaged per campaign', () => {
+    const { rows, all } = marketSplit(pool, NOW);
+    expect(rows.map((r) => r.market)).toEqual(['AT', 'DE']);
+    expect(rows[0].clicks?.avg).toBe(200);
+    expect(all.ctr?.n).toBe(4);
+  });
+
+  it('can be narrowed to some industries', () => {
+    const { rows } = marketSplit(pool, NOW, ['Automotive']);
+    expect(rows.find((r) => r.market === 'DE')?.campaigns).toBe(1);
   });
 });
 
 describe('benchmarkContext', () => {
   const pool = [bm({ companyId: 'co-a' }), bm({ companyId: 'co-b', companyName: 'B' })];
 
-  it('leaves BRAME out unless asked, so clients never see it', () => {
+  it('leaves KLEA out unless asked, so clients never see it', () => {
     expect(benchmarkContext(pool, 'co-a', NOW, false).brame).toBeNull();
     expect(benchmarkContext(pool, 'co-a', NOW, true).brame).not.toBeNull();
   });
@@ -110,16 +140,27 @@ describe('mechanics', () => {
 
   it('groups creatives by whatever mechanics the data holds, including new ones', () => {
     const groups = groupMechanics(
-      [creative({}), creative({ mechanic: 'Carousel' }), creative({ mechanic: 'Brand New Mechanic' })],
-      NOW
+      [
+        creative({}),
+        creative({ mechanic: 'Carousel' }),
+        creative({ mechanic: 'Brand New Mechanic' }),
+      ],
+      NOW,
     );
-    expect(groups.map((g) => g.mechanic).sort()).toEqual(['Brand New Mechanic', 'Carousel', 'Tap to Reveal']);
+    expect(groups.map((g) => g.mechanic).sort()).toEqual([
+      'Brand New Mechanic',
+      'Carousel',
+      'Tap to Reveal',
+    ]);
   });
 
   it('lets one campaign run several mechanics', () => {
     const groups = groupMechanics(
-      [creative({ mechanic: 'Tap to Reveal', format: '300x250' }), creative({ mechanic: 'Matchmaker', format: '320x480' })],
-      NOW
+      [
+        creative({ mechanic: 'Tap to Reveal', format: '300x250' }),
+        creative({ mechanic: 'Matchmaker', format: '320x480' }),
+      ],
+      NOW,
     );
     expect(groups).toHaveLength(2);
     expect(groups.every((g) => g.campaignCount === 1)).toBe(true);
@@ -127,8 +168,12 @@ describe('mechanics', () => {
 
   it('counts creatives and distinct campaigns separately', () => {
     const [g] = groupMechanics(
-      [creative({ campaignId: 'k1' }), creative({ campaignId: 'k1', format: '320x480' }), creative({ campaignId: 'k2' })],
-      NOW
+      [
+        creative({ campaignId: 'k1' }),
+        creative({ campaignId: 'k1', format: '320x480' }),
+        creative({ campaignId: 'k2' }),
+      ],
+      NOW,
     );
     expect(g.creativeCount).toBe(3);
     expect(g.campaignCount).toBe(2);

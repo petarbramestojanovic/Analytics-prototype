@@ -16,6 +16,7 @@ import { EmptyState, EmptyText, ErrorState, PageSkeleton } from '@/components/fe
 import { FilterSelect, ListToolbar, Page, PageHeader, SearchInput, SectionTitle } from '@/components/page';
 import { Pagination, SortableTh, Table, TableEmptyRow, Td, Th, Tr } from '@/components/table';
 import { StatGrid, SummaryTile, TextLink } from '@/components/display';
+import { relativeChange } from '@/features/campaigns';
 import { useBenchmarks } from '@/api/hooks/useBenchmarks';
 import { BenchmarkViewTabs } from '../components/BenchmarkViewTabs';
 import { LowSamplePill } from '../components/LowSamplePill';
@@ -119,12 +120,12 @@ function RankingsView() {
 
   const overall = data.overall[metric];
 
-  // Where BRAME is strongest: the industries furthest above the BRAME average
+  // Where KLEA is strongest: the industries furthest above the KLEA average
   // (the ICP view), counting only buckets that clear the sample floor.
   const strongest = overall?.avg
     ? data.groups
         .filter((g) => g.stats[metric] && g.stats[metric]!.n >= MIN_COMPARE_SAMPLE)
-        .map((g) => ({ g, delta: (g.stats[metric]!.avg - overall.avg) / overall.avg }))
+        .map((g) => ({ g, delta: relativeChange(overall.avg, g.stats[metric]!.avg) }))
         .filter((x) => x.delta > 0.05)
         .sort((a, b) => b.delta - a.delta)
         .slice(0, 3)
@@ -282,9 +283,9 @@ function GroupRow({
 }) {
   const { t } = useI18n();
   const own = group.stats[metric];
-  // How far this group sits from the BRAME average — only once it clears the
+  // How far this group sits from the KLEA average — only once it clears the
   // sample floor, so a thin bucket never reads as "strong" or "weak".
-  const vsBrame = own && overall && own.n >= MIN_COMPARE_SAMPLE && overall.avg ? (own.avg - overall.avg) / overall.avg : null;
+  const vsBrame = own && overall && own.n >= MIN_COMPARE_SAMPLE && overall.avg ? relativeChange(overall.avg, own.avg) : null;
 
   return (
     <Tr to={paths.benchmarkGroup(dimension, group.key)}>
