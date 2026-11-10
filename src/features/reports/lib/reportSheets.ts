@@ -11,7 +11,7 @@ export function formatReportValue(metric: ReportMetric, value: number | null): s
   return isCountMetric(metric) ? fmtInt(value) : fmtMetric(metric as RateMetric, value);
 }
 
-export const isCountMetric = (metric: ReportMetric) => COUNT_METRICS.includes(metric);
+const isCountMetric = (metric: ReportMetric) => COUNT_METRICS.includes(metric);
 
 /** The label a metric carries as a column header in a report. */
 export const reportMetricLabel = (t: TranslateFn, metric: ReportMetric) =>
