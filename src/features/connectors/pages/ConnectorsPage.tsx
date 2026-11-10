@@ -44,7 +44,6 @@ export function ConnectorsPage() {
       />
     );
 
-  const started = campaigns.filter((c) => c.sources[c.primarySource] || c.status !== 'scheduled');
   const salesforceRun = lastRunFor(runs, 'salesforce');
   const periodic = <Pill tone="amber">{t('connectors.periodic')}</Pill>;
 
@@ -66,8 +65,8 @@ export function ConnectorsPage() {
         </ConnectorCard>
 
         {SOURCE_KEYS.map((key) => {
-          const withData = started.filter((c) => c.sources[key]).length;
-          const pct = started.length ? withData / started.length : 0;
+          const withData = campaigns.filter((c) => c.sources[key]).length;
+          const pct = campaigns.length ? withData / campaigns.length : 0;
           const live = key === 'custom';
           return (
             <ConnectorCard
@@ -80,13 +79,13 @@ export function ConnectorsPage() {
                 <div className="mb-1 flex items-baseline justify-between text-xs">
                   <span className="text-gray-500 dark:text-gray-400">{t('connectors.coverage')}</span>
                   <span className="tnum font-medium text-brame-dark dark:text-gray-100">
-                    {withData} / {started.length}
+                    {withData} / {campaigns.length}
                   </span>
                 </div>
                 <ProgressBar value={pct} barClassName={pct === 1 ? 'bg-green-500' : 'bg-amber-400'} />
                 {pct < 1 && (
                   <div className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                    {t('connectors.coverageGap', { count: started.length - withData })}
+                    {t('connectors.coverageGap', { count: campaigns.length - withData })}
                   </div>
                 )}
               </div>

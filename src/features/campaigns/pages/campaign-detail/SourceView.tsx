@@ -1,7 +1,7 @@
 import { useMemo, useState, type ComponentProps } from 'react';
 import { ArrowRight, Cable, Layers, Monitor, Settings2, Smartphone, Unplug } from 'lucide-react';
 import { paths } from '@/config/paths';
-import { useFormatters, useI18n, type TranslationKey } from '@/i18n';
+import { useI18n, type TranslationKey } from '@/i18n';
 import { fmtCompact, fmtMetric } from '@/lib/format';
 import { Button, ButtonLink, Card, Tabs, Tooltip } from '@/components/ui';
 import { EmptyState } from '@/components/feedback';
@@ -38,7 +38,6 @@ export function SourceView({
   onSwitchSource: (s: SourceKey) => void;
 }) {
   const { t } = useI18n();
-  const { fmtDateLong } = useFormatters();
   const { isAdmin, isInternal } = useSession();
   const meta = sourceMeta(campaign, source);
   const series = campaign.sources[source];
@@ -56,12 +55,7 @@ export function SourceView({
   const benchmarks = useIndustryBenchmark(campaign.companyId, isInternal);
 
   if (!series || !scopedSeries) {
-    const reason =
-      source === 'nexd'
-        ? t('detail.noDataReasonNexd')
-        : campaign.status === 'scheduled'
-          ? t('detail.noDataReasonScheduled', { date: fmtDateLong(campaign.flightStart) })
-          : t('detail.noDataReasonGeneric');
+    const reason = source === 'nexd' ? t('detail.noDataReasonNexd') : t('detail.noDataReasonGeneric');
 
     return (
       <EmptyState
@@ -74,9 +68,7 @@ export function SourceView({
         body={
           isInternal
             ? `${reason} ${t('detail.noDataSuffix')}`
-            : campaign.status === 'scheduled'
-              ? t('detail.noDataReasonScheduled', { date: fmtDateLong(campaign.flightStart) })
-              : t('detail.noDataBodyClient')
+            : t('detail.noDataBodyClient')
         }
         action={
           isAdmin ? (

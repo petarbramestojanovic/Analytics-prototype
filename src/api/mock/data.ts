@@ -179,16 +179,18 @@ function briefFor(
 function buildCampaign(s: CampaignSeed): Campaign {
   const company = companies.find((c) => c.id === s.companyId)!;
   const dates = daysBetween(s.flightStart, s.flightEnd);
+  // What the campaign actually ran: all of its flight, or only the days up to
+  // the pause for a paused one.
+  const ranDates = s.pausedOn ? dates.filter((d) => d <= s.pausedOn!) : dates;
   const rand = rng(s.seed);
   const missing = new Set(s.missingSources ?? []);
-  const started = s.flightStart <= iso(TODAY);
   const tracksConversions = s.seed % 2 === 1;
 
   const mk = (key: SourceKey, bias: number, measures: MetricKey[]): SourceSeries | null => {
-    if (missing.has(key) || !started) return null;
+    if (missing.has(key)) return null;
     return buildSeries({
       seed: s.seed * 7 + key.length,
-      dates,
+      dates: ranDates,
       dailyImpressions: s.dailyImpressions,
       countBias: bias,
       viewability: s.viewability,
@@ -206,7 +208,7 @@ function buildCampaign(s: CampaignSeed): Campaign {
     ['result', 'Result'],
     ['offer', 'Offer page'],
   ];
-  let remaining = Math.round(s.dailyImpressions * dates.length * s.engagementRate);
+  let remaining = Math.round(s.dailyImpressions * ranDates.length * s.engagementRate);
   const pages = pageLabels.map(([page, label], i) => {
     const views = remaining;
     const dropoff = i === 0 ? 0.18 : 0.24 + rand() * 0.12;
@@ -220,7 +222,7 @@ function buildCampaign(s: CampaignSeed): Campaign {
     };
   });
 
-  const ctaSeed = Math.round(s.dailyImpressions * dates.length * s.engagementRate * 0.15);
+  const ctaSeed = Math.round(s.dailyImpressions * ranDates.length * s.engagementRate * 0.15);
   const ctas = [
     { id: 'cta-primary', label: 'Claim your voucher', destination: '/voucher' },
     { id: 'cta-secondary', label: 'Shop the range', destination: '/shop' },
@@ -231,11 +233,11 @@ function buildCampaign(s: CampaignSeed): Campaign {
       ...c,
       clicks,
       uniqueClicks: Math.round(clicks * (0.82 + rand() * 0.08)),
-      ctr: clicks / (s.dailyImpressions * dates.length),
+      ctr: clicks / (s.dailyImpressions * ranDates.length),
     };
   });
 
-  const totalImp = s.dailyImpressions * dates.length;
+  const totalImp = s.dailyImpressions * ranDates.length;
   // Device mix differs per campaign (mobile-heavy for some, more desktop for
   // others). Drawn from its own seeded generator, so it is fixed between
   // reloads and leaves every other generated number untouched.
@@ -406,6 +408,8 @@ function withDelivery(c: Campaign): Campaign {
   const end = new Date(c.flightEnd).getTime() + day;
   const elapsed = Math.min(Math.max((TODAY.getTime() - start) / (end - start), 0), 1);
   const delivered = deliveryPacing(c);
+  // A paused campaign isn't pacing — it has stopped, so it gets no on-track/behind verdict.
+  if (c.status === 'paused') return { ...c, delivery: { health: null, expectedPacing: elapsed || null } };
   if (delivered == null || elapsed === 0)
     return { ...c, delivery: { health: null, expectedPacing: elapsed ? elapsed : null } };
   const ratio = delivered / elapsed;
@@ -636,8 +640,8 @@ function projectLiveCampaign(c: Campaign): BenchmarkCampaign | null {
   if (c.status === 'archived') return null;
   const series = c.sources[c.primarySource];
   const impressions = series?.totals.impressions;
-  // No delivered impressions means no flight to benchmark — a scheduled
-  // campaign is not a zero-performing one.
+  // No delivered impressions means no flight to benchmark — a campaign
+  // that hasn't started is not a zero-performing one.
   if (!series || !impressions) return null;
 
   const company = companies.find((co) => co.id === c.companyId);

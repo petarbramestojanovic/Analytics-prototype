@@ -9,9 +9,9 @@ describe('flightProgress', () => {
     expect(f).toMatchObject({ state: 'running', totalDays: 10, day: 5, pct: 0.5 });
   });
 
-  it('is complete after the end date and empty before the start', () => {
+  it('is complete after the end date and never negative before the start', () => {
     expect(flightProgress(flight, new Date('2026-08-21T10:00:00'))).toMatchObject({ state: 'ended', pct: 1 });
-    expect(flightProgress(flight, new Date('2026-08-08T10:00:00'))).toMatchObject({ state: 'scheduled', startsInDays: 3, pct: 0 });
+    expect(flightProgress(flight, new Date('2026-08-08T10:00:00'))).toMatchObject({ state: 'running', day: 1, pct: 0 });
   });
 
   it('is still running on the last day', () => {

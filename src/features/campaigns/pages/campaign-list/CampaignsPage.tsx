@@ -61,7 +61,7 @@ import {
   useCampaignHeaderHints,
 } from './campaignColumns';
 
-const STATUS_FILTERS = ['all', 'live', 'scheduled', 'ended'] as const satisfies readonly (
+const STATUS_FILTERS = ['all', 'live', 'paused', 'ended'] as const satisfies readonly (
   'all' | Campaign['status']
 )[];
 type StatusFilter = (typeof STATUS_FILTERS)[number];

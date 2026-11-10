@@ -26,9 +26,7 @@ export function FlightTimeline({
           total: flight.totalDays,
           pct: fmtPct(flight.pct, 0),
         })
-      : flight.state === 'ended'
-        ? t('detail.flight.ended', { total: flight.totalDays })
-        : t('detail.flight.scheduled', { n: flight.startsInDays });
+      : t('detail.flight.ended', { total: flight.totalDays });
 
   return (
     <div className={cn('flex min-w-60 flex-1 items-center gap-3 text-xs', className)}>

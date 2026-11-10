@@ -30,6 +30,8 @@ export interface CampaignSeed {
   primarySource: SourceKey;
   flightStart: string;
   flightEnd: string;
+  /** Paused campaigns only: the last day it delivered before it was paused. */
+  pausedOn?: string;
   dailyImpressions: number;
   viewability: number;
   engagementRate: number;
@@ -92,10 +94,11 @@ export const seeds: CampaignSeed[] = [
     salesforceId: '006Qy00000ALm51IAB',
     name: 'Swisscom blue Play',
     companyId: 'c-swisscom',
-    status: 'live',
+    status: 'paused',
     primarySource: 'nexd',
     flightStart: '2026-10-07',
     flightEnd: '2026-11-19',
+    pausedOn: '2026-10-21',
     dailyImpressions: 158_000,
     viewability: 0.87,
     engagementRate: 0.048,
@@ -105,26 +108,6 @@ export const seeds: CampaignSeed[] = [
     productLine: 'Playable',
     language: 'de-CH',
     seed: 37,
-  },
-  {
-    id: 'cmp-2d18',
-    salesforceId: '006Qy00000ALm62IAB',
-    name: 'dm Adventskalender',
-    companyId: 'c-dm',
-    accountId: 'ag-omd',
-    status: 'scheduled',
-    primarySource: 'atk',
-    flightStart: '2026-12-23',
-    flightEnd: '2027-02-12',
-    dailyImpressions: 180_000,
-    viewability: 0.82,
-    engagementRate: 0.07,
-    owner: 'Jana Roth',
-    market: 'DE',
-    bookedImpressions: 12_000_000,
-    productLine: 'Playable',
-    language: 'de-DE',
-    seed: 41,
   },
   {
     id: 'cmp-7a93',
@@ -203,26 +186,6 @@ export const seeds: CampaignSeed[] = [
     productLine: 'Playable',
     language: 'de-DE',
     seed: 101,
-  },
-  {
-    id: 'cmp-bm02',
-    salesforceId: '006Qy00000ALmB2IAB',
-    name: 'BMW i-Series Configurator',
-    companyId: 'c-bmw',
-    accountId: 'ag-vizeum',
-    status: 'scheduled',
-    primarySource: 'nexd',
-    flightStart: '2026-12-04',
-    flightEnd: '2027-01-19',
-    dailyImpressions: 78_000,
-    viewability: 0.85,
-    engagementRate: 0.047,
-    owner: 'Sebastian Kohl',
-    market: 'AT',
-    bookedImpressions: 3_200_000,
-    productLine: 'Playable',
-    language: 'de-DE',
-    seed: 103,
   },
   {
     id: 'cmp-au01',
@@ -329,10 +292,11 @@ export const seeds: CampaignSeed[] = [
     name: 'Denner Frische-Offensive',
     companyId: 'c-denner',
     accountId: 'ag-groupm',
-    status: 'live',
+    status: 'paused',
     primarySource: 'custom',
     flightStart: '2026-09-29',
     flightEnd: '2026-12-09',
+    pausedOn: '2026-10-18',
     dailyImpressions: 58_000,
     viewability: 0.7,
     engagementRate: 0.06,
@@ -362,25 +326,6 @@ export const seeds: CampaignSeed[] = [
     productLine: 'Playable',
     language: 'de-CH',
     seed: 149,
-  },
-  {
-    id: 'cmp-mm01',
-    salesforceId: '006Qy00000ALmG1IAB',
-    name: 'MediaMarkt Black Friday',
-    companyId: 'c-mediamarkt',
-    status: 'scheduled',
-    primarySource: 'atk',
-    flightStart: '2026-12-30',
-    flightEnd: '2027-01-19',
-    dailyImpressions: 145_000,
-    viewability: 0.91,
-    engagementRate: 0.038,
-    owner: 'Ralf Huber',
-    market: 'CH',
-    bookedImpressions: 5_900_000,
-    productLine: 'Playable',
-    language: 'de-CH',
-    seed: 151,
   },
   {
     id: 'cmp-mm02',
@@ -521,34 +466,15 @@ export const seeds: CampaignSeed[] = [
     seed: 197,
   },
   {
-    id: 'cmp-sl02',
-    salesforceId: '006Qy00000ALmK2IAB',
-    name: 'Swiss Life Family Planning',
-    companyId: 'c-swisslife',
-    accountId: 'ag-dentsu',
-    status: 'scheduled',
-    primarySource: 'custom',
-    flightStart: '2026-12-21',
-    flightEnd: '2027-02-03',
-    dailyImpressions: 16_000,
-    viewability: 0.85,
-    engagementRate: 0.042,
-    owner: 'Daniel Egger',
-    market: 'AT',
-    bookedImpressions: 1_200_000,
-    productLine: 'Playable',
-    language: 'fr-CH',
-    seed: 199,
-  },
-  {
     id: 'cmp-ne01',
     salesforceId: '006Qy00000ALmL1IAB',
     name: 'Nestlé KitKat Break',
     companyId: 'c-nestle',
-    status: 'live',
+    status: 'paused',
     primarySource: 'atk',
     flightStart: '2026-10-01',
     flightEnd: '2026-11-29',
+    pausedOn: '2026-10-22',
     dailyImpressions: 128_000,
     viewability: 0.79,
     engagementRate: 0.048,
@@ -866,6 +792,7 @@ function volumeSeeds(): CampaignSeed[] {
   const DAY = 86_400_000;
 
   const out: CampaignSeed[] = [];
+  let pausableLive = 0;
   // Three campaigns per industry × market, then a few more on the busiest cells.
   const plan: { industry: string; market: string; source: SourceKey }[] = [];
   for (const industry of industries)
@@ -881,13 +808,24 @@ function volumeSeeds(): CampaignSeed[] {
     const length = 14 + Math.floor(rand() * 29);
     let start: number;
     let status: Campaign['status'];
+    let pausedOn: string | undefined;
+    // A flight that starts in the future has no status of its own (there is
+    // no "scheduled"), so it is left out. Its random draws are still taken, so
+    // every other generated campaign stays exactly as it was.
+    let future = false;
     if (roll < 0.28) {
-      // Running today.
+      // Running today — except every fifth one that has been going a while,
+      // which was paused part-way through and keeps the history it delivered.
       start = TODAY_MS - (2 + Math.floor(rand() * (length - 4))) * DAY;
       status = 'live';
+      if (TODAY_MS - start >= 7 * DAY && pausableLive++ % 5 === 0) {
+        status = 'paused';
+        pausedOn = iso(start + Math.floor(((TODAY_MS - start) / DAY) * 0.6) * DAY);
+      }
     } else if (roll < 0.33) {
       start = TODAY_MS + (3 + Math.floor(rand() * 30)) * DAY;
-      status = 'scheduled';
+      status = 'ended';
+      future = true;
     } else {
       // Finished within the last year (a flight must end before today).
       start = TODAY_MS - (length + 3 + Math.floor(rand() * (330 - length))) * DAY;
@@ -897,7 +835,7 @@ function volumeSeeds(): CampaignSeed[] {
     const dailyImpressions = Math.round((30_000 + rand() * 210_000) / 1_000) * 1_000;
     const n = String(i + 1).padStart(3, '0');
     const account = rand() < 0.7 ? pick(accounts).id : undefined;
-    out.push({
+    const generated: CampaignSeed = {
       id: `cmp-v${n}`,
       salesforceId: `006Qy00000V${n}IAB`,
       name: `${company.name} ${VOLUME_LABELS[(i * 5 + Math.floor(rand() * 7)) % VOLUME_LABELS.length]} ${market}`,
@@ -907,6 +845,7 @@ function volumeSeeds(): CampaignSeed[] {
       primarySource: source,
       flightStart: iso(start),
       flightEnd: iso(end),
+      ...(pausedOn && { pausedOn }),
       dailyImpressions,
       viewability: Math.round((0.68 + rand() * 0.22) * 1000) / 1000,
       engagementRate: Math.round((INDUSTRY_ENGAGEMENT[industry] ?? 0.05) * MARKET_ENGAGEMENT[market] * (0.8 + rand() * 0.4) * 10_000) / 10_000,
@@ -916,7 +855,8 @@ function volumeSeeds(): CampaignSeed[] {
       productLine: 'Playable',
       language: VOLUME_LANGUAGE[market],
       seed: 1000 + i,
-    });
+    };
+    if (!future) out.push(generated);
   });
   return out;
 }

@@ -2,7 +2,7 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { TODAY } from '@/lib/clock';
 import type { Campaign } from '@/types';
 
-type FlightState = 'scheduled' | 'running' | 'ended';
+type FlightState = 'running' | 'ended';
 
 export interface FlightProgress {
   state: FlightState;
@@ -10,8 +10,6 @@ export interface FlightProgress {
   totalDays: number;
   /** Which day of the flight today is (running only). */
   day: number;
-  /** Days until it starts (scheduled only). */
-  startsInDays: number;
   /** Share of the flight's runtime already gone, 0–1. */
   pct: number;
 }
@@ -25,8 +23,9 @@ export function flightProgress(campaign: Pick<Campaign, 'flightStart' | 'flightE
   const totalDays = Math.max(1, differenceInCalendarDays(end, start) + 1);
   const sinceStart = differenceInCalendarDays(today, start);
 
-  if (sinceStart < 0) return { state: 'scheduled', totalDays, day: 0, startsInDays: -sinceStart, pct: 0 };
-  if (differenceInCalendarDays(today, end) > 0) return { state: 'ended', totalDays, day: totalDays, startsInDays: 0, pct: 1 };
-  const day = sinceStart + 1;
-  return { state: 'running', totalDays, day, startsInDays: 0, pct: Math.min(1, day / totalDays) };
+  if (differenceInCalendarDays(today, end) > 0) return { state: 'ended', totalDays, day: totalDays, pct: 1 };
+  // A flight can't start in the future in this app, but if one ever did it
+  // would read day 1 at 0%, not a negative day.
+  const day = Math.max(1, sinceStart + 1);
+  return { state: 'running', totalDays, day, pct: sinceStart < 0 ? 0 : Math.min(1, day / totalDays) };
 }

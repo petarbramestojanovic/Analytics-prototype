@@ -290,7 +290,7 @@ export const de: Record<TranslationKey, string> = {
 
   // Status labels
   'status.live': 'live',
-  'status.scheduled': 'geplant',
+  'status.paused': 'pausiert',
   'status.ended': 'beendet',
   'status.archived': 'archiviert',
 
@@ -373,7 +373,7 @@ export const de: Record<TranslationKey, string> = {
   'campaigns.search': 'Kampagnen suchen…',
   'campaigns.filter.all': 'Alle',
   'campaigns.filter.live': 'Live',
-  'campaigns.filter.scheduled': 'Geplant',
+  'campaigns.filter.paused': 'Pausiert',
   'campaigns.filter.ended': 'Beendet',
   'campaigns.filter.allCompanies': 'Alle Kunden',
   'campaigns.filter.allCountries': 'Alle Länder',
@@ -456,7 +456,6 @@ export const de: Record<TranslationKey, string> = {
   'daily.help.conversions': 'An diesem Tag der Kampagne zugerechnete abgeschlossene Zielaktionen.',
   'detail.flight.running': 'Tag {{day}} von {{total}} · {{pct}}',
   'detail.flight.ended': 'Beendet · {{total}} Tage',
-  'detail.flight.scheduled': 'Startet in {{n}} Tag(en)',
   'detail.setup': 'Setup',
   'detail.archivedBadge': 'In Salesforce archiviert, Analytics bleibt erhalten',
   'detail.measurementSourceTitle': 'Messquelle',
@@ -474,7 +473,6 @@ export const de: Record<TranslationKey, string> = {
   'detail.noDataTitle': 'Keine Daten von {{source}}',
   'detail.noDataReasonNexd':
     'Für diese Kampagne ist keine NEXD-Live-ID konfiguriert, daher hat NEXD nichts zu berichten. Von NEXD ausgelieferte Creatives tragen NEXDs eigenes Tracking statt unseres.',
-  'detail.noDataReasonScheduled': 'Die Kampagne hat noch nicht begonnen. Die Laufzeit startet am {{date}}.',
   'detail.noDataReasonGeneric': 'Für diese Quelle ist kein Konnektor konfiguriert.',
   'detail.noDataSuffix': 'Bewusst leer: Eine fehlende Quelle bedeutet nicht null Auslieferung.',
   'detail.openSetup': 'Kampagnen-Setup öffnen',

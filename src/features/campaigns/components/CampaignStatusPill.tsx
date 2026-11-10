@@ -4,7 +4,7 @@ import type { CampaignStatus } from '@/types';
 
 const STATUS_TONE: Record<CampaignStatus, PillTone> = {
   live: 'green',
-  scheduled: 'neutral',
+  paused: 'amber',
   ended: 'neutral',
   archived: 'neutral',
 };

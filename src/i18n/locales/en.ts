@@ -291,7 +291,7 @@ export const en = {
 
   // Status labels
   'status.live': 'live',
-  'status.scheduled': 'scheduled',
+  'status.paused': 'paused',
   'status.ended': 'ended',
   'status.archived': 'archived',
 
@@ -374,7 +374,7 @@ export const en = {
   'campaigns.search': 'Search campaigns…',
   'campaigns.filter.all': 'All',
   'campaigns.filter.live': 'Live',
-  'campaigns.filter.scheduled': 'Scheduled',
+  'campaigns.filter.paused': 'Paused',
   'campaigns.filter.ended': 'Ended',
   'campaigns.filter.allCompanies': 'All clients',
   'campaigns.filter.allCountries': 'All countries',
@@ -457,7 +457,6 @@ export const en = {
   'daily.help.conversions': 'Completed target actions attributed to the campaign that day.',
   'detail.flight.running': 'Day {{day}} of {{total}} · {{pct}}',
   'detail.flight.ended': 'Ended · {{total}} days',
-  'detail.flight.scheduled': 'Starts in {{n}} day(s)',
   'detail.setup': 'Setup',
   'detail.archivedBadge': 'Archived in Salesforce, analytics retained',
   'detail.measurementSourceTitle': 'Measurement source',
@@ -475,7 +474,6 @@ export const en = {
   'detail.noDataTitle': 'No data from {{source}}',
   'detail.noDataReasonNexd':
     "This campaign has no NEXD live ID configured, so NEXD has nothing to report against. Creatives served by NEXD carry NEXD's own tracking rather than ours.",
-  'detail.noDataReasonScheduled': 'The campaign has not started yet. The flight begins {{date}}.',
   'detail.noDataReasonGeneric': 'No connector is configured for this source.',
   'detail.noDataSuffix': 'Deliberately blank: a missing source is not zero delivery.',
   'detail.openSetup': 'Open campaign setup',
