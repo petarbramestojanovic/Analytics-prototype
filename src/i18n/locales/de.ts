@@ -407,6 +407,7 @@ export const de: Record<TranslationKey, string> = {
   'dateRange.clear': 'Datum zurücksetzen',
   'campaigns.filter.startPlaceholder': 'Start am oder nach',
   'campaigns.filter.endPlaceholder': 'Ende am oder vor',
+  'campaigns.col.status': 'Status',
   'campaigns.filter.results': '{{count}} Kampagnen',
   'campaigns.filter.startChip': 'ab {{date}}',
   'campaigns.filter.endChip': 'bis {{date}}',

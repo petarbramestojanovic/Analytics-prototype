@@ -408,6 +408,7 @@ export const en = {
   'dateRange.clear': 'Clear date',
   'campaigns.filter.startPlaceholder': 'Starts on or after',
   'campaigns.filter.endPlaceholder': 'Ends on or before',
+  'campaigns.col.status': 'Status',
   'campaigns.filter.results': '{{count}} campaigns',
   'campaigns.filter.startChip': 'from {{date}}',
   'campaigns.filter.endChip': 'until {{date}}',

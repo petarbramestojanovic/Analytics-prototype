@@ -7,6 +7,7 @@ import type { ExportColumn } from '@/lib/exportXlsx';
 import { Pill, TipText, TipTitle } from '@/components/ui';
 import type { Campaign, MetricKey } from '@/types';
 import { CampaignNameCell } from '../../components/CampaignNameCell';
+import { CampaignStatusPill } from '../../components/CampaignStatusPill';
 import { DeliveryBar } from '../../components/DeliveryBar';
 import { MetricValueCell, type CellMetric } from '../../components/MetricValueCell';
 import { deliveryPacing } from '../../lib/delivery';
@@ -54,7 +55,7 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
         id: 'campaign',
         accessorFn: (c) => c.name,
         header: t('campaigns.col.campaign'),
-        cell: ({ row }) => <CampaignNameCell campaign={row.original} showFlight={false} quietLink />,
+        cell: ({ row }) => <CampaignNameCell campaign={row.original} showFlight={false} showStatus={false} quietLink />,
         enableHiding: false,
       },
       {
@@ -128,6 +129,12 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
         cell: ({ row }) => <DeviceSplitCell campaign={row.original} />,
       },
       {
+        id: 'status',
+        accessorFn: (c) => c.status,
+        header: t('campaigns.col.status'),
+        cell: ({ row }) => <CampaignStatusPill status={row.original.status} />,
+      },
+      {
         id: 'actions',
         header: '',
         enableSorting: false,
@@ -157,7 +164,7 @@ export function campaignExportColumns(t: TranslateFn, showInternal: boolean): Ex
     { key: 'clicks', header: t('campaigns.col.clicks'), format: (c) => primarySeries(c)?.totals.ctaClicks ?? EMPTY_VALUE },
     { key: 'ctr', header: t('metric.ctr.label'), format: metric('ctr') },
     { key: 'viewability', header: t('metric.viewability.label'), format: metric('viewability') },
-    { key: 'status', header: t('seats.col.status'), format: (c) => t(`status.${c.status}`) },
+    { key: 'status', header: t('campaigns.col.status'), format: (c) => t(`status.${c.status}`) },
   ];
 }
 

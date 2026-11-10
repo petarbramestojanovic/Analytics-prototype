@@ -12,6 +12,7 @@ export function CampaignNameCell({
   newTab = false,
   showFlight = true,
   quietLink = false,
+  showStatus = true,
 }: {
   campaign: Campaign;
   newTab?: boolean;
@@ -20,6 +21,8 @@ export function CampaignNameCell({
   /** No hover color/underline on the name — for a table whose whole row is the
    *  hover target and click target. */
   quietLink?: boolean;
+  /** Off where the table has its own Status column. */
+  showStatus?: boolean;
 }) {
   const { fmtDateRange } = useFormatters();
   return (
@@ -33,14 +36,16 @@ export function CampaignNameCell({
       >
         {campaign.name}
       </TextLink>
-      <div className="mt-0.5 flex items-center gap-1.5">
-        <CampaignStatusPill status={campaign.status} />
-        {showFlight && (
-          <span className="whitespace-nowrap text-xs text-gray-400 dark:text-gray-500">
-            {fmtDateRange(campaign.flightStart, campaign.flightEnd)}
-          </span>
-        )}
-      </div>
+      {(showStatus || showFlight) && (
+        <div className="mt-0.5 flex items-center gap-1.5">
+          {showStatus && <CampaignStatusPill status={campaign.status} />}
+          {showFlight && (
+            <span className="whitespace-nowrap text-xs text-gray-400 dark:text-gray-500">
+              {fmtDateRange(campaign.flightStart, campaign.flightEnd)}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

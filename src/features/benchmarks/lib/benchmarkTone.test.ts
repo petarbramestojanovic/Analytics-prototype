@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { benchmarkTone, isToneMetric } from './benchmarkTone';
+import { BENCHMARK_TONE_TEXT, benchmarkTone, isToneMetric } from './benchmarkTone';
 
 describe('benchmarkTone', () => {
-  it('is green on or above the benchmark', () => {
+  it('is on benchmark at or above it', () => {
     expect(benchmarkTone(0.02, 0.02)).toBe('onOrAbove');
     expect(benchmarkTone(0.03, 0.02)).toBe('onOrAbove');
   });
@@ -26,7 +26,12 @@ describe('benchmarkTone', () => {
     expect(benchmarkTone(null, 0.02)).toBeNull();
   });
 
-  it('colours CTR and viewability only, never engagement rate', () => {
+  it('only turns red, as in Analytics 1.0 — no green', () => {
+    expect(BENCHMARK_TONE_TEXT.below).toContain('red');
+    expect(BENCHMARK_TONE_TEXT.onOrAbove).toBe('');
+  });
+
+  it('applies to engagement rate, CTR and viewability only', () => {
     expect(isToneMetric('ctr')).toBe(true);
     expect(isToneMetric('viewability')).toBe(true);
     expect(isToneMetric('engagementRate')).toBe(true);

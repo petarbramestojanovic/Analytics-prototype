@@ -9,8 +9,8 @@ import { BENCHMARK_TONE_TEXT, benchmarkTone } from '../lib/benchmarkTone';
 
 /**
  * An engagement rate, CTR or viewability value, coloured against the average
- * for the client's industry: green when it's on the benchmark or above, red
- * when it's below. Hover for the numbers. Anything with no benchmark to
+ * for the client's industry: red when it's clearly below (Analytics 1.0 style),
+ * unchanged otherwise. Hover for the numbers. Anything with no benchmark to
  * compare with (another metric, an unknown industry, a seat that can't see
  * benchmarks) renders exactly as it was, uncoloured.
  */
