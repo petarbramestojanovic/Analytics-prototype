@@ -146,26 +146,6 @@ export function CompareMatrix({
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {t('cmp.matrix.count', { count: columns.length, max: MAX_MATRIX_COLUMNS })}
           </span>
-          <Popover
-            align="end"
-            className="w-[min(22rem,calc(100vw-1rem))] p-4"
-            trigger={({ toggle }) => (
-              <Button size="sm" icon={<Plus size={14} />} onClick={toggle} disabled={full}>
-                {full ? t('cmp.matrix.max', { max: MAX_MATRIX_COLUMNS }) : t('cmp.matrix.add')}
-              </Button>
-            )}
-          >
-            {(close) => (
-              <AddColumnPanel
-                pool={pool}
-                existing={columns}
-                onAdd={(col) => {
-                  add(col);
-                  close();
-                }}
-              />
-            )}
-          </Popover>
         </div>
       </div>
 
@@ -174,121 +154,155 @@ export function CompareMatrix({
           {t('cmp.matrix.noCampaign')}
         </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-max border-collapse text-sm">
-            <thead>
-              <tr className="align-top">
-                <th className="w-36 min-w-36" />
-                <th className="min-w-44 border-b border-brame-teal/30 bg-brame-teal/10 px-4 py-3 text-left dark:bg-brame-turquoise/10">
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('cmp.matrix.campaign')}
-                  </div>
-                  <div className="font-semibold text-brame-dark dark:text-gray-100">
-                    {campaign.name}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {campaign.companyName}
-                  </div>
-                </th>
-                {columns.map((col) => {
-                  const head = headerOf(col, campaign, t);
-                  return (
-                    <th
-                      key={col.id}
-                      className="min-w-40 border-b border-gray-200 px-4 py-3 text-left dark:border-white/10"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="truncate text-xs font-normal text-gray-500 dark:text-gray-400">
-                            {head.kind}
+        <>
+          <div className="flex overflow-x-auto">
+            <table className="w-full min-w-max flex-1 border-collapse text-sm">
+              <thead>
+                <tr className="align-top">
+                  <th className="w-36 min-w-36" />
+                  <th className="min-w-44 border-b border-brame-teal/30 bg-brame-teal/10 px-4 py-3 text-left dark:bg-brame-turquoise/10">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {t('cmp.matrix.campaign')}
+                    </div>
+                    <div className="font-semibold text-brame-dark dark:text-gray-100">
+                      {campaign.name}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {campaign.companyName}
+                    </div>
+                  </th>
+                  {columns.map((col) => {
+                    const head = headerOf(col, campaign, t);
+                    return (
+                      <th
+                        key={col.id}
+                        className="min-w-40 border-b border-gray-200 px-4 py-3 text-left dark:border-white/10"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="truncate text-xs font-normal text-gray-500 dark:text-gray-400">
+                              {head.kind}
+                            </div>
+                            <div className="font-semibold text-brame-dark dark:text-gray-100">
+                              {head.name}
+                            </div>
                           </div>
-                          <div className="font-semibold text-brame-dark dark:text-gray-100">
-                            {head.name}
-                          </div>
+                          <DeleteButton
+                            className="-mr-1 -mt-0.5"
+                            label={t('cmp.matrix.remove', { name: head.name })}
+                            onClick={() => onChange(columns.filter((c) => c.id !== col.id))}
+                          />
                         </div>
-                        <DeleteButton
-                          className="-mr-1 -mt-0.5"
-                          label={t('cmp.matrix.remove', { name: head.name })}
-                          onClick={() => onChange(columns.filter((c) => c.id !== col.id))}
-                        />
-                      </div>
-                    </th>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {BENCHMARK_METRICS.map((metric) => {
+                  const max = Math.max(
+                    campaign[metric] ?? 0,
+                    ...cells.map((c) => (meetsSample(c?.[metric]) ? c![metric]!.avg : 0)),
                   );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {BENCHMARK_METRICS.map((metric) => {
-                const max = Math.max(
-                  campaign[metric] ?? 0,
-                  ...cells.map((c) => (meetsSample(c?.[metric]) ? c![metric]!.avg : 0)),
-                );
-                return (
-                  <tr
-                    key={metric}
-                    className="border-b border-gray-100 align-top last:border-0 dark:border-white/5"
-                  >
-                    <th
-                      scope="row"
-                      className="px-4 py-4 text-left font-medium text-brame-dark dark:text-gray-100"
-                    >
-                      {t(`metric.${metric}.label`)}
-                    </th>
-                    <td className="bg-brame-teal/10 px-4 py-4 dark:bg-brame-turquoise/10">
-                      <div className="tnum text-lg font-semibold text-brame-dark dark:text-gray-100">
-                        {campaign[metric] === null
-                          ? EMPTY_VALUE
-                          : fmtMetric(metric, campaign[metric])}
-                      </div>
-                      <div className="mt-[22px] h-1 overflow-hidden rounded-full bg-brame-teal/15 dark:bg-white/10">
-                        <div
-                          className="h-full rounded-full bg-brame-teal dark:bg-brame-turquoise"
-                          style={{
-                            width: `${max && campaign[metric] ? Math.min(100, (campaign[metric]! / max) * 100) : 0}%`,
-                          }}
-                        />
-                      </div>
-                    </td>
-                    {columns.map((col, i) => (
-                      <td key={col.id} className="px-4 py-4">
-                        <Cell
-                          metric={metric}
-                          own={campaign[metric]}
-                          stats={cells[i]?.[metric] ?? null}
-                          max={max}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-              <tr className="border-t border-gray-200 text-xs text-gray-500 dark:border-white/10 dark:text-gray-400">
-                <th
-                  scope="row"
-                  className="px-4 py-3 text-left font-medium text-brame-dark dark:text-gray-100"
-                >
-                  {t('cmp.matrix.sample')}
-                </th>
-                <td className="bg-brame-teal/10 px-4 py-3 dark:bg-brame-turquoise/10">
-                  {t('cmp.matrix.sampleValue', { n: 1 })}
-                </td>
-                {columns.map((col, i) => {
-                  const n = Math.max(0, ...BENCHMARK_METRICS.map((m) => cells[i]?.[m]?.n ?? 0));
                   return (
-                    <td key={col.id} className="px-4 py-3">
-                      {n ? t('cmp.matrix.sampleValue', { n }) : EMPTY_VALUE}
-                    </td>
+                    <tr
+                      key={metric}
+                      className="border-b border-gray-100 align-top last:border-0 dark:border-white/5"
+                    >
+                      <th
+                        scope="row"
+                        className="px-4 py-4 text-left font-medium text-brame-dark dark:text-gray-100"
+                      >
+                        {t(`metric.${metric}.label`)}
+                      </th>
+                      <td className="bg-brame-teal/10 px-4 py-4 dark:bg-brame-turquoise/10">
+                        <div className="tnum text-lg font-semibold text-brame-dark dark:text-gray-100">
+                          {campaign[metric] === null
+                            ? EMPTY_VALUE
+                            : fmtMetric(metric, campaign[metric])}
+                        </div>
+                        <div className="mt-[22px] h-1 overflow-hidden rounded-full bg-brame-teal/15 dark:bg-white/10">
+                          <div
+                            className="h-full rounded-full bg-brame-teal dark:bg-brame-turquoise"
+                            style={{
+                              width: `${max && campaign[metric] ? Math.min(100, (campaign[metric]! / max) * 100) : 0}%`,
+                            }}
+                          />
+                        </div>
+                      </td>
+                      {columns.map((col, i) => (
+                        <td key={col.id} className="px-4 py-4">
+                          <Cell
+                            metric={metric}
+                            own={campaign[metric]}
+                            stats={cells[i]?.[metric] ?? null}
+                            max={max}
+                          />
+                        </td>
+                      ))}
+                    </tr>
                   );
                 })}
-              </tr>
-            </tbody>
-          </table>
+                <tr className="border-t border-gray-200 text-xs text-gray-500 dark:border-white/10 dark:text-gray-400">
+                  <th
+                    scope="row"
+                    className="px-4 py-3 text-left font-medium text-brame-dark dark:text-gray-100"
+                  >
+                    {t('cmp.matrix.sample')}
+                  </th>
+                  <td className="bg-brame-teal/10 px-4 py-3 dark:bg-brame-turquoise/10">
+                    {t('cmp.matrix.sampleValue', { n: 1 })}
+                  </td>
+                  {columns.map((col, i) => {
+                    const n = Math.max(0, ...BENCHMARK_METRICS.map((m) => cells[i]?.[m]?.n ?? 0));
+                    return (
+                      <td key={col.id} className="px-4 py-3">
+                        {n ? t('cmp.matrix.sampleValue', { n }) : EMPTY_VALUE}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+            {/* The next free column, as wide as a column and as tall as the
+              table: hovering it shows exactly the space a new one will take. */}
+            {!full && (
+              <Popover
+                align="end"
+                rootClassName="flex w-44 shrink-0 self-stretch p-3"
+                className="w-[min(22rem,calc(100vw-1rem))] p-4"
+                trigger={({ toggle }) => (
+                  <button
+                    type="button"
+                    onClick={toggle}
+                    className="group flex min-h-40 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 text-sm text-gray-500 transition-colors hover:border-brame-teal/50 hover:bg-brame-teal/5 hover:text-brame-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50 dark:border-white/15 dark:text-gray-400 dark:hover:border-brame-turquoise/50 dark:hover:bg-brame-turquoise/10 dark:hover:text-brame-turquoise"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-current">
+                      <Plus size={16} />
+                    </span>
+                    {t('cmp.matrix.add')}
+                  </button>
+                )}
+              >
+                {(close) => (
+                  <AddColumnPanel
+                    pool={pool}
+                    existing={columns}
+                    onAdd={(col) => {
+                      add(col);
+                      close();
+                    }}
+                  />
+                )}
+              </Popover>
+            )}
+          </div>
           {columns.length === 0 && (
             <p className="px-5 pb-5 text-sm text-gray-500 dark:text-gray-400">
               {t('cmp.matrix.empty')}
             </p>
           )}
-        </div>
+        </>
       )}
     </Card>
   );

@@ -4,7 +4,7 @@ import { TODAY } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { EMPTY_VALUE, fmtCompact, fmtMetric } from '@/lib/format';
 import { Card } from '@/components/ui';
-import { FilterCombobox, FilterSelect, SectionTitle } from '@/components/page';
+import { FilterSelect, SectionTitle } from '@/components/page';
 import type { BenchmarkCampaign } from '@/types';
 import {
   MIN_COMPARE_SAMPLE,
@@ -95,14 +95,10 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
     }
   }, [dateLocale]);
 
-  // Searchable by name or code, so fifteen countries are as easy as three.
-  const countryOptions = useMemo(
-    () =>
-      markets
-        .map((m) => ({ value: m, label: countryName(m), description: m }))
-        .sort((x, y) => x.label.localeCompare(y.label)),
-    [markets, countryName],
-  );
+  // A click adds a country (after the ones already picked, so the first two
+  // stay the pair that is compared) or drops it — but never the last one.
+  const toggleMarket = (m: string) =>
+    setPicked((p) => (p.includes(m) ? (p.length > 1 ? p.filter((x) => x !== m) : p) : [...p, m]));
 
   const metric = METRICS.find((m) => m.key === metricKey) ?? METRICS[0];
   const rows = picked.map((m) => ({
@@ -127,21 +123,39 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
 
   return (
     <Card>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 max-w-2xl">
-          <SectionTitle hint={t('cmp.cross.hint', { min: MIN_COMPARE_SAMPLE })}>
-            {t('cmp.cross.title')}
-          </SectionTitle>
+      <div className="min-w-0 max-w-2xl">
+        <SectionTitle hint={t('cmp.cross.hint', { min: MIN_COMPARE_SAMPLE })}>
+          {t('cmp.cross.title')}
+        </SectionTitle>
+      </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        {/* Every country is a chip you can switch on and off. */}
+        <div
+          role="group"
+          aria-label={t('cmp.cross.markets')}
+          className="flex min-w-0 flex-1 flex-wrap gap-1.5"
+        >
+          {markets.map((m) => {
+            const on = picked.includes(m);
+            return (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggleMarket(m)}
+                className={cn(
+                  'tnum rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50',
+                  on
+                    ? 'border-brame-teal bg-brame-teal text-white dark:border-brame-turquoise dark:bg-brame-turquoise dark:text-brame-dark'
+                    : 'border-gray-200 text-gray-600 hover:border-brame-teal/50 hover:bg-brame-teal/5 dark:border-white/15 dark:text-gray-300 dark:hover:border-brame-turquoise/50 dark:hover:bg-brame-turquoise/10',
+                )}
+              >
+                {countryName(m)}
+              </button>
+            );
+          })}
         </div>
         <div className="flex flex-wrap gap-2">
-          <FilterCombobox
-            className="w-52"
-            values={picked}
-            onChange={(v) => v.length && setPicked(v)}
-            allLabel={t('cmp.cross.markets')}
-            searchPlaceholder={t('cmp.cross.searchMarkets')}
-            options={countryOptions}
-          />
           <FilterSelect
             className="w-44"
             value={industry}

@@ -160,15 +160,26 @@ function RankingsView() {
 
       <BenchmarkViewTabs view="rankings" />
 
-      <StatGrid>
+      <StatGrid columns={5}>
         <SummaryTile
-          label={t('benchmarks.tile.campaigns')}
-          value={fmtInt(data.windowCampaignCount)}
-          hint={t('benchmarks.tile.campaignsHint')}
+          label={t('benchmarks.tile.impressions')}
+          value={fmtCompact(data.totals.impressions)}
+          hint={t('benchmarks.tile.impressionsHint')}
         />
-        <SummaryTile label={t('benchmarks.tile.buckets')} value={String(data.groups.length)} />
-        <SummaryTile label={t('benchmarks.tile.overallCtr')} value={fmtMetric('ctr', data.overall.ctr?.avg)} />
-        <SummaryTile label={t('benchmarks.tile.overallViewability')} value={fmtMetric('viewability', data.overall.viewability?.avg)} />
+        <SummaryTile
+          label={t('benchmarks.tile.engagements')}
+          value={fmtCompact(data.totals.engagements)}
+          hint={t('benchmarks.tile.engagementsHint')}
+        />
+        <SummaryTile
+          label={t('benchmarks.tile.avgEngagement')}
+          value={fmtMetric('engagementRate', data.overall.engagementRate?.avg)}
+        />
+        <SummaryTile label={t('benchmarks.tile.avgCtr')} value={fmtMetric('ctr', data.overall.ctr?.avg)} />
+        <SummaryTile
+          label={t('benchmarks.tile.avgViewability')}
+          value={fmtMetric('viewability', data.overall.viewability?.avg)}
+        />
       </StatGrid>
 
       {/* Dimension is the loudest control here — every number below only
@@ -219,7 +230,10 @@ function RankingsView() {
             {chartData.length === 0 ? (
               <EmptyText className="px-0">{t('benchmarks.notMeasured')}</EmptyText>
             ) : (
-              <RankedBars data={chartData} overallPct={overall ? overall.avg * 100 : null} metric={metric} />
+              <>
+                <RankedBars data={chartData} overallPct={overall ? overall.avg * 100 : null} metric={metric} />
+                <ChartLegend average={overall ? fmtMetric(metric, overall.avg) : null} />
+              </>
             )}
           </Card>
 
@@ -267,6 +281,29 @@ function RankingsView() {
         </>
       )}
     </Page>
+  );
+}
+
+/** What the marks in the ranked chart mean: the dashed line and the two bar shades. */
+function ChartLegend({ average }: { average: string | null }) {
+  const { t } = useI18n();
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400">
+      {average !== null && (
+        <span className="inline-flex items-center gap-2">
+          <span aria-hidden className="h-3.5 border-l-2 border-dashed border-brame-purple" />
+          {t('benchmarks.legend.average', { value: average })}
+        </span>
+      )}
+      <span className="inline-flex items-center gap-2">
+        <span aria-hidden className="h-2.5 w-4 rounded-sm bg-brame-teal" />
+        {t('benchmarks.legend.above')}
+      </span>
+      <span className="inline-flex items-center gap-2">
+        <span aria-hidden className="h-2.5 w-4 rounded-sm bg-brame-turquoise-light" />
+        {t('benchmarks.legend.below')}
+      </span>
+    </div>
   );
 }
 

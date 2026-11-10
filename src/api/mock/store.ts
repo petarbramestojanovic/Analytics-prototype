@@ -30,12 +30,14 @@ import {
   benchmarkContext,
   groupBenchmarks,
   overallStats,
+  windowTotals,
   type BenchmarkContext,
   type BenchmarkGroup,
   type BenchmarkMetric,
   type BenchmarkScope,
   type Dimension,
   type Stats,
+  type WindowTotals,
 } from '@/features/benchmarks/lib/benchmarks';
 import type {
   Account,
@@ -410,8 +412,8 @@ export async function sendTestEmailReport(id: string): Promise<EmailReport> {
 interface BenchmarkResponse {
   groups: BenchmarkGroup[];
   overall: Record<BenchmarkMetric, Stats | null>;
-  /** Campaigns inside the rolling window, for the summary tiles. */
-  windowCampaignCount: number;
+  /** Impressions and engagements inside the rolling window, for the summary tiles. */
+  totals: WindowTotals;
 }
 
 export async function fetchBenchmarks(dimension: Dimension, scope?: BenchmarkScope): Promise<BenchmarkResponse> {
@@ -420,7 +422,7 @@ export async function fetchBenchmarks(dimension: Dimension, scope?: BenchmarkSco
   return {
     groups,
     overall: overallStats(benchmarkPool, TODAY, scope),
-    windowCampaignCount: groups.reduce((sum, g) => sum + g.campaignCount, 0),
+    totals: windowTotals(benchmarkPool, TODAY, scope),
   };
 }
 

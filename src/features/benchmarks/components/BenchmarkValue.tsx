@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
-import { fmtMetric } from '@/lib/format';
+import { fmtMetric, fmtPp, fmtSignedPct } from '@/lib/format';
 import { FloatingTip, TipRow, TipText, TipTitle } from '@/components/ui';
 import type { MetricKey } from '@/types';
 import { useMetricBenchmark } from '../hooks/useMetricBenchmark';
@@ -45,7 +45,16 @@ export function BenchmarkValue({
           <TipText>{t('benchmarkTone.industry', { industry: benchmark.industry })}</TipText>
           <TipRow label={t('benchmarkTone.value')} value={fmtMetric(metric, value)} />
           <TipRow label={t('benchmarkTone.average')} value={fmtMetric(metric, benchmark.avg)} />
-          {benchmark.lowSample && <TipText>{t('benchmarkTone.lowSample', { n: benchmark.n })}</TipText>}
+          {value != null && (
+            <TipRow
+              label={t('benchmarkTone.gap')}
+              value={`${fmtSignedPct(value / benchmark.avg - 1)} · ${value >= benchmark.avg ? '+' : '−'}${fmtPp(Math.abs(value - benchmark.avg), metric === 'ctr' ? 2 : 1)}`}
+            />
+          )}
+          <TipText>{t('benchmarkTone.rule')}</TipText>
+          {benchmark.lowSample && (
+            <TipText>{t('benchmarkTone.lowSample', { n: benchmark.n })}</TipText>
+          )}
         </>
       }
     >

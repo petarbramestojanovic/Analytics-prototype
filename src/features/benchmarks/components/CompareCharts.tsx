@@ -1,10 +1,18 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { TODAY } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { fmtMetric } from '@/lib/format';
-import { Button, Card, DeleteButton } from '@/components/ui';
+import {
+  Card,
+  DeleteButton,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui';
 import { FilterSelect, SectionTitle } from '@/components/page';
 import type { BenchmarkCampaign } from '@/types';
 import {
@@ -16,12 +24,70 @@ import {
   sliceStats,
   type BenchmarkMetric,
   type BenchmarkScope,
+  type BucketRank,
   type SliceDim,
 } from '../lib/benchmarks';
 import { bucketName, dimLabel } from '../lib/compareLabels';
 import { MAX_COMPARE_CHARTS, type CompareChart } from '../lib/compareViews';
 
-const SHOWN = 8;
+/** Buckets on the card itself; the rest open in a modal. */
+const SHOWN = 10;
+
+/** The dropdown is narrow, so a long metric name gets a short form there. */
+const SHORT_METRIC_LABEL: Partial<Record<BenchmarkMetric, string>> = {
+  engagementRate: 'cmp.charts.metricShort.engagementRate',
+};
+
+/** One ranked bucket: its name and value over a bar, with the KLEA average as
+ *  a dashed tick on the track. */
+function BucketRow({
+  rank,
+  own,
+  metric,
+  brame,
+  max,
+}: {
+  rank: BucketRank;
+  own: boolean;
+  metric: BenchmarkMetric;
+  brame: number | null;
+  max: number;
+}) {
+  const { t } = useI18n();
+  return (
+    <li>
+      <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
+        <span
+          className={cn(
+            'truncate',
+            own ? 'font-semibold text-brame-dark dark:text-white' : 'text-gray-600 dark:text-gray-300',
+          )}
+          title={bucketName(t, rank.label)}
+        >
+          {bucketName(t, rank.label)}
+        </span>
+        <span className="tnum shrink-0 font-medium text-brame-dark dark:text-gray-100">
+          {fmtMetric(metric, rank.avg)}
+        </span>
+      </div>
+      <div className="relative h-2 rounded-full bg-gray-100 dark:bg-white/10">
+        <div
+          className={cn(
+            'h-full rounded-full',
+            own ? 'bg-brame-teal dark:bg-brame-turquoise' : 'bg-brame-teal/30 dark:bg-brame-turquoise/30',
+          )}
+          style={{ width: `${(rank.avg / max) * 100}%` }}
+        />
+        {brame !== null && (
+          <span
+            className="absolute -top-0.5 h-3 border-l border-dashed border-gray-500 dark:border-gray-400"
+            style={{ left: `${(brame / max) * 100}%` }}
+          />
+        )}
+      </div>
+    </li>
+  );
+}
 
 function BucketChart({
   pool,
@@ -39,6 +105,7 @@ function BucketChart({
   onRemove: () => void;
 }) {
   const { t } = useI18n();
+  const [showAll, setShowAll] = useState(false);
   const { metric, by } = chart;
   const ranked = useMemo(
     () => rankBuckets(pool, TODAY, by, metric, scope),
@@ -57,6 +124,7 @@ function BucketChart({
   if (ownIdx >= SHOWN) rows[SHOWN - 1] = ranked[ownIdx];
   const hidden = ranked.length - rows.length;
   const max = Math.max(brame ?? 0, ...rows.map((r) => r.avg)) || 1;
+  const maxAll = Math.max(brame ?? 0, ...ranked.map((r) => r.avg)) || 1;
 
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-gray-200 p-4 dark:border-white/10">
@@ -66,7 +134,10 @@ function BucketChart({
             className="min-w-0"
             value={metric}
             onChange={(m) => onChange({ ...chart, metric: m as BenchmarkMetric })}
-            options={BENCHMARK_METRICS.map((m) => ({ value: m, label: t(`metric.${m}.label`) }))}
+            options={BENCHMARK_METRICS.map((m) => ({
+              value: m,
+              label: t(SHORT_METRIC_LABEL[m] ?? `metric.${m}.label`),
+            }))}
           />
           <FilterSelect
             className="min-w-0"
@@ -84,56 +155,67 @@ function BucketChart({
         </p>
       ) : (
         <ul className="space-y-2.5">
-          {rows.map((r) => {
-            const own = r.key === ownKey;
-            return (
-              <li key={r.key}>
-                <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
-                  <span
-                    className={cn(
-                      'truncate',
-                      own
-                        ? 'font-semibold text-brame-dark dark:text-white'
-                        : 'text-gray-600 dark:text-gray-300',
-                    )}
-                    title={bucketName(t, r.label)}
-                  >
-                    {bucketName(t, r.label)}
-                  </span>
-                  <span className="tnum shrink-0 font-medium text-brame-dark dark:text-gray-100">
-                    {fmtMetric(metric, r.avg)}
-                  </span>
-                </div>
-                <div className="relative h-2 rounded-full bg-gray-100 dark:bg-white/10">
-                  <div
-                    className={cn(
-                      'h-full rounded-full',
-                      own
-                        ? 'bg-brame-teal dark:bg-brame-turquoise'
-                        : 'bg-brame-teal/30 dark:bg-brame-turquoise/30',
-                    )}
-                    style={{ width: `${(r.avg / max) * 100}%` }}
-                  />
-                  {brame !== null && (
-                    <span
-                      className="absolute -top-0.5 h-3 border-l border-dashed border-gray-500 dark:border-gray-400"
-                      style={{ left: `${(brame / max) * 100}%` }}
-                    />
-                  )}
-                </div>
-              </li>
-            );
-          })}
+          {rows.map((r) => (
+            <BucketRow key={r.key} rank={r} own={r.key === ownKey} metric={metric} brame={brame} max={max} />
+          ))}
         </ul>
       )}
 
       <div className="mt-auto pt-3 text-[11px] text-gray-500 dark:text-gray-400">
-        {hidden > 0 && <div>{t('cmp.charts.more', { count: hidden })}</div>}
+        {hidden > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            aria-label={t('cmp.charts.moreOpen', { count: ranked.length })}
+            className="rounded font-medium text-brame-teal hover:underline dark:text-brame-turquoise"
+          >
+            {t('cmp.charts.more', { count: hidden })}
+          </button>
+        )}
         {brame !== null && (
           <div>{t('cmp.charts.average', { value: fmtMetric(metric, brame) })}</div>
         )}
       </div>
+
+      <Dialog open={showAll} onOpenChange={setShowAll}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {t('cmp.charts.modalTitle', { metric: t(`metric.${metric}.label`), dim: dimLabel(t, by) })}
+            </DialogTitle>
+            <DialogDescription>{t('cmp.charts.modalBody', { count: ranked.length })}</DialogDescription>
+          </DialogHeader>
+          <ul className="space-y-2.5">
+            {ranked.map((r) => (
+              <BucketRow key={r.key} rank={r} own={r.key === ownKey} metric={metric} brame={brame} max={maxAll} />
+            ))}
+          </ul>
+          {brame !== null && (
+            <p className="mt-4 text-[11px] text-gray-500 dark:text-gray-400">
+              {t('cmp.charts.average', { value: fmtMetric(metric, brame) })}
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+/** The empty slot after the last chart: click to add one. It is a grid cell
+ *  like the charts, so on hover it fills exactly the space a new chart takes. */
+function AddChartSlot({ onAdd }: { onAdd: () => void }) {
+  const { t } = useI18n();
+  return (
+    <button
+      type="button"
+      onClick={onAdd}
+      className="group flex min-h-48 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 transition-colors hover:border-brame-teal/50 hover:bg-brame-teal/5 hover:text-brame-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50 dark:border-white/15 dark:text-gray-400 dark:hover:border-brame-turquoise/50 dark:hover:bg-brame-turquoise/10 dark:hover:text-brame-turquoise"
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-current">
+        <Plus size={16} />
+      </span>
+      {t('cmp.charts.add')}
+    </button>
   );
 }
 
@@ -141,8 +223,9 @@ function BucketChart({
  * Up to MAX_COMPARE_CHARTS ranked-bucket charts in one row. Each picks its own
  * metric and grouping; the picked campaign's bucket (if any) is highlighted in
  * each. With a `scope`, the ranking covers that period and those markets
- * instead of the rolling 12 months. `actions` sits next to the Add button —
- * the Overview puts its saved-views menu there.
+ * instead of the rolling 12 months. While there is room, an empty "Add chart"
+ * slot sits after the last chart. `actions` sits in the header — the Overview
+ * puts its saved-views menu there.
  */
 export function CompareCharts({
   pool,
@@ -177,30 +260,26 @@ export function CompareCharts({
             {t('cmp.charts.title')}
           </SectionTitle>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {actions}
-          <Button size="sm" icon={<Plus size={14} />} onClick={add} disabled={full}>
-            {full ? t('cmp.charts.max', { max: MAX_COMPARE_CHARTS }) : t('cmp.charts.add')}
-          </Button>
-        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {charts.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">{t('cmp.charts.empty')}</p>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {charts.map((chart) => (
-            <BucketChart
-              key={chart.id}
-              pool={pool}
-              campaign={campaign}
-              scope={scope}
-              chart={chart}
-              onChange={(next) => onChange(charts.map((c) => (c.id === chart.id ? next : c)))}
-              onRemove={() => onChange(charts.filter((c) => c.id !== chart.id))}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {charts.map((chart) => (
+          <BucketChart
+            key={chart.id}
+            pool={pool}
+            campaign={campaign}
+            scope={scope}
+            chart={chart}
+            onChange={(next) => onChange(charts.map((c) => (c.id === chart.id ? next : c)))}
+            onRemove={() => onChange(charts.filter((c) => c.id !== chart.id))}
+          />
+        ))}
+        {!full && <AddChartSlot onAdd={add} />}
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+        <span aria-hidden className="h-3 border-l border-dashed border-gray-500 dark:border-gray-400" />
+        {t('cmp.charts.legend')}
+      </div>
     </Card>
   );
 }

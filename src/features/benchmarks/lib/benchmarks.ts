@@ -258,6 +258,28 @@ export function overallStats(
   return statsFor(withinWindow(pool, now, scope));
 }
 
+/** What the window holds in total: campaigns, delivered impressions, and
+ *  engagements. Engagements are counted only on campaigns whose source measures
+ *  them (impressions × engagement rate) — an adserver-only flight has none to
+ *  count, which is not the same as zero. */
+export interface WindowTotals {
+  campaigns: number;
+  impressions: number;
+  engagements: number;
+}
+
+export function windowTotals(pool: BenchmarkCampaign[], now: Date, scope?: BenchmarkScope): WindowTotals {
+  const win = withinWindow(pool, now, scope);
+  return {
+    campaigns: win.length,
+    impressions: win.reduce((sum, c) => sum + c.impressions, 0),
+    engagements: win.reduce(
+      (sum, c) => (c.engagementRate === null ? sum : sum + c.impressions * c.engagementRate),
+      0
+    ),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Comparisons across the benchmark levels
 //

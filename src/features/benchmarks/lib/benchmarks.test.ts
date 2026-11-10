@@ -8,6 +8,7 @@ import {
   meetsSample,
   rankBuckets,
   sliceStats,
+  windowTotals,
 } from './benchmarks';
 
 const NOW = new Date('2026-10-28T09:00:00+01:00');
@@ -202,5 +203,21 @@ describe('meetsSample', () => {
     expect(meetsSample({ avg: 1, p50: 1, p75: 1, p90: 1, n: 2 })).toBe(false);
     expect(meetsSample({ avg: 1, p50: 1, p75: 1, p90: 1, n: 3 })).toBe(true);
     expect(meetsSample(null)).toBe(false);
+  });
+});
+
+describe('windowTotals', () => {
+  it('sums impressions, and engagements only where engagement is measured', () => {
+    const pool = [
+      bm({ impressions: 1_000_000, engagementRate: 0.05 }),
+      bm({ impressions: 2_000_000, engagementRate: null }), // adserver only: no engagements to count
+      bm({ impressions: 500_000, engagementRate: 0.1, market: 'DE' }),
+    ];
+    const all = windowTotals(pool, NOW);
+    expect(all.campaigns).toBe(3);
+    expect(all.impressions).toBe(3_500_000);
+    expect(all.engagements).toBeCloseTo(100_000);
+    // Follows the countries picked.
+    expect(windowTotals(pool, NOW, { markets: ['DE'] }).engagements).toBeCloseTo(50_000);
   });
 });
