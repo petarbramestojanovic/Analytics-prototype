@@ -20,7 +20,7 @@ function topCampaignByCtr(campaigns: Campaign[]): { campaign: Campaign; ctr: num
   return best;
 }
 
-/** Client-side counterpart to TopGroupCard — same "best by CTR" framing. */
+/** The client-side "best campaign by CTR" card. */
 export function BestCampaignCard({
   campaigns,
   avgCtr,

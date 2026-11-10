@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
-import { Plus, X } from 'lucide-react';
+import { useMemo, type ReactNode } from 'react';
+import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { TODAY } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { fmtMetric } from '@/lib/format';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, DeleteButton } from '@/components/ui';
 import { FilterSelect, SectionTitle } from '@/components/page';
 import type { BenchmarkCampaign } from '@/types';
 import {
@@ -15,6 +15,7 @@ import {
   sliceKey,
   sliceStats,
   type BenchmarkMetric,
+  type BenchmarkScope,
   type SliceDim,
 } from '../lib/benchmarks';
 import { bucketName, dimLabel } from '../lib/compareLabels';
@@ -25,20 +26,28 @@ const SHOWN = 8;
 function BucketChart({
   pool,
   campaign,
+  scope,
   chart,
   onChange,
   onRemove,
 }: {
   pool: BenchmarkCampaign[];
   campaign: BenchmarkCampaign | null;
+  scope?: BenchmarkScope;
   chart: CompareChart;
   onChange: (next: CompareChart) => void;
   onRemove: () => void;
 }) {
   const { t } = useI18n();
   const { metric, by } = chart;
-  const ranked = useMemo(() => rankBuckets(pool, TODAY, by, metric), [pool, by, metric]);
-  const brame = useMemo(() => sliceStats(pool, TODAY, [])[metric]?.avg ?? null, [pool, metric]);
+  const ranked = useMemo(
+    () => rankBuckets(pool, TODAY, by, metric, scope),
+    [pool, by, metric, scope],
+  );
+  const brame = useMemo(
+    () => sliceStats(pool, TODAY, [], undefined, scope)[metric]?.avg ?? null,
+    [pool, metric, scope],
+  );
 
   const ownKey = campaign ? sliceKey(campaign, by) : null;
   // Top of the ranking, but the campaign's own bucket is always on screen even
@@ -51,7 +60,7 @@ function BucketChart({
 
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-gray-200 p-4 dark:border-white/10">
-      <div className="mb-3 flex items-start gap-1.5">
+      <div className="mb-3 flex items-center gap-1.5">
         <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5">
           <FilterSelect
             className="min-w-0"
@@ -66,14 +75,7 @@ function BucketChart({
             options={SLICE_DIMS.map((d) => ({ value: d, label: dimLabel(t, d) }))}
           />
         </div>
-        <button
-          type="button"
-          aria-label={t('cmp.charts.remove')}
-          onClick={onRemove}
-          className="mt-2 rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-brame-dark dark:hover:bg-white/10 dark:hover:text-gray-100"
-        >
-          <X size={14} />
-        </button>
+        <DeleteButton field label={t('cmp.charts.remove')} onClick={onRemove} />
       </div>
 
       {rows.length === 0 ? (
@@ -137,18 +139,25 @@ function BucketChart({
 
 /**
  * Up to MAX_COMPARE_CHARTS ranked-bucket charts in one row. Each picks its own
- * metric and grouping; the picked campaign's bucket is highlighted in each.
+ * metric and grouping; the picked campaign's bucket (if any) is highlighted in
+ * each. With a `scope`, the ranking covers that period and those markets
+ * instead of the rolling 12 months. `actions` sits next to the Add button —
+ * the Overview puts its saved-views menu there.
  */
 export function CompareCharts({
   pool,
   campaign,
   charts,
   onChange,
+  scope,
+  actions,
 }: {
   pool: BenchmarkCampaign[];
   campaign: BenchmarkCampaign | null;
   charts: CompareChart[];
   onChange: (charts: CompareChart[]) => void;
+  scope?: BenchmarkScope;
+  actions?: ReactNode;
 }) {
   const { t } = useI18n();
   const full = charts.length >= MAX_COMPARE_CHARTS;
@@ -160,13 +169,20 @@ export function CompareCharts({
     <Card>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 max-w-3xl">
-          <SectionTitle hint={t('cmp.charts.hint', { max: MAX_COMPARE_CHARTS })}>
+          <SectionTitle
+            hint={t(campaign ? 'cmp.charts.hint' : 'cmp.charts.hintPortfolio', {
+              max: MAX_COMPARE_CHARTS,
+            })}
+          >
             {t('cmp.charts.title')}
           </SectionTitle>
         </div>
-        <Button size="sm" icon={<Plus size={14} />} onClick={add} disabled={full}>
-          {full ? t('cmp.charts.max', { max: MAX_COMPARE_CHARTS }) : t('cmp.charts.add')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {actions}
+          <Button size="sm" icon={<Plus size={14} />} onClick={add} disabled={full}>
+            {full ? t('cmp.charts.max', { max: MAX_COMPARE_CHARTS }) : t('cmp.charts.add')}
+          </Button>
+        </div>
       </div>
       {charts.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">{t('cmp.charts.empty')}</p>
@@ -177,6 +193,7 @@ export function CompareCharts({
               key={chart.id}
               pool={pool}
               campaign={campaign}
+              scope={scope}
               chart={chart}
               onChange={(next) => onChange(charts.map((c) => (c.id === chart.id ? next : c)))}
               onRemove={() => onChange(charts.filter((c) => c.id !== chart.id))}

@@ -135,3 +135,39 @@ export function sanitizeState(raw: unknown): CompareState {
     views,
   };
 }
+
+/** A named set of charts — what the Overview saves. Unlike a Compare view it
+ *  has no matrix columns: the Overview has no campaign to build them around. */
+export interface ChartsView {
+  id: string;
+  name: string;
+  charts: CompareChart[];
+}
+
+export interface ChartsState {
+  charts: CompareChart[];
+  views: ChartsView[];
+}
+
+export const defaultChartsState = (): ChartsState => ({
+  charts: defaultCharts().slice(0, 3),
+  views: [],
+});
+
+/** Whatever localStorage held, repaired into a charts state the Overview can
+ *  trust — no charts at all is allowed (the user removed them). */
+export function sanitizeChartsState(raw: unknown): ChartsState {
+  const fallback = defaultChartsState();
+  if (!raw || typeof raw !== 'object') return fallback;
+  const r = raw as Record<string, unknown>;
+  const views: ChartsView[] = Array.isArray(r.views)
+    ? r.views.flatMap((v) => {
+        const view = v as Record<string, unknown> | null;
+        const charts = cleanCharts(view?.charts);
+        return view && typeof view.id === 'string' && typeof view.name === 'string' && charts
+          ? [{ id: view.id, name: view.name, charts }]
+          : [];
+      })
+    : [];
+  return { charts: cleanCharts(r.charts) ?? fallback.charts, views };
+}

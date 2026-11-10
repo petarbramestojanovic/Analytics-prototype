@@ -376,15 +376,17 @@ export interface SlicePart {
 
 /** Stats for the campaigns sitting in every given bucket at once (industry ×
  *  market = one bucket per pair). `excludeId` leaves the campaign being judged
- *  out of its own benchmark. No parts = all of KLEA. */
+ *  out of its own benchmark. No parts = all of KLEA. A `scope` swaps the
+ *  rolling window for a chosen period and/or markets. */
 export function sliceStats(
   pool: BenchmarkCampaign[],
   now: Date,
   parts: SlicePart[],
-  excludeId?: string
+  excludeId?: string,
+  scope?: BenchmarkScope
 ): MetricStats {
   return statsFor(
-    withinWindow(pool, now).filter((c) => c.id !== excludeId && parts.every((p) => sliceKey(c, p.dim) === p.value))
+    withinWindow(pool, now, scope).filter((c) => c.id !== excludeId && parts.every((p) => sliceKey(c, p.dim) === p.value))
   );
 }
 
@@ -416,14 +418,16 @@ export interface BucketRank {
 
 /** Every bucket of a dimension ranked by its average for one metric, best
  *  first. Buckets under the sample floor are left out rather than ranked on
- *  one or two flights. */
+ *  one or two flights. A `scope` swaps the rolling window for a chosen period
+ *  and/or markets. */
 export function rankBuckets(
   pool: BenchmarkCampaign[],
   now: Date,
   dim: SliceDim,
-  metric: BenchmarkMetric
+  metric: BenchmarkMetric,
+  scope?: BenchmarkScope
 ): BucketRank[] {
-  const win = withinWindow(pool, now);
+  const win = withinWindow(pool, now, scope);
   const keys = new Map<string, string | null>();
   for (const c of win) keys.set(sliceKey(c, dim), sliceLabel(c, dim));
   const ranked: BucketRank[] = [];

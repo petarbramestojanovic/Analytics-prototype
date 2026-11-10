@@ -9,7 +9,7 @@ import { useListFilters } from '@/hooks/useListFilters';
 import { TODAY, TODAY_ISO } from '@/lib/clock';
 import { ButtonLink, Card } from '@/components/ui';
 import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
-import { Page, PageHeader, SectionTitle } from '@/components/page';
+import { Page, PageHeader } from '@/components/page';
 import { useSession } from '@/features/session';
 import {
   buildPortfolioSummary,
@@ -19,11 +19,9 @@ import {
 } from '@/features/campaigns';
 import {
   ContextComparison,
-  DIMENSIONS,
-  useBenchmarks,
+  PortfolioBenchmarkCharts,
   useIndustryBenchmark,
   type BenchmarkScope,
-  type Dimension,
 } from '@/features/benchmarks';
 import { OverviewFilters } from '../components/OverviewFilters';
 import { PrimaryKpiCard } from '../components/PrimaryKpiCard';
@@ -36,7 +34,6 @@ import {
 } from '../lib/overviewFilters';
 import { BestCampaignCard } from '../components/BestCampaignCard';
 import { LiveCampaignsCard } from '../components/LiveCampaignsCard';
-import { TopGroupCard } from '../components/TopGroupCard';
 
 /**
  * The portfolio-snapshot landing page — KPI tiles plus a trend chart, the one
@@ -84,7 +81,7 @@ export function OverviewPage() {
 
   // Benchmarks are cross-tenant and keyed by flight, not by salesperson or
   // campaign manager — so they follow the period and the country, and the
-  // other filters visibly don't apply (see the note under "Top performers").
+  // other filters visibly don't apply (see the note above the benchmark charts).
   const benchmarkScope = useMemo<BenchmarkScope>(
     () => ({ range, markets: parseSelection(filters.countryFilter) }),
     [range, filters.countryFilter],
@@ -92,14 +89,6 @@ export function OverviewPage() {
   const benchmarkFiltersIgnored =
     entityFilterCount({ ...filters, countryFilter: ALL }, isInternal) > 0;
 
-  // Benchmarks are a cross-tenant construct — never scoped to one company —
-  // so these only fetch for internal seats, mirroring the route gate on
-  // /benchmarks itself rather than just hiding the cards after the fact.
-  const topQueries: Record<Dimension, ReturnType<typeof useBenchmarks>> = {
-    industry: useBenchmarks('industry', isInternal, benchmarkScope),
-    client: useBenchmarks('client', isInternal, benchmarkScope),
-    market: useBenchmarks('market', isInternal, benchmarkScope),
-  };
   const { frameBenchmark } = useIndustryBenchmark(undefined, isInternal, benchmarkScope);
 
   if (isLoading) return <PageSkeleton variant="dashboard" />;
@@ -159,19 +148,12 @@ export function OverviewPage() {
 
           {isInternal ? (
             <div className="mb-4">
-              <SectionTitle className="mb-2" hint={t('overview.topHint')}>
-                {t('overview.topTitle')}
-              </SectionTitle>
               {benchmarkFiltersIgnored && (
-                <p className="-mt-1 mb-2 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
                   {t('overview.topScopeNote')}
                 </p>
               )}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                {DIMENSIONS.map((d) => (
-                  <TopGroupCard key={d} dimension={d} query={topQueries[d]} />
-                ))}
-              </div>
+              <PortfolioBenchmarkCharts scope={benchmarkScope} />
             </div>
           ) : (
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">

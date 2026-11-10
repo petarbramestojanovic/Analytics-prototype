@@ -78,6 +78,23 @@ describe('rankBuckets', () => {
     const ranked = rankBuckets(pool, NOW, 'market', 'engagementRate');
     expect(ranked.map((r) => r.key)).toEqual(['DE', 'AT']);
   });
+
+  it('follows a chosen period and markets instead of the rolling window', () => {
+    const pool = [
+      ...[0.05, 0.05, 0.05].map((engagementRate) =>
+        bm({ market: 'AT', engagementRate, flightStart: '2026-10-05', flightEnd: '2026-10-20' }),
+      ),
+      ...[0.07, 0.07, 0.07].map((engagementRate) =>
+        bm({ market: 'DE', engagementRate, flightStart: '2026-02-01', flightEnd: '2026-02-20' }),
+      ),
+    ];
+    const q4 = { range: { start: '2026-10-01', end: '2026-12-31' } };
+    expect(rankBuckets(pool, NOW, 'market', 'engagementRate', q4).map((r) => r.key)).toEqual(['AT']);
+    expect(
+      rankBuckets(pool, NOW, 'market', 'engagementRate', { markets: ['DE'] }).map((r) => r.key),
+    ).toEqual(['DE']);
+    expect(sliceStats(pool, NOW, [], undefined, q4).engagementRate?.avg).toBeCloseTo(0.05);
+  });
 });
 
 describe('marketSplit', () => {

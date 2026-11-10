@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { Bookmark, RotateCcw, Trash2 } from 'lucide-react';
+import { Bookmark, RotateCcw } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import { Button, Popover } from '@/components/ui';
-import type { CompareView } from '../lib/compareViews';
+import { Button, DeleteButton, Popover } from '@/components/ui';
 
-/** Saved views — a named set of matrix columns and charts, kept in this
- *  browser. Loading one replaces the current columns and charts. */
-export function ViewsMenu({
+/** Saved views — a named set of matrix columns and/or charts, kept in this
+ *  browser. Loading one replaces what is on screen. Works for any view shape;
+ *  it only needs an id and a name. */
+export function ViewsMenu<V extends { id: string; name: string }>({
   views,
   onLoad,
   onSave,
   onDelete,
   onReset,
 }: {
-  views: CompareView[];
-  onLoad: (view: CompareView) => void;
+  views: V[];
+  onLoad: (view: V) => void;
   onSave: (name: string) => void;
   onDelete: (id: string) => void;
   onReset: () => void;
@@ -54,14 +54,7 @@ export function ViewsMenu({
                   >
                     {v.name}
                   </button>
-                  <button
-                    type="button"
-                    aria-label={`${t('cmp.views.delete')}: ${v.name}`}
-                    onClick={() => onDelete(v.id)}
-                    className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600 dark:hover:bg-white/10"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <DeleteButton label={`${t('cmp.views.delete')}: ${v.name}`} onClick={() => onDelete(v.id)} />
                 </li>
               ))}
             </ul>
