@@ -54,6 +54,18 @@ export function SourceView({
   );
   const benchmarks = useIndustryBenchmark(campaign.companyId, isInternal);
 
+  // Only admins pick a source. Everyone else sees one campaign view, so a number
+  // the primary source can't measure (an adserver has no engagement or CTR) is
+  // read from the richest other connected source instead of the widget being
+  // dropped. Admins browsing a source tab still get strictly that source.
+  const fillSource = isAdmin
+    ? undefined
+    : (['custom', 'nexd'] as const).find((k) => k !== source && campaign.sources[k]);
+  const fillSeries = useMemo(() => {
+    const raw = fillSource ? campaign.sources[fillSource] : null;
+    return raw ? scaleSeriesForDevice(raw, campaign, deviceTab) : null;
+  }, [fillSource, campaign, deviceTab]);
+
   if (!series || !scopedSeries) {
     const reason = source === 'nexd' ? t('detail.noDataReasonNexd') : t('detail.noDataReasonGeneric');
 
@@ -83,15 +95,21 @@ export function SourceView({
 
   const measuresEngagement = meta.measures.includes('engagementRate');
   const totals = scopedSeries.totals;
-  const has = (m: MetricKey) => meta.measures.includes(m);
+  const fillMeasures = fillSource ? sourceMeta(campaign, fillSource).measures : [];
+  /** The series a metric is read from: the source itself, else the fill source. */
+  const seriesFor = (m: MetricKey) =>
+    meta.measures.includes(m) ? scopedSeries : fillSeries && fillMeasures.includes(m) ? fillSeries : null;
+  const has = (m: MetricKey) => seriesFor(m) !== null;
+  const valueOf = (m: 'engagementRate' | 'ctr' | 'viewability') => seriesFor(m)?.totals[m];
   const rate = (metric: 'engagementRate' | 'ctr' | 'viewability') => (
-    <BenchmarkValue value={totals[metric]} metric={metric} companyId={campaign.companyId}>
-      {fmtMetric(metric, totals[metric])}
+    <BenchmarkValue value={valueOf(metric)} metric={metric} companyId={campaign.companyId}>
+      {fmtMetric(metric, valueOf(metric))}
     </BenchmarkValue>
   );
   const label = (m: string) => t(`metric.${m}.label` as TranslationKey);
   const help = (m: string) => t(`metric.${m}.help` as TranslationKey);
-  const engagements = seriesEngagements(scopedSeries);
+  const engagementSeries = seriesFor('engagementRate');
+  const engagements = engagementSeries ? seriesEngagements(engagementSeries) : null;
 
   // The customer journey, left to right and top to bottom: delivered →
   // engaged → clicked → viewable, then what only some sources/campaigns have.
@@ -205,7 +223,11 @@ export function SourceView({
         <ContextComparison
           companyId={campaign.companyId}
           isInternal={isInternal}
-          own={{ engagementRate: totals.engagementRate, ctr: totals.ctr, viewability: totals.viewability }}
+          own={{
+            engagementRate: valueOf('engagementRate'),
+            ctr: valueOf('ctr'),
+            viewability: valueOf('viewability'),
+          }}
         />
       )}
 
