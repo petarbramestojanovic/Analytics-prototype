@@ -299,6 +299,7 @@ export const de: Record<TranslationKey, string> = {
   'overview.tile.campaigns': 'Kampagnen',
   'overview.tile.live': 'Live-Kampagnen',
   'overview.tile.impressions': 'Impressionen, Live-Kampagnen',
+  'overview.tile.allImpressions': 'Impressionen',
   'overview.tile.awaitingSetup': 'Warten auf Setup',
   'overview.tile.avgEngagement': 'Ø Engagement',
   'overview.tile.avgCtr': 'Ø CTR',

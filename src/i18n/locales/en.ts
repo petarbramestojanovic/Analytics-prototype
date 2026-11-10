@@ -300,6 +300,7 @@ export const en = {
   'overview.tile.campaigns': 'Campaigns',
   'overview.tile.live': 'Live campaigns',
   'overview.tile.impressions': 'Impressions, live campaigns',
+  'overview.tile.allImpressions': 'Impressions',
   'overview.tile.awaitingSetup': 'Awaiting setup',
   'overview.tile.avgEngagement': 'Avg. engagement',
   'overview.tile.avgCtr': 'Avg. CTR',

@@ -37,11 +37,12 @@ function RateValue({
 }
 
 /**
- * The [campaigns] / live / [impressions] / [awaiting setup] / [engagement] /
+ * The [campaigns] / [live] / [impressions] / [awaiting setup] / [engagement] /
  * CTR / viewability tiles every portfolio view opens with (Overview, a
  * client's detail page). `extra` renders one more tile at the end of the
- * row. `showCampaigns` (default on) is the campaign-count tile;
- * `showImpressions` adds live impressions after "Live"; `awaitingSetup`, when
+ * row. `showCampaigns` (default on) is the campaign-count tile; `showLive`
+ * (default on) the live-campaign count; `showImpressions` adds an impressions
+ * tile — live campaigns' by default, every campaign's with `allImpressions`; `awaitingSetup`, when
  * given, adds the count of campaigns with no data source yet; `showEngagement`
  * adds the average engagement rate. `previous` is a comparison period (the same window last year); each
  * rate tile then shows its change against it.
@@ -50,7 +51,9 @@ export function PortfolioSummaryTiles({
   summary,
   previous,
   showCampaigns = true,
+  showLive = true,
   showImpressions = false,
+  allImpressions = false,
   awaitingSetup,
   showEngagement = false,
   extra,
@@ -58,7 +61,9 @@ export function PortfolioSummaryTiles({
   summary: PortfolioSummary;
   previous?: PortfolioSummary;
   showCampaigns?: boolean;
+  showLive?: boolean;
   showImpressions?: boolean;
+  allImpressions?: boolean;
   awaitingSetup?: number;
   showEngagement?: boolean;
   extra?: ReactNode;
@@ -66,16 +71,19 @@ export function PortfolioSummaryTiles({
   const { t } = useI18n();
   // A period with no delivery has nothing to compare against.
   const prev = (key: RateKey) => (previous && previous.campaignCount > 0 ? previous[key] : undefined);
-  // Live + CTR + viewability always show; the rest are optional.
+  // CTR + viewability always show; the rest are optional.
   const tileCount =
-    3 + Number(showCampaigns) + Number(showImpressions) + Number(awaitingSetup !== undefined) + Number(showEngagement);
+    2 + Number(showLive) + Number(showCampaigns) + Number(showImpressions) + Number(awaitingSetup !== undefined) + Number(showEngagement);
   const columns = tileCount >= 6 ? 6 : 5;
   return (
     <StatGrid columns={columns}>
       {showCampaigns && <SummaryTile label={t('overview.tile.campaigns')} value={String(summary.campaignCount)} />}
-      <SummaryTile label={t('overview.tile.live')} value={String(summary.liveCount)} />
+      {showLive && <SummaryTile label={t('overview.tile.live')} value={String(summary.liveCount)} />}
       {showImpressions && (
-        <SummaryTile label={t('overview.tile.impressions')} value={fmtMetric('impressions', summary.liveImpressions)} />
+        <SummaryTile
+          label={t(allImpressions ? 'overview.tile.allImpressions' : 'overview.tile.impressions')}
+          value={fmtMetric('impressions', allImpressions ? summary.totalImpressions : summary.liveImpressions)}
+        />
       )}
       {awaitingSetup !== undefined && (
         <SummaryTile label={t('overview.tile.awaitingSetup')} value={String(awaitingSetup)} />
