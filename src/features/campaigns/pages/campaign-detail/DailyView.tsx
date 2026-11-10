@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
+import { useSession } from '@/features/session';
 import { slugify } from '@/lib/text';
 import type { Campaign, SourceKey } from '@/types';
 import { DailyTrendCard } from '../../components/DailyTrendCard';
@@ -12,6 +13,7 @@ import { sourceMeta } from '../../lib/sources';
  *  purpose — days from different sources are never added or mixed. */
 export function DailyView({ campaign, source }: { campaign: Campaign; source: SourceKey }) {
   const { t } = useI18n();
+  const { isInternal } = useSession();
   const meta = sourceMeta(campaign, source);
   const series = campaign.sources[source];
   const rows = useMemo(
@@ -30,7 +32,7 @@ export function DailyView({ campaign, source }: { campaign: Campaign; source: So
       <Card>
         <DailyMetricsTable
           title={t('daily.title')}
-          hint={t('daily.hint', { count: rows.length, source: sourceLabel })}
+          hint={isInternal ? t('daily.hint', { count: rows.length, source: sourceLabel }) : t('daily.hintClient', { count: rows.length })}
           rows={rows}
           total={total}
           sourceLabel={sourceLabel}

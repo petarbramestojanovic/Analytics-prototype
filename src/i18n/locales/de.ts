@@ -466,6 +466,11 @@ export const de: Record<TranslationKey, string> = {
   'detail.measurementSourceBody': 'Die Hauptzahlen stammen ausschliesslich aus der Primärquelle. Die anderen sind Kontrollen: Klea und der Adserver zählen denselben Spielstart, daher werden die Zahlen nie addiert.',
   'detail.compareBody': 'Dieselbe Kampagne, gezählt von zwei Plattformen. Eine Abweichung ist normal. Diese Ansicht dient dazu, zu beurteilen, ob sie erklärbar ist.',
   'detail.notFoundTitle': 'Kampagne nicht gefunden',
+  'campaigns.metricNATitleClient': '{{metric}} wird für diese Kampagne nicht gemessen.',
+  'detail.noDataTitleClient': 'Noch keine Daten',
+  'detail.noDataBodyClient': 'Daten erscheinen hier, sobald die Kampagne ausgeliefert wird.',
+  'detail.deliveryHintClient': 'Täglich',
+  'daily.hintClient': '{{count}} Tage.',
   'detail.notFoundBody': 'Diese Kampagne existiert nicht in den Testdaten des Prototyps.',
   'detail.backToCampaigns': 'Zurück zu Kampagnen',
 
@@ -500,7 +505,7 @@ export const de: Record<TranslationKey, string> = {
   'detail.col.ctr': 'CTR',
 
   'detail.noInUnitTitle': 'Keine In-Unit-Analytics von {{source}}',
-  'detail.noInUnitBody': 'Ein Adserver misst Auslieferung, nicht was im Spiel passiert. Seitenverlauf, Verweildauer und CTA-Details stammen aus der Klea-Instrumentierung. Quelle wechseln, um sie zu sehen.',
+  'detail.noInUnitBody': 'Ein Adserver misst Auslieferung, nicht was im Spiel passiert. Engagement und Verweildauer stammen aus der Klea-Instrumentierung. Quelle wechseln, um sie zu sehen.',
   'detail.switchToBrame': 'Zu Klea-Instrumentierung wechseln',
 
   'detail.devicesTitle': 'Geräte',

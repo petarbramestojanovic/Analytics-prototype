@@ -13,14 +13,20 @@ export function MeasurementSourcePanel({
   activeTab,
   onTabChange,
   children,
+  showSources = true,
 }: {
   campaign: Campaign;
   activeTab: SourceTab;
   onTabChange: (tab: SourceTab) => void;
   children?: ReactNode;
+  /** Source switcher and freshness are Klea-internal; off for clients and
+   *  agencies, who get just the view tabs. */
+  showSources?: boolean;
 }) {
   const { t } = useI18n();
   const [syncing, syncNow] = useSimulatedAction(1600);
+
+  if (!showSources) return children ? <div className="mb-6">{children}</div> : null;
 
   return (
     <section className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-brame-dark-light dark:shadow-none">

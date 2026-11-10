@@ -364,16 +364,21 @@ export function CampaignsPage() {
             live.reduce((a, c) => a + (primarySeries(c)?.totals.impressions ?? 0), 0),
           )}
         />
-        <SummaryTile
-          label={t('campaigns.tile.awaitingSetup')}
-          value={String(scoped.filter((c) => !primarySeries(c)).length)}
-        />
-        <SummaryTile
-          label={t('campaigns.tile.noConnector')}
-          value={String(
-            scoped.reduce((a, c) => a + SOURCE_KEYS.filter((s) => !c.sources[s]).length, 0),
-          )}
-        />
+        {/* Setup and connector gaps are campaign-management info, not for clients. */}
+        {isInternal && (
+          <>
+            <SummaryTile
+              label={t('campaigns.tile.awaitingSetup')}
+              value={String(scoped.filter((c) => !primarySeries(c)).length)}
+            />
+            <SummaryTile
+              label={t('campaigns.tile.noConnector')}
+              value={String(
+                scoped.reduce((a, c) => a + SOURCE_KEYS.filter((s) => !c.sources[s]).length, 0),
+              )}
+            />
+          </>
+        )}
       </StatGrid>
 
       <>

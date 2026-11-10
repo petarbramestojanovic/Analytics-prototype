@@ -58,7 +58,9 @@ export function CampaignDetailPage() {
   // Default the source tab to whatever is currently primary, but only once —
   // otherwise saving a primarySource edit while on this tab would yank the
   // view out from under a mid-review account manager.
-  const activeTab = tab ?? campaign.primarySource;
+  // Clients and agencies never see which source is primary or switch between
+  // them: they get the primary source's numbers and nothing else.
+  const activeTab = session.isInternal ? (tab ?? campaign.primarySource) : campaign.primarySource;
 
   return (
     <Page>
@@ -70,7 +72,12 @@ export function CampaignDetailPage() {
         <GoalCard campaign={campaign} isInternal={session.isInternal} />
       </div>
       {session.isInternal && <CampaignAlertsBox campaignId={campaign.id} />}
-      <MeasurementSourcePanel campaign={campaign} activeTab={activeTab} onTabChange={setTab}>
+      <MeasurementSourcePanel
+        campaign={campaign}
+        activeTab={activeTab}
+        onTabChange={setTab}
+        showSources={session.isInternal}
+      >
         {/* Views only make sense where the source has data; without it
             SourceView shows the "no connector" state on its own. */}
         {activeTab !== 'compare' && campaign.sources[activeTab] && (

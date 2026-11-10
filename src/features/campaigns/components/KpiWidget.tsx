@@ -4,7 +4,7 @@ import { Tooltip } from '@/components/ui';
 
 /**
  * A headline number with, optionally, its relative figure small in the corner
- * (Impressions + Viewable, Engagements + Engagement Rate, Clicks + CTR) — one
+ * (Impressions + Viewable, Engagements + Engagement Rate, CTR + Clicks) — one
  * widget per idea instead of two tiles that belong together.
  */
 export function KpiWidget({

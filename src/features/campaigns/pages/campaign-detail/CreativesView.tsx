@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/feedback';
 import { SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
 import { StatTile } from '@/components/display';
+import { useSession } from '@/features/session';
 import type { Campaign, CreativeRow, SourceKey } from '@/types';
 import { DailyTrendCard } from '../../components/DailyTrendCard';
 import { DailyMetricsTable } from '../../components/DailyMetricsTable';
@@ -145,6 +146,7 @@ function CreativeDetail({
   source: SourceKey;
 }) {
   const { t } = useI18n();
+  const { isInternal } = useSession();
   const meta = sourceMeta(campaign, source);
   const rows = useMemo(() => buildDailyRows(creative.daily, meta.measures), [creative.daily, meta.measures]);
   const sourceLabel = t(`connectors.source.${meta.key}`);
@@ -166,7 +168,7 @@ function CreativeDetail({
       <Card>
         <DailyMetricsTable
           title={t('creatives.detailTitle', { name: creative.format })}
-          hint={t('creatives.detailHint', { name: creative.name, source: sourceLabel })}
+          hint={isInternal ? t('creatives.detailHint', { name: creative.name, source: sourceLabel }) : creative.name}
           rows={rows}
           total={total}
           sourceLabel={sourceLabel}

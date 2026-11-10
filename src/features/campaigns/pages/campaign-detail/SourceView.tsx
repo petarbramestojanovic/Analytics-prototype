@@ -15,6 +15,11 @@ import { METRIC_KEYS, seriesEngagements, sourceMeta } from '../../lib/sources';
 import { buildCampaignTrend } from '../../lib/trend';
 import { AttributionCard, CreativesCard, CtaCard, DevicesCard, PageFlowCard } from './SourceSections';
 
+/** Page flow and Calls to action are hidden for now: they need per-screen and
+ *  per-button data that isn't confirmed to exist yet (today they show demo
+ *  numbers). Flip to `true` once the data does. */
+const SHOW_IN_UNIT_CARDS = false;
+
 const DEVICE_TAB_ICONS = { total: Layers, mobile: Smartphone, desktop: Monitor } as const;
 
 const METRIC_FOOTNOTES: Partial<Record<MetricKey, string>> = {
@@ -61,8 +66,18 @@ export function SourceView({
     return (
       <EmptyState
         icon={<Unplug size={32} />}
-        title={t('detail.noDataTitle', { source: t(`connectors.source.${meta.key}`) })}
-        body={`${reason} ${t('detail.noDataSuffix')}`}
+        title={
+          isInternal
+            ? t('detail.noDataTitle', { source: t(`connectors.source.${meta.key}`) })
+            : t('detail.noDataTitleClient')
+        }
+        body={
+          isInternal
+            ? `${reason} ${t('detail.noDataSuffix')}`
+            : campaign.status === 'scheduled'
+              ? t('detail.noDataReasonScheduled', { date: fmtDateLong(campaign.flightStart) })
+              : t('detail.noDataBodyClient')
+        }
         action={
           isAdmin ? (
             <ButtonLink to={paths.setup(campaign.id)} variant="primary" icon={<Settings2 size={14} />}>
@@ -111,17 +126,23 @@ export function SourceView({
           },
         ]
       : []),
-    ...(has('ctaClicks')
+    // CTR leads (it is what is read and compared); the click count sits small
+    // in the corner. A source that has clicks but no CTR shows the count alone.
+    ...(has('ctr')
       ? [
           {
-            key: 'clicks',
-            label: label('ctaClicks'),
-            help: help('ctaClicks'),
-            value: fmtMetric('ctaClicks', totals.ctaClicks),
-            secondary: has('ctr') ? { label: label('ctr'), value: rate('ctr'), help: help('ctr') } : undefined,
+            key: 'ctr',
+            label: label('ctr'),
+            help: help('ctr'),
+            value: rate('ctr'),
+            secondary: has('ctaClicks')
+              ? { label: label('ctaClicks'), value: fmtMetric('ctaClicks', totals.ctaClicks), help: help('ctaClicks') }
+              : undefined,
           },
         ]
-      : []),
+      : has('ctaClicks')
+        ? [{ key: 'clicks', label: label('ctaClicks'), help: help('ctaClicks'), value: fmtMetric('ctaClicks', totals.ctaClicks) }]
+        : []),
     ...(has('viewability')
       ? [{ key: 'viewability', label: label('viewability'), help: help('viewability'), value: rate('viewability') }]
       : []),
@@ -146,12 +167,14 @@ export function SourceView({
         <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <div>
             <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">{t('detail.keyMetrics')}</h2>
-            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-              {t('detail.showingMetrics', { count: meta.measures.length, source: t(`connectors.source.${meta.key}`) })}
-              {meta.measures.length < METRIC_KEYS.length && (
-                <span className="text-gray-400 dark:text-gray-500"> {t('detail.metricsNotTracked')}</span>
-              )}
-            </p>
+            {isInternal && (
+              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                {t('detail.showingMetrics', { count: meta.measures.length, source: t(`connectors.source.${meta.key}`) })}
+                {meta.measures.length < METRIC_KEYS.length && (
+                  <span className="text-gray-400 dark:text-gray-500"> {t('detail.metricsNotTracked')}</span>
+                )}
+              </p>
+            )}
           </div>
           {split && (
             <div className="flex items-center gap-1.5" title={t('detail.deviceTabHint')}>
@@ -197,7 +220,7 @@ export function SourceView({
       <Card>
         <TrendChart
           title={t('detail.deliveryTitle')}
-          hint={t('detail.deliveryHint', { source: t(`connectors.source.${meta.key}`) })}
+          hint={isInternal ? t('detail.deliveryHint', { source: t(`connectors.source.${meta.key}`) }) : t('detail.deliveryHintClient')}
           daily={trendData}
           defaultMetrics={['impressions', 'delivery']}
           frameBenchmark={benchmarks.frameBenchmark}
@@ -209,11 +232,13 @@ export function SourceView({
       {/* Engagement detail exists only for platforms that measure inside the
           unit. The adserver stops at delivery. */}
       {measuresEngagement ? (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <PageFlowCard campaign={campaign} />
-          <CtaCard campaign={campaign} />
-        </div>
-      ) : (
+        SHOW_IN_UNIT_CARDS && (
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <PageFlowCard campaign={campaign} />
+            <CtaCard campaign={campaign} />
+          </div>
+        )
+      ) : isInternal ? (
         <Card className="border-dashed bg-gray-50/60 dark:border-white/15 dark:bg-white/5">
           <div className="flex items-start gap-3">
             <Cable size={18} className="mt-0.5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
@@ -232,7 +257,7 @@ export function SourceView({
             </div>
           </div>
         </Card>
-      )}
+      ) : null}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <DevicesCard campaign={campaign} showEngagement={measuresEngagement} />

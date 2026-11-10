@@ -467,6 +467,11 @@ export const en = {
   'detail.measurementSourceBody': 'Headline numbers come from the primary source only. The others are checks: Klea and the adserver both count the same game start, so the figures are never added together.',
   'detail.compareBody': 'Same campaign, counted by two platforms. A gap is normal. This view is for deciding whether it is explainable.',
   'detail.notFoundTitle': 'Campaign not found',
+  'campaigns.metricNATitleClient': '{{metric}} is not measured for this campaign.',
+  'detail.noDataTitleClient': 'No data yet',
+  'detail.noDataBodyClient': 'Data will appear here once the campaign is delivering.',
+  'detail.deliveryHintClient': 'Daily',
+  'daily.hintClient': '{{count}} days.',
   'detail.notFoundBody': "This campaign does not exist in the prototype's mock data.",
   'detail.backToCampaigns': 'Back to campaigns',
 
@@ -501,7 +506,7 @@ export const en = {
   'detail.col.ctr': 'CTR',
 
   'detail.noInUnitTitle': 'No in-unit analytics from {{source}}',
-  'detail.noInUnitBody': 'An adserver measures delivery, not what happens inside the game. Page flow, dwell time and CTA detail come from Klea instrumentation. Switch source to see them.',
+  'detail.noInUnitBody': 'An adserver measures delivery, not what happens inside the game. Engagement and dwell time come from Klea instrumentation. Switch source to see them.',
   'detail.switchToBrame': 'Switch to Klea instrumentation',
 
   'detail.devicesTitle': 'Devices',
