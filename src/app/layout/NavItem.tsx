@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { useId, type ReactNode } from 'react';
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useLabelTip } from '@/components/ui';
 
@@ -67,92 +67,8 @@ export function NavItem({
   );
 }
 
-const sectionLabel = 'text-[10px] font-semibold uppercase tracking-widest text-brame-lime/60';
-
-/**
- * A labelled group of nav items. Collapsible groups fold behind their header
- * (showing the group's combined badge while folded); in the collapsed rail
- * every group is a plain divider-separated icon list, since there's no room
- * for a header to unfold.
- */
-export function NavSection({
-  label,
-  collapsed,
-  first = false,
-  collapsible,
-  open,
-  onToggle,
-  badge,
-  children,
-}: {
-  label: string;
-  collapsed: boolean;
-  first?: boolean;
-  collapsible: boolean;
-  open: boolean;
-  onToggle: () => void;
-  /** Combined count of the group's item badges — shown only while folded. */
-  badge?: number;
-  children: ReactNode;
-}) {
-  const bodyId = useId();
-
-  if (collapsed) {
-    return (
-      <>
-        {!first && <div className="mx-4 my-3 border-t border-brame-teal-light" />}
-        <div className="space-y-0.5">{children}</div>
-      </>
-    );
-  }
-
-  if (!collapsible) {
-    return (
-      <div className={cn(!first && 'pt-3')}>
-        <div className={cn('px-5 pb-1.5', sectionLabel)}>{label}</div>
-        <div className="space-y-0.5">{children}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn(!first && 'pt-3')}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        aria-controls={bodyId}
-        className={cn(
-          'mx-2 flex w-[calc(100%-1rem)] items-center gap-2 rounded-lg px-3 py-1.5 text-left hover:bg-white/5 motion-safe:transition-colors',
-          focusRing
-        )}
-      >
-        <span className={cn('truncate', sectionLabel)}>{label}</span>
-        {!open && !!badge && badge > 0 && <CountBadge count={badge} />}
-        <ChevronRight
-          size={14}
-          className={cn(
-            'flex-shrink-0 text-brame-lime/60 motion-safe:transition-transform',
-            (open || !badge) && 'ml-auto',
-            open && 'rotate-90'
-          )}
-        />
-      </button>
-      {/* 0fr → 1fr animates to the content's natural height without measuring. */}
-      <div
-        id={bodyId}
-        inert={!open}
-        className={cn(
-          'grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200',
-          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-        )}
-      >
-        <div className="min-h-0 overflow-hidden">
-          {/* Padding lives inside the clip so a folded group is truly 0px tall;
-              it keeps the focus ring of the first/last item unclipped. */}
-          <div className="space-y-0.5 py-0.5">{children}</div>
-        </div>
-      </div>
-    </div>
-  );
+/** A run of nav items, stacked one under the other. Sections are not labelled,
+ *  foldable or divided — the sidebar is one plain list. */
+export function NavGroup({ children }: { children: ReactNode }) {
+  return <div className="space-y-0.5">{children}</div>;
 }

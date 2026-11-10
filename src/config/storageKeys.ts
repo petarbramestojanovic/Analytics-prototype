@@ -9,7 +9,6 @@ export const STORAGE_KEYS = {
   locale: 'brame-prototype-locale',
   sidebarWidth: 'brame-sidebar-width',
   sidebarCollapsed: 'brame-sidebar-collapsed',
-  sidebarGroups: 'brame-sidebar-groups',
   profileName: 'brame-prototype-profile-name',
   profileAvatar: 'brame-prototype-profile-avatar',
   alertWatch: 'brame-prototype-alert-watch',
@@ -27,6 +26,7 @@ export const STORAGE_KEYS = {
   clientsFilters: 'brame-prototype-clients-filters',
   trendMetrics: 'brame-prototype-trend-metrics',
   benchmarkCompare: 'brame-prototype-benchmark-compare',
+  overviewCharts: 'brame-prototype-overview-charts',
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

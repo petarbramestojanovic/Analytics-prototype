@@ -26,14 +26,12 @@ interface NavItemConfig {
 }
 
 export interface NavSectionConfig {
+  /** Not shown in the sidebar (it is one flat list); the command palette uses it
+   *  as the page's secondary label. */
   labelKey: string;
   /** Same access levels as the route table, so a section is only shown to
    *  seats that could actually open its pages. */
   access: Access;
-  /** Folds behind a header so the full admin menu fits a phone screen. The
-   *  primary section stays open; the group holding the current page opens
-   *  itself on navigation. */
-  collapsible: boolean;
   items: NavItemConfig[];
 }
 
@@ -46,7 +44,6 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
   {
     labelKey: 'nav.sectionReporting',
     access: 'everyone',
-    collapsible: false,
     items: [
       { to: paths.overview, labelKey: 'nav.overview', icon: LayoutDashboard },
       { to: paths.campaigns, labelKey: 'nav.campaigns', icon: FolderKanban },
@@ -57,7 +54,6 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
   {
     labelKey: 'nav.sectionAccount',
     access: 'seatAdmin',
-    collapsible: true,
     items: [
       { to: paths.users, labelKey: 'nav.users', icon: Users },
       { to: paths.apiAccess, labelKey: 'nav.apiAccess', icon: KeyRound },
@@ -67,7 +63,6 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     // Data reads, not configuration — Admin and Klea seats both get these.
     labelKey: 'nav.sectionSales',
     access: 'internal',
-    collapsible: true,
     items: [
       { to: paths.clients, labelKey: 'nav.clients', icon: Users },
       { to: paths.alerts, labelKey: 'nav.alerts', icon: BellRing, badge: 'alerts' },
@@ -77,7 +72,6 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     // Configuration/edit surfaces — Admin seat only.
     labelKey: 'nav.sectionInternal',
     access: 'admin',
-    collapsible: true,
     items: [
       { to: paths.setup(), labelKey: 'nav.setup', icon: Settings2 },
       { to: paths.connectors, labelKey: 'nav.connectors', icon: Cable },

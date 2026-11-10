@@ -1,10 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Activity, ChevronLeft, ChevronsUpDown, LogOut, UserCog } from 'lucide-react';
 import { paths } from '@/config/paths';
-import { STORAGE_KEYS } from '@/config/storageKeys';
-import { usePersistentState } from '@/hooks/usePersistentState';
-import { codecs } from '@/lib/storage';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import {
@@ -22,8 +19,8 @@ import { ProfileSettingsModal, useCurrentUser } from '@/features/profile';
 import { useAlertLog } from '@/features/alerts';
 import { useInbox } from '@/features/inbox';
 import { LanguageSwitch, ThemeToggleButton } from '@/features/preferences';
-import { NAV_SECTIONS, NAV_TOP_ITEMS, type NavSectionConfig } from '../navigation';
-import { NavItem, NavSection } from './NavItem';
+import { NAV_SECTIONS, NAV_TOP_ITEMS } from '../navigation';
+import { NavGroup, NavItem } from './NavItem';
 
 /**
  * Shared between the desktop rail (`<aside>`) and the mobile drawer so both
@@ -41,23 +38,6 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
   const badges = { alerts: investigateCount, inbox: unreadCount };
 
   const sections = NAV_SECTIONS.filter((s) => hasAccess(session, s.access));
-  const [openGroups, setOpenGroups] = usePersistentState<Record<string, boolean>>(
-    STORAGE_KEYS.sidebarGroups,
-    {},
-    codecs.json<Record<string, boolean>>()
-  );
-  const toggleGroup = (key: string) => setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  // Unfold the group holding the current page, so the active item is never
-  // hidden. Only on navigation — the user can still fold it afterwards.
-  const { pathname } = useLocation();
-  useEffect(() => {
-    const active = NAV_SECTIONS.find((s) => s.collapsible && s.items.some((item) => matchesPath(item.to, pathname)));
-    if (active) setOpenGroups((prev) => (prev[active.labelKey] ? prev : { ...prev, [active.labelKey]: true }));
-  }, [pathname, setOpenGroups]);
-
-  const sectionBadge = (section: NavSectionConfig) =>
-    section.items.reduce((sum, item) => sum + (item.badge ? badges[item.badge] : 0), 0);
 
   return (
     <>
@@ -86,7 +66,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
         )}
       </div>
 
-      <nav className="sidebar-scroll flex-1 overflow-y-auto overflow-x-hidden py-3">
+      <nav className="sidebar-scroll flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden py-3">
         <div className="space-y-0.5">
           {NAV_TOP_ITEMS.map((item) => (
             <NavItem
@@ -100,15 +80,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
           ))}
         </div>
         {sections.map((section) => (
-          <NavSection
-            key={section.labelKey}
-            label={t(section.labelKey)}
-            collapsed={collapsed}
-            collapsible={section.collapsible}
-            open={!section.collapsible || !!openGroups[section.labelKey]}
-            onToggle={() => toggleGroup(section.labelKey)}
-            badge={sectionBadge(section)}
-          >
+          <NavGroup key={section.labelKey}>
             {section.items.filter((item) => !item.access || hasAccess(session, item.access)).map((item) => (
               <NavItem
                 key={item.to}
@@ -119,7 +91,7 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
                 badge={item.badge ? badges[item.badge] : undefined}
               />
             ))}
-          </NavSection>
+          </NavGroup>
         ))}
       </nav>
 
@@ -130,13 +102,6 @@ export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; 
       <AccountMenu collapsed={collapsed} />
     </>
   );
-}
-
-/** Same prefix rule NavLink uses for its active state, minus any query string
- *  (e.g. `paths.setup()` vs. `/admin/setup?campaign=…`). */
-function matchesPath(to: string, pathname: string) {
-  const base = to.split('?')[0];
-  return pathname === base || pathname.startsWith(`${base}/`);
 }
 
 function AccountMenu({ collapsed }: { collapsed: boolean }) {
