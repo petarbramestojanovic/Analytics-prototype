@@ -47,6 +47,12 @@ function rng(seed: number) {
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
+/** How much of the current day a live source has counted so far. The beacon
+ *  reports with a processing lag, so today is a fraction of a full day, not all
+ *  of it; this sets how far live and nightly sources drift apart on a campaign's
+ *  newest days (and so how many Compare/Alerts rows trip at the 3% / 8% defaults). */
+const TODAY_DAY_SHARE = 0.2;
+
 const daysBetween = (start: string, end: string): string[] =>
   eachDayOfInterval({ start: new Date(start), end: new Date(end) }).map((d) =>
     format(d, 'yyyy-MM-dd'),
@@ -92,7 +98,11 @@ function buildSeries(o: SeriesOpts): SourceSeries {
     const ramp = 0.85 + Math.min(i / Math.max(dates.length, 1), 1) * 0.3;
     const jitter = 0.9 + rand() * 0.2;
 
-    const impressions = Math.round(o.dailyImpressions * o.countBias * weekend * ramp * jitter);
+    // A live source's current day is only partly delivered, not a full day.
+    const dayShare = date === iso(TODAY) ? TODAY_DAY_SHARE : 1;
+    const impressions = Math.round(
+      o.dailyImpressions * o.countBias * weekend * ramp * jitter * dayShare,
+    );
     const viewable = Math.round(impressions * (o.viewability + (rand() - 0.5) * 0.04));
     const plays = Math.round(viewable * (0.18 + rand() * 0.03));
     const engagements = Math.round(impressions * (o.engagementRate + (rand() - 0.5) * 0.008));
@@ -189,7 +199,7 @@ function buildCampaign(s: CampaignSeed): Campaign {
   const mk = (key: SourceKey, bias: number, measures: MetricKey[]): SourceSeries | null => {
     if (missing.has(key)) return null;
     return buildSeries({
-      seed: s.seed * 7 + key.length,
+      seed: s.seed * 7 + 6, // shared across sources: same delivery, measured differently
       dates: ranDates,
       dailyImpressions: s.dailyImpressions,
       countBias: bias,
@@ -272,8 +282,8 @@ function buildCampaign(s: CampaignSeed): Campaign {
   // viewability differ by size (the small mobile unit engages best).
   const creativeBase =
     mk('custom', 1.0, SOURCE_DEFINITIONS.custom.measures) ??
-    mk('nexd', 1.02, SOURCE_DEFINITIONS.nexd.measures) ??
-    mk('atk', 1.06, SOURCE_DEFINITIONS.atk.measures);
+    mk('nexd', 1.0, SOURCE_DEFINITIONS.nexd.measures) ??
+    mk('atk', 1.0, SOURCE_DEFINITIONS.atk.measures);
   // A campaign mostly runs one mechanic, with one creative on another — so
   // the creatives (not the campaign) carry the mechanic.
   const mainMechanic = MECHANICS[s.seed % MECHANICS.length];
@@ -383,8 +393,8 @@ function buildCampaign(s: CampaignSeed): Campaign {
     sources: {
       // ATK reads high against our own beacon — the discrepancy the Compare
       // overlay exists to explain.
-      atk: mk('atk', 1.06, SOURCE_DEFINITIONS.atk.measures),
-      nexd: mk('nexd', 1.02, SOURCE_DEFINITIONS.nexd.measures),
+      atk: mk('atk', 1.0, SOURCE_DEFINITIONS.atk.measures),
+      nexd: mk('nexd', 1.0, SOURCE_DEFINITIONS.nexd.measures),
       custom: mk('custom', 1.0, SOURCE_DEFINITIONS.custom.measures),
     },
     pages,
