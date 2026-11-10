@@ -54,7 +54,11 @@ export function TableScroll({ children, className = '', fill = false }: { childr
 
   return (
     <div className={cn('relative', fill && 'flex flex-1 flex-col')}>
-      <div ref={ref} className={cn('overflow-x-auto', fill && 'flex-1', className)}>
+      {/* `relative` makes this the containing block for absolutely positioned
+          cell content (the screen-reader-only text in a "not measured" cell).
+          Without it that content escapes the scroll area's clipping and
+          stretches the page's own scroll height past the end of the table. */}
+      <div ref={ref} className={cn('relative overflow-x-auto', fill && 'flex-1', className)}>
         {children}
       </div>
       <div

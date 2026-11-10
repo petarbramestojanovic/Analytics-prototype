@@ -60,6 +60,7 @@ import {
   useCampaignColumns,
   useCampaignHeaderHints,
 } from './campaignColumns';
+import { SORT_ONLY_COLUMNS } from './sortOnlyColumns';
 
 const STATUS_FILTERS = ['all', 'live', 'paused', 'ended'] as const satisfies readonly (
   'all' | Campaign['status']
@@ -89,6 +90,11 @@ const decodeSort = (raw: string): SortingState =>
 
 const resolve = <T,>(updater: Updater<T>, prev: T) =>
   typeof updater === 'function' ? (updater as (p: T) => T)(prev) : updater;
+
+/** The sort-only columns never render, whatever a saved preference says. */
+const HIDDEN_SORT_COLUMNS: VisibilityState = Object.fromEntries(
+  SORT_ONLY_COLUMNS.map((id) => [id, false]),
+);
 
 const DEFAULT_COLUMN_VISIBILITY: VisibilityState = { engagements: false };
 
@@ -160,7 +166,10 @@ export function CampaignsPage() {
 
   // The dropdowns offer every value in the scoped portfolio, not just the
   // rows left after other filters — so a filter is never a dead end.
-  const accounts = useMemo(() => accountOptions(scoped, t('campaigns.account.direct')), [scoped, t]);
+  const accounts = useMemo(
+    () => accountOptions(scoped, t('campaigns.account.direct')),
+    [scoped, t],
+  );
   const companies = useMemo(() => companyOptions(scoped), [scoped]);
   const markets = useMemo(() => marketOptions(scoped), [scoped]);
   const categories = useMemo(() => categoryOptions(scoped), [scoped]);
@@ -308,7 +317,11 @@ export function CampaignsPage() {
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting, globalFilter: q, columnVisibility },
+    state: {
+      sorting,
+      globalFilter: q,
+      columnVisibility: { ...columnVisibility, ...HIDDEN_SORT_COLUMNS },
+    },
     onSortingChange: (updater) => setFilter({ sort: encodeSort(resolve(updater, sorting)) }),
     onGlobalFilterChange: (v: string) => setFilter({ q: v }),
     onColumnVisibilityChange: (updater) => setColumnVisibility((prev) => resolve(updater, prev)),

@@ -5,9 +5,9 @@ import { useI18n, type TranslateFn } from '@/i18n';
 import { EMPTY_VALUE, fmtMetric } from '@/lib/format';
 import type { ExportColumn } from '@/lib/exportXlsx';
 import { Pill, TipText, TipTitle } from '@/components/ui';
-import type { Campaign, MetricKey } from '@/types';
+import type { Campaign, CampaignStatus, MetricKey } from '@/types';
+import { CampaignSortHeader } from './CampaignSortHeader';
 import { CampaignNameCell } from '../../components/CampaignNameCell';
-import { CampaignStatusPill } from '../../components/CampaignStatusPill';
 import { DeliveryBar } from '../../components/DeliveryBar';
 import { MetricValueCell, type CellMetric } from '../../components/MetricValueCell';
 import { deliveryPacing } from '../../lib/delivery';
@@ -44,7 +44,11 @@ const HEADER_KEY: Record<string, string> = {
   clicks: 'campaigns.col.clicks',
 };
 
-const accountLabel = (c: Campaign, t: TranslateFn) => c.accountName ?? t('campaigns.account.direct');
+/** Lifecycle order, not alphabetical — "Live" first reads as the useful sort. */
+const STATUS_ORDER: CampaignStatus[] = ['live', 'paused', 'ended', 'archived'];
+
+const accountLabel = (c: Campaign, t: TranslateFn) =>
+  c.accountName ?? t('campaigns.account.direct');
 
 export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[] {
   const { t } = useI18n();
@@ -54,8 +58,27 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
       {
         id: 'campaign',
         accessorFn: (c) => c.name,
-        header: t('campaigns.col.campaign'),
-        cell: ({ row }) => <CampaignNameCell campaign={row.original} showFlight={false} showStatus={false} quietLink />,
+        header: ({ table }) => <CampaignSortHeader table={table} />,
+        cell: ({ row }) => (
+          <CampaignNameCell campaign={row.original} showFlight={false} showCategory quietLink />
+        ),
+        enableHiding: false,
+        // Sorting is driven by the header's menu, not a click on the label.
+        enableSorting: false,
+      },
+      {
+        id: 'name',
+        accessorFn: (c) => c.name,
+        enableHiding: false,
+      },
+      {
+        id: 'status',
+        accessorFn: (c) => STATUS_ORDER.indexOf(c.status),
+        enableHiding: false,
+      },
+      {
+        id: 'category',
+        accessorFn: (c) => c.salesforce.category,
         enableHiding: false,
       },
       {
@@ -77,12 +100,6 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
         cell: ({ row }) => <Pill tone="teal">{row.original.salesforce.market}</Pill>,
       },
       {
-        id: 'category',
-        accessorFn: (c) => c.salesforce.category,
-        header: t('campaigns.col.category'),
-        cell: ({ row }) => <Pill tone="purple">{row.original.salesforce.category}</Pill>,
-      },
-      {
         id: 'startDate',
         accessorFn: (c) => c.flightStart,
         header: t('campaigns.col.startDate'),
@@ -94,14 +111,12 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
         header: t('campaigns.col.endDate'),
         cell: ({ row }) => <DateCell date={row.original.flightEnd} />,
       },
-      ...METRIC_COLUMNS.map(
-        ({ id, metric }): ColumnDef<Campaign> => ({
-          id,
-          accessorFn: (c) => sortValue(c, metric),
-          header: t(HEADER_KEY[id] ?? `metric.${metric}.label`),
-          cell: ({ row }) => <MetricValueCell campaign={row.original} metric={metric} />,
-        })
-      ),
+      ...METRIC_COLUMNS.map(({ id, metric }): ColumnDef<Campaign> => ({
+        id,
+        accessorFn: (c) => sortValue(c, metric),
+        header: t(HEADER_KEY[id] ?? `metric.${metric}.label`),
+        cell: ({ row }) => <MetricValueCell campaign={row.original} metric={metric} />,
+      })),
       {
         id: 'delivery',
         accessorFn: (c) => deliveryPacing(c) ?? -1,
@@ -129,12 +144,6 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
         cell: ({ row }) => <DeviceSplitCell campaign={row.original} />,
       },
       {
-        id: 'status',
-        accessorFn: (c) => c.status,
-        header: t('campaigns.col.status'),
-        cell: ({ row }) => <CampaignStatusPill status={row.original.status} />,
-      },
-      {
         id: 'actions',
         header: '',
         enableSorting: false,
@@ -148,20 +157,47 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
 
 /** The spreadsheet version of the same table. Internal-only columns are left
  *  out of a client's own export entirely, not just hidden. */
-export function campaignExportColumns(t: TranslateFn, showInternal: boolean): ExportColumn<Campaign>[] {
+export function campaignExportColumns(
+  t: TranslateFn,
+  showInternal: boolean,
+): ExportColumn<Campaign>[] {
   const metric = (m: MetricKey) => (c: Campaign) => fmtMetric(m, primarySeries(c)?.totals[m]);
   return [
     { key: 'name', header: t('campaigns.col.campaign') },
     { key: 'companyName', header: t('campaigns.col.company') },
-    ...(showInternal ? [{ key: 'accountName', header: t('campaigns.col.account'), format: (c: Campaign) => accountLabel(c, t) }] : []),
+    ...(showInternal
+      ? [
+          {
+            key: 'accountName',
+            header: t('campaigns.col.account'),
+            format: (c: Campaign) => accountLabel(c, t),
+          },
+        ]
+      : []),
     { key: 'market', header: t('campaigns.col.country'), format: (c) => c.salesforce.market },
     { key: 'category', header: t('campaigns.col.category'), format: (c) => c.salesforce.category },
     { key: 'flightStart', header: t('campaigns.col.startDate') },
     { key: 'flightEnd', header: t('campaigns.col.endDate') },
-    { key: 'impressions', header: t('campaigns.col.impressions'), format: (c) => primarySeries(c)?.totals.impressions ?? EMPTY_VALUE },
-    { key: 'engagements', header: t('campaigns.col.engagements'), format: (c) => engagementCount(c) ?? EMPTY_VALUE },
-    { key: 'engagementRate', header: t('metric.engagementRate.label'), format: metric('engagementRate') },
-    { key: 'clicks', header: t('campaigns.col.clicks'), format: (c) => primarySeries(c)?.totals.ctaClicks ?? EMPTY_VALUE },
+    {
+      key: 'impressions',
+      header: t('campaigns.col.impressions'),
+      format: (c) => primarySeries(c)?.totals.impressions ?? EMPTY_VALUE,
+    },
+    {
+      key: 'engagements',
+      header: t('campaigns.col.engagements'),
+      format: (c) => engagementCount(c) ?? EMPTY_VALUE,
+    },
+    {
+      key: 'engagementRate',
+      header: t('metric.engagementRate.label'),
+      format: metric('engagementRate'),
+    },
+    {
+      key: 'clicks',
+      header: t('campaigns.col.clicks'),
+      format: (c) => primarySeries(c)?.totals.ctaClicks ?? EMPTY_VALUE,
+    },
     { key: 'ctr', header: t('metric.ctr.label'), format: metric('ctr') },
     { key: 'viewability', header: t('metric.viewability.label'), format: metric('viewability') },
     { key: 'status', header: t('campaigns.col.status'), format: (c) => t(`status.${c.status}`) },
@@ -178,7 +214,11 @@ export function useCampaignHeaderHints(): (columnId: string) => ReactNode {
       columnId === 'delivery'
         ? { title: t('campaigns.col.delivery'), help: t('delivery.help') }
         : metric
-          ? { title: columnId === 'clicks' ? t('campaigns.col.clicks') : t(`metric.${metric}.label`), help: t(`metric.${metric}.help`) }
+          ? {
+              title:
+                columnId === 'clicks' ? t('campaigns.col.clicks') : t(`metric.${metric}.label`),
+              help: t(`metric.${metric}.help`),
+            }
           : null;
     if (!parts) return null;
     return (

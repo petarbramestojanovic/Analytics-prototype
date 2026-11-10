@@ -15,6 +15,7 @@ import {
   buildPortfolioSummary,
   ChartCard,
   PortfolioSummaryTiles,
+  primarySeries,
   useScopedCampaigns,
 } from '@/features/campaigns';
 import {
@@ -76,6 +77,10 @@ export function OverviewPage() {
     () => (filters.yoy ? buildPortfolioSummary(campaigns, TODAY, previousYear(range)) : undefined),
     [filters.yoy, campaigns, range],
   );
+  // Setup gaps are campaign-management info — shown to Klea seats only, as on
+  // the Campaigns list — and counted on the same entity-filtered set, so the
+  // tile never disagrees with the list a click away.
+  const awaitingSetup = useMemo(() => campaigns.filter((c) => !primarySeries(c)).length, [campaigns]);
   const companyIds = useMemo(() => [...new Set(scoped.map((c) => c.companyId))], [scoped]);
   const singleCompanyId = companyIds.length === 1 ? companyIds[0] : undefined;
 
@@ -129,7 +134,14 @@ export function OverviewPage() {
         )
       ) : (
         <>
-          <PortfolioSummaryTiles summary={summary} previous={previous} showEngagement />
+          <PortfolioSummaryTiles
+            summary={summary}
+            previous={previous}
+            showCampaigns={false}
+            showImpressions
+            awaitingSetup={isInternal ? awaitingSetup : undefined}
+            showEngagement
+          />
 
           <PrimaryKpiCard campaigns={campaigns} />
 
