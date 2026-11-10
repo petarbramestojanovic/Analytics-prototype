@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useI18n, type TranslateFn } from '@/i18n';
 import { TODAY } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { EMPTY_VALUE, fmtMetric } from '@/lib/format';
-import { Button, Card, Popover } from '@/components/ui';
+import { Button, Card, DeleteButton, Popover } from '@/components/ui';
 import { FilterSelect, SectionTitle } from '@/components/page';
 import type { BenchmarkCampaign } from '@/types';
 import {
@@ -206,14 +206,11 @@ export function CompareMatrix({
                             {head.name}
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          aria-label={t('cmp.matrix.remove', { name: head.name })}
+                        <DeleteButton
+                          className="-mr-1 -mt-0.5"
+                          label={t('cmp.matrix.remove', { name: head.name })}
                           onClick={() => onChange(columns.filter((c) => c.id !== col.id))}
-                          className="mt-0.5 rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-brame-dark dark:hover:bg-white/10 dark:hover:text-gray-100"
-                        >
-                          <X size={13} />
-                        </button>
+                        />
                       </div>
                     </th>
                   );

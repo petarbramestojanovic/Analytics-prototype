@@ -10,6 +10,13 @@ const variants = {
   /** Borderless — row actions, dismiss buttons. */
   ghost:
     'rounded-lg p-2.5 text-gray-400 hover:bg-gray-100 hover:text-brame-dark dark:hover:bg-white/10 dark:hover:text-gray-100 sm:p-1.5',
+  /** Borderless like `ghost`, but reads as destructive: red on hover. */
+  danger:
+    'rounded-lg p-2.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 sm:p-1.5',
+  /** A bordered square the height of a form field (h-10), for sitting in a
+   *  row with inputs and selects. */
+  dangerField:
+    'h-10 w-10 rounded-lg border border-gray-300 text-gray-500 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-white/15 dark:text-gray-400 dark:hover:border-red-400/40 dark:hover:bg-red-500/10 dark:hover:text-red-400',
 } as const;
 
 /** An icon-only button. `label` is required: it is the accessible name and

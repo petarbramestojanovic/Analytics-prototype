@@ -14,6 +14,7 @@ export * from './comboboxSearch';
 export * from './CodeBlock';
 export * from './CopyButton';
 export * from './DateButton';
+export * from './DeleteButton';
 export * from './Dialog';
 export * from './Drawer';
 export * from './DropdownMenu';

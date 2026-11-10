@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Save, Star } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
-import { Button, Card, IconButton, Input, Pill, Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui';
+import { Button, Card, DeleteButton, Input, Pill, Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui';
 import { ConfirmDialog } from '@/components/feedback';
 import { FieldLabel, FormField } from '@/components/form';
 import { SectionTitle } from '@/components/page';
@@ -133,13 +133,7 @@ export function AppOwnedPanel({ campaign }: { campaign: Campaign }) {
             <ListRow key={ct.id} className="justify-start gap-3 py-2">
               <span className="w-20 flex-shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400">{ct.label}</span>
               <code className="flex-1 truncate text-xs text-brame-dark dark:text-gray-200">{ct.url}</code>
-              <IconButton
-                variant="ghost"
-                label={t('common.remove')}
-                icon={<Trash2 size={13} />}
-                onClick={() => setRemovingId(ct.id)}
-                className="p-0 text-gray-300 hover:bg-transparent hover:text-red-500 dark:text-gray-600 dark:hover:bg-transparent dark:hover:text-red-400"
-              />
+              <DeleteButton label={t('common.remove')} onClick={() => setRemovingId(ct.id)} />
             </ListRow>
           ))}
           <Button size="sm" icon={<Plus size={12} />} onClick={() => setAddingClicktag(true)}>
