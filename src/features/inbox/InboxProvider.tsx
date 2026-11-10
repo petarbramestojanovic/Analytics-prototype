@@ -2,9 +2,10 @@ import { useCallback, useMemo, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { codecs } from '@/lib/storage';
+import { TODAY } from '@/lib/clock';
 import { useI18n } from '@/i18n';
 import { useInboxEvents } from '@/api/hooks/useInbox';
-import { notifiesPerson, useAlertLog, useAlertRules } from '@/features/alerts';
+import { alertTriggeredAt, notifiesPerson, useAlertLog, useAlertRules } from '@/features/alerts';
 import { useCurrentUser } from '@/features/profile';
 import { useNotificationSettings } from '@/features/preferences';
 import { useScopedReports } from '@/features/reports';
@@ -19,6 +20,12 @@ import type { InboxEntry } from './types';
 type PersonState = { read: string[]; archived: string[] };
 const stateCodec = codecs.json<Record<string, PersonState>>();
 const EMPTY: PersonState = { read: [], archived: [] };
+
+/** The inbox is a notification feed, not the alert log: an alert lands in it
+ *  only while it is this fresh. Anything older is still on the Alerts page,
+ *  which lists every alert that is currently tripping. */
+const INBOX_ALERT_WINDOW_HOURS = 6;
+const inboxAlertCutoff = () => TODAY.getTime() - INBOX_ALERT_WINDOW_HOURS * 3_600_000;
 
 /**
  * A person's inbox: events addressed to them, merged with the alerts that are
@@ -56,6 +63,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
       ...(session.isInternal && settings.inboxAlerts
         ? alertRows
             .filter((r) => r.severity === 'investigate')
+            .filter((r) => new Date(alertTriggeredAt(r.key)).getTime() >= inboxAlertCutoff())
             // Only the people the rule names (by default, the Admin and Klea seats).
             .filter((r) => notifiesPerson(rules.find((rule) => rule.id === r.ruleId), seats, { seatId: seat?.id, memberId: me?.id }))
             .map((r) => alertItem(r, t))
