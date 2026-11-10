@@ -1,3 +1,4 @@
+import type { DateRange } from '@/lib/dateRange';
 import type { Campaign } from '@/types';
 import { isLiveCampaign, primarySeries as primary } from './sources';
 import type { TrendPoint } from './trend';
@@ -13,11 +14,7 @@ import type { TrendPoint } from './trend';
 
 const TREND_WINDOW_DAYS = 90;
 
-/** An inclusive calendar window, YYYY-MM-DD on both ends. */
-export interface DateRange {
-  start: string;
-  end: string;
-}
+export type { DateRange };
 
 export interface PortfolioSummary {
   campaignCount: number;
@@ -41,8 +38,8 @@ function average(values: number[]): number | null {
  * makes for "Impressions, live campaigns" (see README), just extended across
  * a date range. Impressions are summed from every source; engagementRate and
  * CTR are summed only across sources that measure them at all, so a day
- * covered only by adserver-primary campaigns is excluded rather than counted
- * as zero. Delivery is a running total against the booked impressions of
+ * covered only by campaigns whose primary source doesn't measure them is
+ * excluded rather than counted as zero. Delivery is a running total against the booked impressions of
  * every contributing campaign — approximate at the portfolio level (it only
  * counts impressions inside this window, not a campaign's full flight), but
  * good enough to show trend direction across many campaigns at once.
@@ -104,7 +101,7 @@ function buildDailyAggregate(campaigns: Campaign[], today: Date, range?: DateRan
 /** One campaign's totals over `range`, from its primary source's daily
  *  series. Null when it delivered nothing in the window. A rate is null when
  *  the source doesn't measure it at all, never zero. */
-function totalsInRange(campaign: Campaign, range: DateRange) {
+export function totalsInRange(campaign: Campaign, range: DateRange) {
   const series = primary(campaign);
   if (!series) return null;
   let impressions = 0;

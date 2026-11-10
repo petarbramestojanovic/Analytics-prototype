@@ -69,12 +69,12 @@ describe('standard rules carried over from v1', () => {
     expect(fired(campaign(ctr(190)), 'ctrDecline')).toHaveLength(0);
   });
 
-  it('stays quiet for a metric the primary source does not measure', () => {
-    // ATK measures delivery and viewability, not engagement or CTR.
+  it('judges an ATK-primary campaign on engagement and CTR like any other source', () => {
+    // ATK counts the interactions as well, so these rules apply to it.
     const atk = campaign(series(14, (i) => ({ engagements: i < 7 ? 900 : 100, ctaClicks: 900 })), 'atk');
+    expect(fired(atk, 'engagementDecline')).toHaveLength(1);
+    expect(fired(atk, 'engagementBelowCtr')).toHaveLength(1);
     expect(fired(atk, 'engagementCeiling')).toHaveLength(0);
-    expect(fired(atk, 'engagementDecline')).toHaveLength(0);
-    expect(fired(atk, 'engagementBelowCtr')).toHaveLength(0);
   });
 
   it('flags a rate falling by 1 pp on each of 5 days in a row, and nothing less', () => {

@@ -1,6 +1,6 @@
 import { matchesSelection } from '@/lib/selection';
 import type { Campaign } from '@/types';
-import { DEFAULT_PRESET, RANGE_PRESETS } from './dateRange';
+import { DEFAULT_PRESET, RANGE_PRESETS } from '@/lib/dateRange';
 
 /** Overview filter state — mirrored into the URL and localStorage by
  *  useListFilters, so a link reproduces the exact view. `year` is 0 until the

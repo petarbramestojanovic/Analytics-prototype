@@ -260,8 +260,8 @@ export function overallStats(
 
 /** What the window holds in total: campaigns, delivered impressions, and
  *  engagements. Engagements are counted only on campaigns whose source measures
- *  them (impressions × engagement rate) — an adserver-only flight has none to
- *  count, which is not the same as zero. */
+ *  them (impressions × engagement rate) — a flight whose source doesn't measure
+ *  engagement has none to count, which is not the same as zero. */
 export interface WindowTotals {
   campaigns: number;
   impressions: number;
@@ -288,7 +288,7 @@ export function windowTotals(pool: BenchmarkCampaign[], now: Date, scope?: Bench
 // next to another one when both rest on enough campaigns (MIN_COMPARE_SAMPLE).
 // ---------------------------------------------------------------------------
 
-type MetricStats = Record<BenchmarkMetric, Stats | null>;
+export type MetricStats = Record<BenchmarkMetric, Stats | null>;
 
 /** Stats for the campaigns in the window that match `keep`. */
 const statsWhere = (win: BenchmarkCampaign[], keep: (c: BenchmarkCampaign) => boolean): MetricStats =>
@@ -397,18 +397,20 @@ export interface SlicePart {
 }
 
 /** Stats for the campaigns sitting in every given bucket at once (industry ×
- *  market = one bucket per pair). `excludeId` leaves the campaign being judged
- *  out of its own benchmark. No parts = all of KLEA. A `scope` swaps the
+ *  market = one bucket per pair). `excludeId` leaves the campaign — or, for a
+ *  client or industry being judged, the set of its campaigns — out of its own
+ *  benchmark. No parts = all of KLEA. A `scope` swaps the
  *  rolling window for a chosen period and/or markets. */
 export function sliceStats(
   pool: BenchmarkCampaign[],
   now: Date,
   parts: SlicePart[],
-  excludeId?: string,
+  excludeId?: string | ReadonlySet<string>,
   scope?: BenchmarkScope
 ): MetricStats {
+  const excluded = (id: string) => (typeof excludeId === 'string' ? id === excludeId : !!excludeId?.has(id));
   return statsFor(
-    withinWindow(pool, now, scope).filter((c) => c.id !== excludeId && parts.every((p) => sliceKey(c, p.dim) === p.value))
+    withinWindow(pool, now, scope).filter((c) => !excluded(c.id) && parts.every((p) => sliceKey(c, p.dim) === p.value))
   );
 }
 

@@ -15,6 +15,11 @@ export interface DailyRow {
   viewability: number | null;
   /** Null unless the campaign tracks conversions and the source reports them. */
   conversions: number | null;
+  /** Impressions by device (mobile includes tablet) — null where the series
+   *  carries no device split (a campaign's own daily series doesn't; a
+   *  creative's does). */
+  mobile: number | null;
+  desktop: number | null;
 }
 
 type Counts = CreativeDailyPoint;
@@ -37,7 +42,10 @@ const ratio = (n: number, d: number) => (d ? n / d : null);
  * Rates are recomputed from the counts — never averaged across days — so the
  * total row is a true weighted rate rather than a mean of daily percentages.
  */
-export function buildDailyRows(daily: readonly Counts[], measures: readonly MetricKey[]): DailyRow[] {
+export function buildDailyRows(
+  daily: readonly Counts[],
+  measures: readonly MetricKey[],
+): DailyRow[] {
   const cap = capabilities(measures, daily);
   return daily.map((d, i) => ({
     date: d.date,
@@ -49,13 +57,19 @@ export function buildDailyRows(daily: readonly Counts[], measures: readonly Metr
     ctr: cap.clicks ? ratio(d.ctaClicks, d.impressions) : null,
     viewability: cap.viewability ? ratio(d.viewable, d.impressions) : null,
     conversions: cap.conversions ? (d.conversions ?? 0) : null,
+    mobile: d.mobileImpressions ?? null,
+    desktop: d.mobileImpressions == null ? null : d.impressions - d.mobileImpressions,
   }));
 }
 
 /** The whole-period row: sums for counts, weighted rates for percentages. */
-export function totalDailyRow(daily: readonly Counts[], measures: readonly MetricKey[]): DailyRow | null {
+export function totalDailyRow(
+  daily: readonly Counts[],
+  measures: readonly MetricKey[],
+): DailyRow | null {
   if (!daily.length) return null;
-  const sum = (k: 'impressions' | 'viewable' | 'engagements' | 'ctaClicks') => daily.reduce((a, d) => a + d[k], 0);
+  const sum = (k: 'impressions' | 'viewable' | 'engagements' | 'ctaClicks') =>
+    daily.reduce((a, d) => a + d[k], 0);
   const [row] = buildDailyRows(
     [
       {
@@ -64,12 +78,15 @@ export function totalDailyRow(daily: readonly Counts[], measures: readonly Metri
         viewable: sum('viewable'),
         engagements: sum('engagements'),
         ctaClicks: sum('ctaClicks'),
+        ...(daily.every((d) => d.mobileImpressions != null) && {
+          mobileImpressions: daily.reduce((a, d) => a + (d.mobileImpressions ?? 0), 0),
+        }),
         ...(daily.some((d) => d.conversions !== undefined) && {
           conversions: daily.reduce((a, d) => a + (d.conversions ?? 0), 0),
         }),
       },
     ],
-    measures
+    measures,
   );
   return { ...row, day: daily.length };
 }

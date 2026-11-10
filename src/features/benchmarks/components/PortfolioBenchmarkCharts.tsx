@@ -43,7 +43,7 @@ export function PortfolioBenchmarkCharts({ scope }: { scope: BenchmarkScope }) {
   return (
     <CompareCharts
       pool={pool}
-      campaign={null}
+      subject={null}
       scope={scope}
       charts={state.charts}
       onChange={(charts) => setState((s) => ({ ...s, charts }))}

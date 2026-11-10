@@ -5,12 +5,12 @@ import {
   FilterCombobox,
   FilterMultiSelect,
   ListToolbar,
+  PeriodPicker,
   ToolbarResetButton,
 } from '@/components/page';
 import { marketOptions, personOptions, PersonLabel } from '@/features/campaigns';
 import type { Campaign } from '@/types';
-import type { DateRange } from '../lib/dateRange';
-import { PeriodPicker } from './PeriodPicker';
+import type { DateRange } from '@/lib/dateRange';
 import type { OverviewFilterState } from '../lib/overviewFilters';
 
 /**

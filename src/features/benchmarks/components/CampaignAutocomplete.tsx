@@ -5,18 +5,25 @@ import { cn } from '@/lib/cn';
 import { filterOptions, MAX_ROWS, searchIndex, type ComboboxOption } from '@/components/ui';
 
 /**
- * The campaign picker: one text field that doubles as the search. Focus opens
- * the list, typing narrows it (every word must match the campaign or its
- * client, accents and case ignored), arrows + Enter or a click choose.
+ * The picker for what is being compared — a campaign, a client or an industry:
+ * one text field that doubles as the search. Focus opens the list, typing
+ * narrows it (every word must match, accents and case ignored), arrows + Enter
+ * or a click choose.
  */
 export function CampaignAutocomplete({
   value,
   onChange,
   options,
+  label,
+  placeholder,
+  noneLabel,
 }: {
   value: string | null;
   onChange: (id: string) => void;
   options: readonly ComboboxOption[];
+  label: string;
+  placeholder: string;
+  noneLabel: string;
 }) {
   const { t } = useI18n();
   const id = useId();
@@ -82,10 +89,10 @@ export function CampaignAutocomplete({
         aria-expanded={open}
         aria-controls={`${id}-list`}
         aria-activedescendant={open && shown[active] ? `${id}-opt-${active}` : undefined}
-        aria-label={t('cmp.campaign.label')}
+        aria-label={label}
         autoComplete="off"
         value={open ? query : (selected?.label ?? '')}
-        placeholder={open && selected ? selected.label : t('cmp.campaign.placeholder')}
+        placeholder={open && selected ? selected.label : placeholder}
         onFocus={() => {
           setOpen(true);
           setActive(0);
@@ -119,7 +126,7 @@ export function CampaignAutocomplete({
         >
           {shown.length === 0 && (
             <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-              {t('cmp.campaign.none')}
+              {noneLabel}
             </li>
           )}
           {shown.map((o, i) => (

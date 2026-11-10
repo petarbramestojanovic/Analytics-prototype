@@ -11,7 +11,7 @@ export type CellMetric = MetricKey | 'engagements';
 
 /**
  * A campaign-table metric cell that knows some sources don't measure every
- * metric — ATK has no CTR or engagement rate, for instance. Shows the value
+ * metric — only Klea reports completion rate, for instance. Shows the value
  * when the primary source measures it, or a muted "n/a" with a tooltip naming
  * which source and metric otherwise, rather than a bare dash that reads as
  * "zero". A campaign with no data yet at all shows the plain dash. Rates are

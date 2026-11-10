@@ -1,10 +1,10 @@
 import { useMemo, useState, type ComponentProps } from 'react';
-import { ArrowRight, Cable, Layers, Monitor, Settings2, Smartphone, Unplug } from 'lucide-react';
+import { Layers, Monitor, Settings2, Smartphone, Unplug } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n, type TranslationKey } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { fmtCompact, fmtMetric } from '@/lib/format';
-import { Button, ButtonLink, Card, Tabs, Tooltip } from '@/components/ui';
+import { ButtonLink, Card, Tabs, Tooltip } from '@/components/ui';
 import { EmptyState } from '@/components/feedback';
 import { useSession } from '@/features/session';
 import { BenchmarkValue, ContextComparison, useIndustryBenchmark } from '@/features/benchmarks';
@@ -27,12 +27,10 @@ const DEVICE_TAB_ICONS = { total: Layers, mobile: Smartphone, desktop: Monitor }
 export function SourceView({
   campaign,
   source,
-  onSwitchSource,
   onOpenCreative,
 }: {
   campaign: Campaign;
   source: SourceKey;
-  onSwitchSource: (s: SourceKey) => void;
   onOpenCreative: (creativeId: string) => void;
 }) {
   const { t } = useI18n();
@@ -54,7 +52,7 @@ export function SourceView({
   const benchmarks = useIndustryBenchmark(campaign.companyId, isInternal);
 
   // Only admins pick a source. Everyone else sees one campaign view, so a number
-  // the primary source can't measure (an adserver has no engagement or CTR) is
+  // the primary source can't measure (e.g. completion rate, Klea only) is
   // read from the richest other connected source instead of the widget being
   // dropped. Admins browsing a source tab still get strictly that source.
   const fillSource = isAdmin
@@ -66,7 +64,8 @@ export function SourceView({
   }, [fillSource, campaign, deviceTab]);
 
   if (!series || !scopedSeries) {
-    const reason = source === 'nexd' ? t('detail.noDataReasonNexd') : t('detail.noDataReasonGeneric');
+    const reason =
+      source === 'nexd' ? t('detail.noDataReasonNexd') : t('detail.noDataReasonGeneric');
 
     return (
       <EmptyState
@@ -76,11 +75,7 @@ export function SourceView({
             ? t('detail.noDataTitle', { source: t(`connectors.source.${meta.key}`) })
             : t('detail.noDataTitleClient')
         }
-        body={
-          isInternal
-            ? `${reason} ${t('detail.noDataSuffix')}`
-            : t('detail.noDataBodyClient')
-        }
+        body={isInternal ? `${reason} ${t('detail.noDataSuffix')}` : t('detail.noDataBodyClient')}
         action={
           isAdmin ? (
             <ButtonLink
@@ -101,7 +96,11 @@ export function SourceView({
   const fillMeasures = fillSource ? sourceMeta(campaign, fillSource).measures : [];
   /** The series a metric is read from: the source itself, else the fill source. */
   const seriesFor = (m: MetricKey) =>
-    meta.measures.includes(m) ? scopedSeries : fillSeries && fillMeasures.includes(m) ? fillSeries : null;
+    meta.measures.includes(m)
+      ? scopedSeries
+      : fillSeries && fillMeasures.includes(m)
+        ? fillSeries
+        : null;
   const has = (m: MetricKey) => seriesFor(m) !== null;
   const valueOf = (m: 'engagementRate' | 'ctr' | 'viewability') => seriesFor(m)?.totals[m];
   const rate = (metric: 'engagementRate' | 'ctr' | 'viewability') => (
@@ -266,41 +265,12 @@ export function SourceView({
         />
       </Card>
 
-      {/* Engagement detail exists only for platforms that measure inside the
-          unit. The adserver stops at delivery. */}
-      {measuresEngagement ? (
-        SHOW_IN_UNIT_CARDS && (
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <PageFlowCard campaign={campaign} />
-            <CtaCard campaign={campaign} />
-          </div>
-        )
-      ) : isInternal ? (
-        <Card className="border-dashed bg-gray-50/60 dark:border-white/15 dark:bg-white/5">
-          <div className="flex items-start gap-3">
-            <Cable size={18} className="mt-0.5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
-            <div>
-              <h3 className="text-sm font-semibold text-brame-dark dark:text-gray-100">
-                {t('detail.noInUnitTitle', { source: t(`connectors.source.${meta.key}`) })}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t('detail.noInUnitBody')}
-              </p>
-              {campaign.sources.custom && (
-                <div className="mt-3">
-                  <Button
-                    variant="primary"
-                    icon={<ArrowRight size={13} />}
-                    onClick={() => onSwitchSource('custom')}
-                  >
-                    {t('detail.switchToBrame')}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      ) : null}
+      {measuresEngagement && SHOW_IN_UNIT_CARDS && (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <PageFlowCard campaign={campaign} />
+          <CtaCard campaign={campaign} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <DevicesCard campaign={campaign} showEngagement={measuresEngagement} />

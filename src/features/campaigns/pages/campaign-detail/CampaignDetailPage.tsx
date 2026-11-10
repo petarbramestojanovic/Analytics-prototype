@@ -147,7 +147,6 @@ export function CampaignDetailPage() {
         <SourceView
           campaign={campaign}
           source={activeTab}
-          onSwitchSource={setTab}
           onOpenCreative={openCreative}
         />
       )}

@@ -16,7 +16,7 @@ export {
 export { deliveryPacing } from './lib/delivery';
 export { deviceSplit } from './lib/devices';
 export { buildGoalGroups } from './lib/goal';
-export { buildPortfolioSummary, type DateRange, type PortfolioSummary } from './lib/portfolio';
+export { buildPortfolioSummary, totalsInRange, type DateRange, type PortfolioSummary } from './lib/portfolio';
 export { companyOptions, marketOptions, personOptions } from './lib/filterOptions';
 
 export { CampaignNameCell } from './components/CampaignNameCell';

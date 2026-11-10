@@ -80,7 +80,11 @@ interface DeviceRow {
 export type CreativeDailyPoint = Pick<
   DailyPoint,
   'date' | 'impressions' | 'viewable' | 'engagements' | 'ctaClicks' | 'conversions'
->;
+> & {
+  /** Impressions on smartphones and tablets (desktop is the rest). Set on a
+   *  creative's days; absent on a campaign's own daily series. */
+  mobileImpressions?: number;
+};
 
 export interface CreativeRow {
   id: string;

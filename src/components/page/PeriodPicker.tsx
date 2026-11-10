@@ -17,8 +17,17 @@ import {
   SEASONAL_PRESETS,
   type DateRange,
   type RangePreset,
-} from '../lib/dateRange';
-import type { OverviewFilterState } from '../lib/overviewFilters';
+} from '@/lib/dateRange';
+
+/** The slice of a page's filter state the picker reads and writes. `range` is a
+ *  preset, or — where the page offers it — 'all' (no period at all). */
+export interface PeriodFilterState {
+  range: string;
+  from: string;
+  to: string;
+  year: number;
+  yoy: boolean;
+}
 
 const PERIODS: RangePreset[] = ['last30', 'last90', 'thisQuarter', 'lastQuarter', 'ytd', 'last12m'];
 const SEASONS: RangePreset[] = ['q4', 'blackFriday', 'christmas'];
@@ -42,10 +51,17 @@ export function PeriodPicker({
   filters,
   range,
   onChange,
+  allowAll = false,
+  showYoy = true,
 }: {
-  filters: OverviewFilterState;
+  filters: PeriodFilterState;
+  /** The resolved bounds of the selected period (a stand-in while 'all'). */
   range: DateRange;
-  onChange: (patch: Partial<OverviewFilterState>) => void;
+  onChange: (patch: Partial<PeriodFilterState>) => void;
+  /** Offer an "All time" choice — the page then applies no period when it is picked. */
+  allowAll?: boolean;
+  /** The year-over-year comparison toggle, for pages that show rate deltas. */
+  showYoy?: boolean;
 }) {
   const { t } = useI18n();
   const { fmtDateRange } = useFormatters();
@@ -55,7 +71,8 @@ export function PeriodPicker({
   const currentYear = Number(TODAY_ISO.slice(0, 4));
   const seasonYear = filters.year || defaultSeasonYear(preset, TODAY_ISO);
 
-  const label = fmtDateRange(range.start, range.end, true);
+  const isAll = allowAll && filters.range === 'all';
+  const label = isAll ? t('overview.range.all') : fmtDateRange(range.start, range.end, true);
 
   return (
     <Popover
@@ -76,11 +93,13 @@ export function PeriodPicker({
           {/* Truncates on a narrow screen rather than pushing the button out of its row. */}
           <span className="min-w-0 truncate">
             {label}
-            <span className="font-normal text-gray-400 dark:text-gray-500">
-              {' '}
-              · {t(`overview.range.${preset}`)}
-              {filters.yoy && ` · ${t('overview.range.yoyBadge')}`}
-            </span>
+            {!isAll && (
+              <span className="font-normal text-gray-400 dark:text-gray-500">
+                {' '}
+                · {t(`overview.range.${preset}`)}
+                {showYoy && filters.yoy && ` · ${t('overview.range.yoyBadge')}`}
+              </span>
+            )}
           </span>
           <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
         </button>
@@ -91,6 +110,18 @@ export function PeriodPicker({
           <div>
             <div className={sectionTitle}>{t('overview.range.periodTitle')}</div>
             <div className="flex flex-wrap gap-2">
+              {allowAll && (
+                <button
+                  type="button"
+                  className={chip(isAll)}
+                  onClick={() => {
+                    onChange({ range: 'all', year: 0 });
+                    close();
+                  }}
+                >
+                  {t('overview.range.all')}
+                </button>
+              )}
               {PERIODS.map((p) => (
                 <button
                   key={p}
@@ -185,17 +216,19 @@ export function PeriodPicker({
 
           {/* Year over year: the tiles then show each rate's change against the
               same calendar window a year earlier. */}
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-white/10">
-            <input
-              type="checkbox"
-              checked={filters.yoy}
-              onChange={(e) => onChange({ yoy: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-brame-teal focus:ring-brame-teal dark:border-white/20 dark:bg-brame-dark-light"
-            />
-            <span className="text-sm font-medium text-brame-dark dark:text-gray-100">
-              {t('overview.range.yoy')}
-            </span>
-          </label>
+          {showYoy && (
+            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <input
+                type="checkbox"
+                checked={filters.yoy}
+                onChange={(e) => onChange({ yoy: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-brame-teal focus:ring-brame-teal dark:border-white/20 dark:bg-brame-dark-light"
+              />
+              <span className="text-sm font-medium text-brame-dark dark:text-gray-100">
+                {t('overview.range.yoy')}
+              </span>
+            </label>
+          )}
         </div>
       )}
     </Popover>

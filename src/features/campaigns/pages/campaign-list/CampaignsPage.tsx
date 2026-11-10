@@ -14,7 +14,8 @@ import { useNavigate } from 'react-router-dom';
 import { paths } from '@/config/paths';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { TODAY_ISO } from '@/lib/clock';
-import { useFormatters, useI18n } from '@/i18n';
+import { RANGE_PRESETS, resolveRange, type RangePreset } from '@/lib/dateRange';
+import { useI18n } from '@/i18n';
 import { useListFilters } from '@/hooks/useListFilters';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -31,11 +32,11 @@ import {
   FilterField,
   FilterSheet,
   FilterMultiSelect,
-  DateFilter,
   FilterToggleButton,
   ListToolbar,
   Page,
   PageHeader,
+  PeriodPicker,
   SearchInput,
   ToolbarButton,
   ToolbarResetButton,
@@ -54,7 +55,8 @@ import {
   marketOptions,
   personOptions,
 } from '../../lib/filterOptions';
-import { isLiveCampaign, primarySeries, SOURCE_KEYS } from '../../lib/sources';
+import { totalsInRange } from '../../lib/portfolio';
+import { primarySeries, SOURCE_KEYS } from '../../lib/sources';
 import {
   campaignExportColumns,
   useCampaignColumns,
@@ -78,11 +80,18 @@ const DEFAULT_FILTERS = {
   categoryFilter: 'all',
   salesFilter: 'all',
   managerFilter: 'all',
-  // Flight-date bounds (YYYY-MM-DD, empty = off): starts on/after, ends on/before.
-  startFrom: '',
-  endTo: '',
+  // The period works as on the Overview: 'all' (no period) or a preset, with
+  // custom bounds in `from`/`to` (YYYY-MM-DD) and a calendar year for the
+  // seasonal presets. `yoy` is only there because the shared picker's state has it.
+  range: 'all' as string,
+  from: '',
+  to: '',
+  year: 0,
+  yoy: false,
   sort: '',
 };
+
+const RANGE_ALLOWED = ['all', ...RANGE_PRESETS] as readonly string[];
 
 const encodeSort = (s: SortingState) => (s[0] ? `${s[0].desc ? '-' : ''}${s[0].id}` : '');
 const decodeSort = (raw: string): SortingState =>
@@ -102,7 +111,6 @@ export function CampaignsPage() {
   const { isInternal } = useSession();
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { fmtDateLong } = useFormatters();
   usePageTitle(t('campaigns.title'));
   const { campaigns: scoped, isLoading, isError, refetch } = useScopedCampaigns();
   const { filters, setFilter, resetFilters, filtersActive } = useListFilters(
@@ -110,6 +118,7 @@ export function CampaignsPage() {
     DEFAULT_FILTERS,
     {
       statusFilter: STATUS_FILTERS,
+      range: RANGE_ALLOWED,
     },
   );
   const {
@@ -132,6 +141,23 @@ export function CampaignsPage() {
     codecs.json<VisibilityState>(),
   );
 
+  // The resolved window of the chosen period. While "all", it is only the
+  // stand-in the picker's calendar anchors on and nothing is filtered by it.
+  const periodActive = filters.range !== 'all';
+  const range = useMemo(
+    () =>
+      resolveRange(
+        {
+          preset: (periodActive ? filters.range : 'last90') as RangePreset,
+          from: filters.from,
+          to: filters.to,
+          seasonYear: filters.year,
+        },
+        TODAY_ISO,
+      ),
+    [periodActive, filters.range, filters.from, filters.to, filters.year],
+  );
+
   // Company/country/account/category and the Salesforce people are internal-only
   // cuts across the whole portfolio — a client is already scoped to one
   // company, so narrowing further would be pointless for them.
@@ -140,8 +166,8 @@ export function CampaignsPage() {
       scoped.filter(
         (c) =>
           (statusFilter === 'all' || c.status === statusFilter) &&
-          (!filters.startFrom || c.flightStart >= filters.startFrom) &&
-          (!filters.endTo || c.flightEnd <= filters.endTo) &&
+          // As on the Overview, a period keeps the campaigns that delivered in it.
+          (!periodActive || totalsInRange(c, range) !== null) &&
           (!isInternal || matchesSelection(companyFilter, c.companyId)) &&
           (!isInternal || matchesSelection(countryFilter, c.salesforce.market)) &&
           (!isInternal || matchesSelection(accountFilter, c.accountId ?? DIRECT_ACCOUNT_KEY)) &&
@@ -152,8 +178,8 @@ export function CampaignsPage() {
     [
       scoped,
       statusFilter,
-      filters.startFrom,
-      filters.endTo,
+      periodActive,
+      range,
       isInternal,
       companyFilter,
       countryFilter,
@@ -258,25 +284,11 @@ export function CampaignsPage() {
       chip: plain(categories),
     },
   ];
-  // The dropdowns are internal-only cuts; the two flight-date fields are
-  // offered to every seat.
+  // The dropdowns are internal-only cuts; the period is offered to every seat.
   const activePanelFilters = (isInternal ? panelFilters : []).filter(
     (f) => filters[f.key] !== 'all',
   );
-  const dateFilters = [
-    {
-      key: 'startFrom' as const,
-      label: t('campaigns.col.startDate'),
-      chip: 'campaigns.filter.startChip' as const,
-    },
-    {
-      key: 'endTo' as const,
-      label: t('campaigns.col.endDate'),
-      chip: 'campaigns.filter.endChip' as const,
-    },
-  ];
-  const activeDateFilters = dateFilters.filter((f) => filters[f.key] !== '');
-  const activeFilterCount = activePanelFilters.length + activeDateFilters.length;
+  const activeFilterCount = activePanelFilters.length;
 
   /** One chip per filter, already labelled ("Sales"): the value itself when
    *  there is one, otherwise just how many are picked — with up to three
@@ -344,7 +356,17 @@ export function CampaignsPage() {
   // instead of ballooning its rows.
   const fillsPage = table.getRowModel().rows.length >= table.getState().pagination.pageSize;
 
-  const live = scoped.filter(isLiveCampaign);
+  // The tiles describe exactly what the list shows: every filter (status,
+  // period, search, the panel dropdowns) narrows them, never just "live".
+  const shown = table.getFilteredRowModel().rows.map((r) => r.original);
+  const shownImpressions = shown.reduce(
+    (sum, c) =>
+      sum +
+      (periodActive
+        ? (totalsInRange(c, range)?.impressions ?? 0)
+        : (primarySeries(c)?.totals.impressions ?? 0)),
+    0,
+  );
   const exportRows = () =>
     exportToXlsx(
       'campaigns.xlsx',
@@ -370,24 +392,19 @@ export function CampaignsPage() {
       />
 
       <StatGrid>
-        <SummaryTile label={t('campaigns.tile.live')} value={String(live.length)} />
-        <SummaryTile
-          label={t('campaigns.tile.impressions')}
-          value={fmtCompact(
-            live.reduce((a, c) => a + (primarySeries(c)?.totals.impressions ?? 0), 0),
-          )}
-        />
+        <SummaryTile label={t('campaigns.tile.all')} value={String(shown.length)} />
+        <SummaryTile label={t('campaigns.tile.impressions')} value={fmtCompact(shownImpressions)} />
         {/* Setup and connector gaps are campaign-management info, not for clients. */}
         {isInternal && (
           <>
             <SummaryTile
               label={t('campaigns.tile.awaitingSetup')}
-              value={String(scoped.filter((c) => !primarySeries(c)).length)}
+              value={String(shown.filter((c) => !primarySeries(c)).length)}
             />
             <SummaryTile
               label={t('campaigns.tile.noConnector')}
               value={String(
-                scoped.reduce((a, c) => a + SOURCE_KEYS.filter((s) => !c.sources[s]).length, 0),
+                shown.reduce((a, c) => a + SOURCE_KEYS.filter((s) => !c.sources[s]).length, 0),
               )}
             />
           </>
@@ -411,6 +428,14 @@ export function CampaignsPage() {
                 value,
                 label: t(`campaigns.filter.${value}`),
               }))}
+            />
+
+            <PeriodPicker
+              allowAll
+              showYoy={false}
+              filters={filters}
+              range={range}
+              onChange={(patch) => setFilter(patch)}
             />
 
             <FilterToggleButton
@@ -440,16 +465,6 @@ export function CampaignsPage() {
 
           <Collapse open={!filtersOpen && activeFilterCount > 0}>
             <ActiveFilterChips>
-              {activeDateFilters.map((f) => (
-                <FilterChip
-                  key={f.key}
-                  label={f.label}
-                  removeLabel={t('campaigns.filter.remove')}
-                  onRemove={() => setFilter({ [f.key]: '' })}
-                >
-                  {t(f.chip, { date: fmtDateLong(filters[f.key]) })}
-                </FilterChip>
-              ))}
               {activePanelFilters.map((f) => (
                 <FilterChip
                   key={f.key}
@@ -503,22 +518,6 @@ export function CampaignsPage() {
             </>
           }
         >
-          <FilterField label={t('campaigns.col.startDate')}>
-            <DateFilter
-              value={filters.startFrom}
-              today={TODAY_ISO}
-              placeholder={t('campaigns.filter.startPlaceholder')}
-              onChange={(startFrom) => setFilter({ startFrom })}
-            />
-          </FilterField>
-          <FilterField label={t('campaigns.col.endDate')}>
-            <DateFilter
-              value={filters.endTo}
-              today={TODAY_ISO}
-              placeholder={t('campaigns.filter.endPlaceholder')}
-              onChange={(endTo) => setFilter({ endTo })}
-            />
-          </FilterField>
           {isInternal &&
             panelFilters.map((f) => (
               <FilterField key={f.key} label={f.label}>

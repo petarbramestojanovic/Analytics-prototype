@@ -26,8 +26,8 @@ export interface BenchmarkCampaign {
   impressions: number;
   ctr: number | null;
   viewability: number | null;
-  /** Null when the flight was measured by an adserver alone — engagement is
-   *  unmeasurable there, and null must never be flattened to 0. */
+  /** Null when the flight's source doesn't measure engagement — null must
+   *  never be flattened to 0. */
   engagementRate: number | null;
   /** Total CTA clicks over the flight — null when the source can't count them. */
   ctaClicks: number | null;

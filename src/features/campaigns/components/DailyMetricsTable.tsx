@@ -9,7 +9,15 @@ import type { ReactNode } from 'react';
 import type { DailyRow } from '../lib/dailyMetrics';
 import { NotMeasured } from './NotMeasured';
 
-type ColumnId = 'engagements' | 'engagementRate' | 'clicks' | 'ctr' | 'viewability' | 'conversions';
+type ColumnId =
+  | 'engagements'
+  | 'engagementRate'
+  | 'clicks'
+  | 'ctr'
+  | 'viewability'
+  | 'conversions'
+  | 'mobile'
+  | 'desktop';
 
 /** The day-by-day table — one row per day of the flight plus a pinned total —
  *  used for a whole campaign (per source) and for a single creative. A column
@@ -54,18 +62,28 @@ export function DailyMetricsTable({
     if (value == null) {
       return <NotMeasured source={sourceLabel} metric={label(id)} />;
     }
-    return id === 'engagements' || id === 'clicks' || id === 'conversions'
+    return id === 'engagements' ||
+      id === 'clicks' ||
+      id === 'conversions' ||
+      id === 'mobile' ||
+      id === 'desktop'
       ? fmtInt(value)
       : fmtPct(value, id === 'ctr' ? 2 : 1);
   };
 
   const exportRows = () => {
     const all = total ? [...rows, total] : rows;
-    void exportToXlsx(`${fileName}.xlsx`, all, dailyExportColumns(t, fmtDateLong, total, hasConversions));
+    void exportToXlsx(
+      `${fileName}.xlsx`,
+      all,
+      dailyExportColumns(t, fmtDateLong, total, hasConversions, hasDevices),
+    );
   };
 
   // Conversions only get a column on campaigns that track them.
   const hasConversions = rows.some((r) => r.conversions != null);
+  // Mobile / Desktop only where the rows carry a device split (creatives).
+  const hasDevices = rows.some((r) => r.mobile != null);
   const columns: ColumnId[] = [
     'engagements',
     'engagementRate',
@@ -73,6 +91,7 @@ export function DailyMetricsTable({
     'ctr',
     'viewability',
     ...(hasConversions ? (['conversions'] as const) : []),
+    ...(hasDevices ? (['mobile', 'desktop'] as const) : []),
   ];
   // Sticky cells need an opaque background or rows scroll visibly through them.
   const stickyHead = 'sticky top-0 z-10 bg-white dark:bg-brame-dark-light';
@@ -162,6 +181,7 @@ function dailyExportColumns(
   fmtDateLong: (d: string) => string,
   total: DailyRow | null,
   hasConversions: boolean,
+  hasDevices: boolean,
 ): ExportColumn<DailyRow>[] {
   const isTotal = (r: DailyRow) => r === total;
   const count = (v: number | null) => (v == null ? EMPTY_VALUE : v);
@@ -188,7 +208,27 @@ function dailyExportColumns(
     { key: 'ctr', header: t('daily.col.ctr'), format: (r) => pct(r.ctr, 2) },
     { key: 'viewability', header: t('daily.col.viewability'), format: (r) => pct(r.viewability) },
     ...(hasConversions
-      ? [{ key: 'conversions' as const, header: t('daily.col.conversions'), format: (r: DailyRow) => count(r.conversions) }]
+      ? [
+          {
+            key: 'conversions' as const,
+            header: t('daily.col.conversions'),
+            format: (r: DailyRow) => count(r.conversions),
+          },
+        ]
+      : []),
+    ...(hasDevices
+      ? [
+          {
+            key: 'mobile' as const,
+            header: t('daily.col.mobile'),
+            format: (r: DailyRow) => count(r.mobile),
+          },
+          {
+            key: 'desktop' as const,
+            header: t('daily.col.desktop'),
+            format: (r: DailyRow) => count(r.desktop),
+          },
+        ]
       : []),
   ];
 }

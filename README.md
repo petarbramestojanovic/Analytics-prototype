@@ -22,14 +22,14 @@ Klea rather than as a generic template.
 
 1. **Campaigns** — the landing list. Every row states which source the figures
    came from and how fresh they are. The `n/a` in the Engagement column is the
-   interesting bit: an adserver cannot measure engagement, so the cell says so
-   rather than showing 0%.
+   interesting bit: where a source doesn't measure a metric (completion rate on
+   ATK, say) the cell says so rather than showing 0%.
 2. **Migros Cumulus Summer** → the source card under the delivery and goal
    cards. ATK is the primary source; NEXD and Klea are checks. Note the amber
    "complete through …" — a nightly source does not include today.
-3. Scroll down on that campaign. There is no page-flow or CTA detail, and the
-   card explains why: the adserver stops at delivery. Click through to Klea
-   instrumentation to see in-unit behaviour.
+3. Scroll down on that campaign: devices and creatives follow the source's own
+   numbers. ATK counts engagement, clicks and CTR like the other sources; only
+   in-unit timing (dwell, completion) is Klea-only.
 4. **Compare** — the same campaign counted by two platforms, with a per-metric
    difference and a plain-language read (in line / watch / investigate). Only
    metrics both platforms measure are listed. When the two sources are on

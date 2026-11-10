@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { Tabs } from '@/components/ui';
 import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader } from '@/components/page';
 import { useBenchmarkCreatives, useBenchmarkPool } from '@/api/hooks/useBenchmarks';
@@ -17,6 +18,13 @@ import { ViewsMenu } from '../components/ViewsMenu';
 import { MechanicsView } from '../components/MechanicsView';
 import type { BenchmarkCampaign } from '@/types';
 import type { BenchmarkView } from '../lib/benchmarkView';
+import {
+  findSubject,
+  parseSubjectKind,
+  SUBJECT_KINDS,
+  subjectsOf,
+  type SubjectKind,
+} from '../lib/compareSubject';
 import {
   defaultCharts,
   defaultColumns,
@@ -54,6 +62,14 @@ const defaultCampaign = (pool: BenchmarkCampaign[]) => {
   );
 };
 
+/** The URL param each kind keeps its pick in. `campaign` is the original one,
+ *  so older links still open the same comparison. */
+const PICK_PARAM: Record<SubjectKind, string> = {
+  campaign: 'campaign',
+  client: 'client',
+  industry: 'industry',
+};
+
 function CompareBody() {
   const { t } = useI18n();
   const { data: pool, isLoading, isError, refetch } = useBenchmarkPool();
@@ -64,16 +80,21 @@ function CompareBody() {
     { parse: (raw) => sanitizeState(JSON.parse(raw)), serialize: (v) => JSON.stringify(v) },
   );
 
+  const kind = parseSubjectKind(params.get('kind'));
+
   const options = useMemo(
     () =>
-      [...(pool ?? [])]
+      subjectsOf(pool ?? [], kind)
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map((c) => ({
-          value: c.id,
-          label: c.name,
-          description: `${c.companyName} · ${c.market}`,
+        .map((x) => ({
+          value: x.id,
+          label: x.name,
+          description:
+            kind === 'campaign'
+              ? `${x.subtitle} · ${x.campaigns[0].market}`
+              : `${x.subtitle ? `${x.subtitle} · ` : ''}${t('cmp.matrix.sampleValue', { n: x.campaigns.length })}`,
         })),
-    [pool],
+    [pool, kind, t],
   );
 
   if (isLoading) return <PageSkeleton variant="list" />;
@@ -88,15 +109,37 @@ function CompareBody() {
     );
   }
 
-  // The campaign lives in the URL, so a link opens the same comparison.
-  const wanted = params.get('campaign');
-  const campaign = pool.find((c) => c.id === wanted) ?? defaultCampaign(pool);
+  // What is compared lives in the URL, so a link opens the same comparison.
+  // Without a (valid) pick, the first sensible one of that kind is shown.
+  const wanted = params.get(PICK_PARAM[kind]);
+  const fallback = () => {
+    if (kind === 'campaign') {
+      const c = defaultCampaign(pool);
+      return c ? findSubject(pool, 'campaign', c.id) : null;
+    }
+    // The biggest client / industry, so the first view has a real sample.
+    const biggest = subjectsOf(pool, kind).sort(
+      (a, b) => b.campaigns.length - a.campaigns.length,
+    )[0];
+    return biggest ?? null;
+  };
+  const subject = findSubject(pool, kind, wanted) ?? fallback();
   const pick = (id: string) =>
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        next.set('campaign', id);
+        next.set(PICK_PARAM[kind], id);
         return next;
+      },
+      { replace: true },
+    );
+  const switchKind = (next: SubjectKind) =>
+    setParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next === 'campaign') params.delete('kind');
+        else params.set('kind', next);
+        return params;
       },
       { replace: true },
     );
@@ -106,7 +149,23 @@ function CompareBody() {
       {/* Sticky, pinned just under the top bar: scrolling down through the matrix, charts and the cross-market
           view, the campaign they are all about stays in reach. */}
       <div className="sticky top-[var(--topbar-h,3.5rem)] z-10 -mx-4 mb-5 flex flex-wrap items-center gap-3 border-b border-gray-200 bg-brame-cream/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 dark:border-white/10 dark:bg-brame-dark/95">
-        <CampaignAutocomplete value={campaign?.id ?? null} onChange={pick} options={options} />
+        <Tabs
+          onPage
+          value={kind}
+          onChange={switchKind}
+          groupLabel={t('cmp.subject.label')}
+          options={SUBJECT_KINDS.map((value) => ({ value, label: t(`cmp.subject.${value}`) }))}
+        />
+        <CampaignAutocomplete
+          // A fresh field per kind, so a half-typed search doesn't carry over.
+          key={kind}
+          value={subject?.id ?? null}
+          onChange={pick}
+          options={options}
+          label={t(`cmp.subject.${kind}`)}
+          placeholder={t(`cmp.subject.placeholder.${kind}`)}
+          noneLabel={t(`cmp.subject.none.${kind}`)}
+        />
         <div className="ml-auto">
           <ViewsMenu
             views={state.views}
@@ -137,13 +196,13 @@ function CompareBody() {
       <div className="space-y-5">
         <CompareMatrix
           pool={pool}
-          campaign={campaign}
+          subject={subject}
           columns={state.columns}
           onChange={(columns) => setState((s) => ({ ...s, columns }))}
         />
         <CompareCharts
           pool={pool}
-          campaign={campaign}
+          subject={subject}
           charts={state.charts}
           onChange={(charts) => setState((s) => ({ ...s, charts }))}
         />

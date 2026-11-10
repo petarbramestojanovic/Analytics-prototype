@@ -154,8 +154,8 @@ function buildSeries(o: SeriesOpts): SourceSeries {
 
 /** Stand-ins for what sales briefs in Salesforce: the main goal, the
  *  guaranteed floor and the budget (the last two are Klea-internal). The goal
- *  is always a metric the campaign's primary source can measure (ATK stops at
- *  delivery, so its campaigns are briefed on viewability); one campaign is
+ *  is always a metric the campaign's primary source can measure (ATK campaigns
+ *  are briefed on viewability, the rest mostly on engagement); one campaign is
  *  left un-briefed to exercise the empty state. Targets sit near the seeded
  *  actuals so the portfolio shows a mix of on-target and behind. Replace with
  *  the Salesforce fields once the API provides them. */
@@ -293,6 +293,15 @@ function buildCampaign(s: CampaignSeed): Campaign {
     { format: '300x600', mechanic: otherMechanic, share: 0.22, engagement: 1.0, viewability: 1.02 },
     { format: '320x480', mechanic: mainMechanic, share: 0.3, engagement: 0.96, viewability: 1.04 },
   ].map((c) => ({ ...c, engagement: c.engagement * (MECHANIC_LIFT[c.mechanic] / 1.1) }));
+  // Each size leans a different way — the tall 300x600 skews to desktop, the
+  // 320x480 is a phone format — but together they add back up to the campaign's
+  // own mobile share (tablet counts as mobile, as everywhere else).
+  const campaignMobile = mobileShare + tabletShare;
+  const MOBILE_LEAN = [1.0, 0.78, 1.08];
+  const leanNorm = CREATIVE_SPECS.reduce((a, c, i) => a + c.share * MOBILE_LEAN[i], 0);
+  const creativeMobileShare = CREATIVE_SPECS.map((_, i) =>
+    Math.min((campaignMobile * MOBILE_LEAN[i]) / leanNorm, 0.99),
+  );
   const creativeRand = rng(s.seed * 13 + 5);
   const creativeDaily = CREATIVE_SPECS.map((): Campaign['creatives'][number]['daily'] => []);
   for (const d of creativeBase?.daily ?? []) {
@@ -311,6 +320,7 @@ function buildCampaign(s: CampaignSeed): Campaign {
             Math.min(s.viewability * c.viewability + (creativeRand() - 0.5) * 0.04, 0.98),
         ),
         engagements,
+        mobileImpressions: Math.round(impressions * creativeMobileShare[i]),
         ctaClicks: Math.round(engagements * (0.14 + creativeRand() * 0.04)),
         ...(d.conversions !== undefined && {
           conversions: Math.round((d.conversions * weights[i]) / total),

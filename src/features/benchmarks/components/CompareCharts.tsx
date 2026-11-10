@@ -20,7 +20,6 @@ import {
   MIN_COMPARE_SAMPLE,
   SLICE_DIMS,
   rankBuckets,
-  sliceKey,
   sliceStats,
   type BenchmarkMetric,
   type BenchmarkScope,
@@ -28,6 +27,7 @@ import {
   type SliceDim,
 } from '../lib/benchmarks';
 import { bucketName, dimLabel } from '../lib/compareLabels';
+import type { CompareSubject } from '../lib/compareSubject';
 import { MAX_COMPARE_CHARTS, type CompareChart } from '../lib/compareViews';
 
 /** Buckets on the card itself; the rest open in a modal. */
@@ -60,7 +60,9 @@ function BucketRow({
         <span
           className={cn(
             'truncate',
-            own ? 'font-semibold text-brame-dark dark:text-white' : 'text-gray-600 dark:text-gray-300',
+            own
+              ? 'font-semibold text-brame-dark dark:text-white'
+              : 'text-gray-600 dark:text-gray-300',
           )}
           title={bucketName(t, rank.label)}
         >
@@ -74,7 +76,9 @@ function BucketRow({
         <div
           className={cn(
             'h-full rounded-full',
-            own ? 'bg-brame-teal dark:bg-brame-turquoise' : 'bg-brame-teal/30 dark:bg-brame-turquoise/30',
+            own
+              ? 'bg-brame-teal dark:bg-brame-turquoise'
+              : 'bg-brame-teal/30 dark:bg-brame-turquoise/30',
           )}
           style={{ width: `${(rank.avg / max) * 100}%` }}
         />
@@ -91,14 +95,14 @@ function BucketRow({
 
 function BucketChart({
   pool,
-  campaign,
+  subject,
   scope,
   chart,
   onChange,
   onRemove,
 }: {
   pool: BenchmarkCampaign[];
-  campaign: BenchmarkCampaign | null;
+  subject: CompareSubject | null;
   scope?: BenchmarkScope;
   chart: CompareChart;
   onChange: (next: CompareChart) => void;
@@ -116,8 +120,10 @@ function BucketChart({
     [pool, metric, scope],
   );
 
-  const ownKey = campaign ? sliceKey(campaign, by) : null;
-  // Top of the ranking, but the campaign's own bucket is always on screen even
+  // The bucket the subject sits in for this grouping (its own, for a client
+  // or industry grouped by itself); none where it spans several.
+  const ownKey = subject?.keys[by] ?? null;
+  // Top of the ranking, but the subject's own bucket is always on screen even
   // when it ranks below the cut.
   const ownIdx = ranked.findIndex((r) => r.key === ownKey);
   const rows = ranked.slice(0, SHOWN);
@@ -156,7 +162,14 @@ function BucketChart({
       ) : (
         <ul className="space-y-2.5">
           {rows.map((r) => (
-            <BucketRow key={r.key} rank={r} own={r.key === ownKey} metric={metric} brame={brame} max={max} />
+            <BucketRow
+              key={r.key}
+              rank={r}
+              own={r.key === ownKey}
+              metric={metric}
+              brame={brame}
+              max={max}
+            />
           ))}
         </ul>
       )}
@@ -181,13 +194,25 @@ function BucketChart({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {t('cmp.charts.modalTitle', { metric: t(`metric.${metric}.label`), dim: dimLabel(t, by) })}
+              {t('cmp.charts.modalTitle', {
+                metric: t(`metric.${metric}.label`),
+                dim: dimLabel(t, by),
+              })}
             </DialogTitle>
-            <DialogDescription>{t('cmp.charts.modalBody', { count: ranked.length })}</DialogDescription>
+            <DialogDescription>
+              {t('cmp.charts.modalBody', { count: ranked.length })}
+            </DialogDescription>
           </DialogHeader>
           <ul className="space-y-2.5">
             {ranked.map((r) => (
-              <BucketRow key={r.key} rank={r} own={r.key === ownKey} metric={metric} brame={brame} max={maxAll} />
+              <BucketRow
+                key={r.key}
+                rank={r}
+                own={r.key === ownKey}
+                metric={metric}
+                brame={brame}
+                max={maxAll}
+              />
             ))}
           </ul>
           {brame !== null && (
@@ -221,22 +246,22 @@ function AddChartSlot({ onAdd }: { onAdd: () => void }) {
 
 /**
  * Up to MAX_COMPARE_CHARTS ranked-bucket charts in one row. Each picks its own
- * metric and grouping; the picked campaign's bucket (if any) is highlighted in
- * each. With a `scope`, the ranking covers that period and those markets
+ * metric and grouping; the picked campaign's, client's or industry's bucket (if
+ * any) is highlighted in each. With a `scope`, the ranking covers that period and those markets
  * instead of the rolling 12 months. While there is room, an empty "Add chart"
  * slot sits after the last chart. `actions` sits in the header — the Overview
  * puts its saved-views menu there.
  */
 export function CompareCharts({
   pool,
-  campaign,
+  subject,
   charts,
   onChange,
   scope,
   actions,
 }: {
   pool: BenchmarkCampaign[];
-  campaign: BenchmarkCampaign | null;
+  subject: CompareSubject | null;
   charts: CompareChart[];
   onChange: (charts: CompareChart[]) => void;
   scope?: BenchmarkScope;
@@ -253,7 +278,7 @@ export function CompareCharts({
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 max-w-3xl">
           <SectionTitle
-            hint={t(campaign ? 'cmp.charts.hint' : 'cmp.charts.hintPortfolio', {
+            hint={t(subject ? 'cmp.charts.hint' : 'cmp.charts.hintPortfolio', {
               max: MAX_COMPARE_CHARTS,
             })}
           >
@@ -267,7 +292,7 @@ export function CompareCharts({
           <BucketChart
             key={chart.id}
             pool={pool}
-            campaign={campaign}
+            subject={subject}
             scope={scope}
             chart={chart}
             onChange={(next) => onChange(charts.map((c) => (c.id === chart.id ? next : c)))}
@@ -277,7 +302,10 @@ export function CompareCharts({
         {!full && <AddChartSlot onAdd={add} />}
       </div>
       <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
-        <span aria-hidden className="h-3 border-l border-dashed border-gray-500 dark:border-gray-400" />
+        <span
+          aria-hidden
+          className="h-3 border-l border-dashed border-gray-500 dark:border-gray-400"
+        />
         {t('cmp.charts.legend')}
       </div>
     </Card>

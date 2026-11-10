@@ -210,7 +210,7 @@ describe('windowTotals', () => {
   it('sums impressions, and engagements only where engagement is measured', () => {
     const pool = [
       bm({ impressions: 1_000_000, engagementRate: 0.05 }),
-      bm({ impressions: 2_000_000, engagementRate: null }), // adserver only: no engagements to count
+      bm({ impressions: 2_000_000, engagementRate: null }), // source without engagement: no engagements to count
       bm({ impressions: 500_000, engagementRate: 0.1, market: 'DE' }),
     ];
     const all = windowTotals(pool, NOW);

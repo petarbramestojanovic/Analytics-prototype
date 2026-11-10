@@ -12,15 +12,15 @@ import {
   MIN_COMPARE_SAMPLE,
   SLICE_DIMS,
   meetsSample,
-  sliceKey,
-  sliceLabel,
   sliceOptions,
   sliceStats,
   type BenchmarkMetric,
+  type MetricStats,
   type SliceDim,
   type SlicePart,
   type Stats,
 } from '../lib/benchmarks';
+import { ownKey, subjectIds, type CompareSubject } from '../lib/compareSubject';
 import { bucketName, dimLabel } from '../lib/compareLabels';
 import {
   BRAME_COLUMN,
@@ -30,24 +30,33 @@ import {
   type MatrixColumn,
 } from '../lib/compareViews';
 
-const partsFor = (col: MatrixColumn, campaign: BenchmarkCampaign): SlicePart[] =>
-  col.kind === 'brame'
-    ? []
-    : col.kind === 'own'
-      ? col.dims.map((dim) => ({ dim, value: sliceKey(campaign, dim) }))
-      : [{ dim: col.dim, value: col.value }];
+/** The buckets a column is measured on for this subject — null when the
+ *  column doesn't apply to it (a client has no "same client" benchmark, and a
+ *  client in several markets has no single "same market"). */
+const partsFor = (col: MatrixColumn, subject: CompareSubject): SlicePart[] | null => {
+  if (col.kind === 'brame') return [];
+  if (col.kind === 'fixed') return [{ dim: col.dim, value: col.value }];
+  const parts: SlicePart[] = [];
+  for (const dim of col.dims) {
+    const value = ownKey(subject, dim);
+    if (value === null) return null;
+    parts.push({ dim, value });
+  }
+  return parts;
+};
+
+/** Whether "same as the subject" means something for this cut. */
+const ownApplies = (subject: CompareSubject, dim: SliceDim) => ownKey(subject, dim) !== null;
 
 /** A column's two header lines: what kind of benchmark, and which bucket. */
-function headerOf(col: MatrixColumn, campaign: BenchmarkCampaign | null, t: TranslateFn) {
+function headerOf(col: MatrixColumn, subject: CompareSubject, t: TranslateFn) {
   if (col.kind === 'brame') return { kind: t('cmp.matrix.brame'), name: t('cmp.matrix.network') };
   if (col.kind === 'fixed') {
     return { kind: `${dimLabel(t, col.dim)} · ${t('cmp.matrix.specific')}`, name: col.label };
   }
   return {
     kind: col.dims.map((d) => dimLabel(t, d)).join(' × '),
-    name: campaign
-      ? col.dims.map((d) => bucketName(t, sliceLabel(campaign, d))).join(' · ')
-      : EMPTY_VALUE,
+    name: col.dims.map((d) => bucketName(t, subject.labels[d])).join(' · '),
   };
 }
 
@@ -65,6 +74,7 @@ function Cell({
   own: number | null;
   stats: Stats | null;
   max: number;
+  /** The column doesn't apply to this subject. */
 }) {
   const { t } = useI18n();
   if (!stats) return <span className="text-gray-300 dark:text-gray-600">{EMPTY_VALUE}</span>;
@@ -102,31 +112,67 @@ function Cell({
 }
 
 /**
- * The matrix: metrics down, benchmarks across. The campaign is always the first
- * column; every other column can be removed, and more can be added up to
- * MAX_MATRIX_COLUMNS — the campaign's own client / market / industry / account
- * (alone or combined), a specific bucket, or KLEA overall.
+ * The matrix: metrics down, benchmarks across. The subject — a campaign, a
+ * client or an industry — is always the first column; every other column can be
+ * removed, and more can be added up to MAX_MATRIX_COLUMNS — the subject's own
+ * client / market / industry / account (alone or combined, where they apply), a
+ * specific bucket, or KLEA overall.
  */
 export function CompareMatrix({
   pool,
-  campaign,
+  subject,
   columns,
   onChange,
 }: {
   pool: BenchmarkCampaign[];
-  campaign: BenchmarkCampaign | null;
+  subject: CompareSubject | null;
   columns: MatrixColumn[];
   onChange: (columns: MatrixColumn[]) => void;
 }) {
   const { t } = useI18n();
   const full = columns.length >= MAX_MATRIX_COLUMNS;
 
+  const isCampaign = subject?.kind === 'campaign';
+  // A client or industry is its own bucket: its numbers are the average over
+  // its campaigns (and show only once enough of them stand behind them).
+  const subjectStats = useMemo<MetricStats | null>(
+    () =>
+      subject && !isCampaign
+        ? sliceStats(pool, TODAY, [{ dim: subject.kind as SliceDim, value: subject.id }])
+        : null,
+    [pool, subject, isCampaign],
+  );
+  const ownValue = (metric: BenchmarkMetric): number | null => {
+    if (!subject) return null;
+    if (isCampaign) return subject.campaigns[0][metric];
+    const stats = subjectStats?.[metric];
+    return meetsSample(stats) ? stats.avg : null;
+  };
+
+  // Columns that don't apply to the pick (a client has no "same client") are
+  // kept in the saved view but not drawn.
+  const drawn = useMemo(
+    () => (subject ? columns.filter((col) => partsFor(col, subject) !== null) : columns),
+    [columns, subject],
+  );
+  const hiddenCount = columns.length - drawn.length;
+
   const cells = useMemo(
     () =>
-      campaign
-        ? columns.map((col) => sliceStats(pool, TODAY, partsFor(col, campaign), campaign.id))
-        : columns.map(() => null),
-    [pool, campaign, columns],
+      subject
+        ? drawn.map((col) => {
+            const parts = partsFor(col, subject)!;
+            // A benchmark never includes what it judges — except a specific
+            // bucket picked for a client/industry, which is shown as it is.
+            const exclude = isCampaign
+              ? subject.id
+              : col.kind === 'fixed'
+                ? undefined
+                : subjectIds(subject);
+            return { stats: sliceStats(pool, TODAY, parts, exclude) };
+          })
+        : drawn.map(() => ({ stats: null })),
+    [pool, subject, drawn, isCampaign],
   );
 
   const add = (col: MatrixColumn) => {
@@ -149,9 +195,9 @@ export function CompareMatrix({
         </div>
       </div>
 
-      {!campaign ? (
+      {!subject ? (
         <p className="px-5 pb-5 text-sm text-gray-500 dark:text-gray-400">
-          {t('cmp.matrix.noCampaign')}
+          {t('cmp.matrix.noSubject')}
         </p>
       ) : (
         <>
@@ -162,17 +208,19 @@ export function CompareMatrix({
                   <th className="w-36 min-w-36" />
                   <th className="min-w-44 border-b border-brame-teal/30 bg-brame-teal/10 px-4 py-3 text-left dark:bg-brame-turquoise/10">
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {t('cmp.matrix.campaign')}
+                      {t(`cmp.subject.${subject.kind}`)}
                     </div>
                     <div className="font-semibold text-brame-dark dark:text-gray-100">
-                      {campaign.name}
+                      {subject.name}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {campaign.companyName}
+                      {subject.subtitle}
+                      {subject.kind !== 'campaign' &&
+                        `${subject.subtitle ? ' · ' : ''}${t('cmp.matrix.sampleValue', { n: subject.campaigns.length })}`}
                     </div>
                   </th>
-                  {columns.map((col) => {
-                    const head = headerOf(col, campaign, t);
+                  {drawn.map((col) => {
+                    const head = headerOf(col, subject, t);
                     return (
                       <th
                         key={col.id}
@@ -200,9 +248,13 @@ export function CompareMatrix({
               </thead>
               <tbody>
                 {BENCHMARK_METRICS.map((metric) => {
+                  const own = ownValue(metric);
+                  const ownStats = subjectStats?.[metric] ?? null;
                   const max = Math.max(
-                    campaign[metric] ?? 0,
-                    ...cells.map((c) => (meetsSample(c?.[metric]) ? c![metric]!.avg : 0)),
+                    own ?? 0,
+                    ...cells.map((c) =>
+                      meetsSample(c.stats?.[metric]) ? c.stats![metric]!.avg : 0,
+                    ),
                   );
                   return (
                     <tr
@@ -217,25 +269,31 @@ export function CompareMatrix({
                       </th>
                       <td className="bg-brame-teal/10 px-4 py-4 dark:bg-brame-turquoise/10">
                         <div className="tnum text-lg font-semibold text-brame-dark dark:text-gray-100">
-                          {campaign[metric] === null
-                            ? EMPTY_VALUE
-                            : fmtMetric(metric, campaign[metric])}
+                          {own !== null ? (
+                            fmtMetric(metric, own)
+                          ) : ownStats ? (
+                            <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
+                              {t('cmp.matrix.thin', { n: ownStats.n, min: MIN_COMPARE_SAMPLE })}
+                            </span>
+                          ) : (
+                            EMPTY_VALUE
+                          )}
                         </div>
                         <div className="mt-[22px] h-1 overflow-hidden rounded-full bg-brame-teal/15 dark:bg-white/10">
                           <div
                             className="h-full rounded-full bg-brame-teal dark:bg-brame-turquoise"
                             style={{
-                              width: `${max && campaign[metric] ? Math.min(100, (campaign[metric]! / max) * 100) : 0}%`,
+                              width: `${max && own ? Math.min(100, (own / max) * 100) : 0}%`,
                             }}
                           />
                         </div>
                       </td>
-                      {columns.map((col, i) => (
+                      {drawn.map((col, i) => (
                         <td key={col.id} className="px-4 py-4">
                           <Cell
                             metric={metric}
-                            own={campaign[metric]}
-                            stats={cells[i]?.[metric] ?? null}
+                            own={own}
+                            stats={cells[i]?.stats?.[metric] ?? null}
                             max={max}
                           />
                         </td>
@@ -251,10 +309,17 @@ export function CompareMatrix({
                     {t('cmp.matrix.sample')}
                   </th>
                   <td className="bg-brame-teal/10 px-4 py-3 dark:bg-brame-turquoise/10">
-                    {t('cmp.matrix.sampleValue', { n: 1 })}
+                    {t('cmp.matrix.sampleValue', {
+                      n: isCampaign
+                        ? 1
+                        : Math.max(0, ...BENCHMARK_METRICS.map((m) => subjectStats?.[m]?.n ?? 0)),
+                    })}
                   </td>
-                  {columns.map((col, i) => {
-                    const n = Math.max(0, ...BENCHMARK_METRICS.map((m) => cells[i]?.[m]?.n ?? 0));
+                  {drawn.map((col, i) => {
+                    const n = Math.max(
+                      0,
+                      ...BENCHMARK_METRICS.map((m) => cells[i]?.stats?.[m]?.n ?? 0),
+                    );
                     return (
                       <td key={col.id} className="px-4 py-3">
                         {n ? t('cmp.matrix.sampleValue', { n }) : EMPTY_VALUE}
@@ -287,6 +352,7 @@ export function CompareMatrix({
                 {(close) => (
                   <AddColumnPanel
                     pool={pool}
+                    subject={subject}
                     existing={columns}
                     onAdd={(col) => {
                       add(col);
@@ -297,6 +363,11 @@ export function CompareMatrix({
               </Popover>
             )}
           </div>
+          {hiddenCount > 0 && (
+            <p className="px-5 pb-4 text-xs text-gray-500 dark:text-gray-400">
+              {t('cmp.matrix.hidden', { count: hiddenCount })}
+            </p>
+          )}
           {columns.length === 0 && (
             <p className="px-5 pb-5 text-sm text-gray-500 dark:text-gray-400">
               {t('cmp.matrix.empty')}
@@ -315,21 +386,27 @@ const OWN = '__own__';
  *  the first — "Same as the campaign" or one specific bucket of that kind. */
 function AddColumnPanel({
   pool,
+  subject,
   existing,
   onAdd,
 }: {
   pool: BenchmarkCampaign[];
+  subject: CompareSubject;
   existing: MatrixColumn[];
   onAdd: (col: MatrixColumn) => void;
 }) {
   const { t } = useI18n();
   const [target, setTarget] = useState<AddTarget>('industry');
-  const [value, setValue] = useState(OWN);
+  const [picked, setValue] = useState(OWN);
 
   const options = useMemo(
     () => (target === 'brame' ? [] : sliceOptions(pool, TODAY, target)),
     [pool, target],
   );
+
+  // "Same as the subject" only where it means something for this cut.
+  const ownOk = target !== 'brame' && ownApplies(subject, target);
+  const value = picked === OWN && !ownOk ? (options[0]?.value ?? OWN) : picked;
 
   const column: MatrixColumn =
     target === 'brame'
@@ -369,7 +446,7 @@ function AddColumnPanel({
           value={value}
           onChange={setValue}
           options={[
-            { value: OWN, label: t('cmp.add.sameAsCampaign') },
+            ...(ownOk ? [{ value: OWN, label: t('cmp.add.sameAsSubject') }] : []),
             ...options.map((o) => ({ value: o.value, label: bucketName(t, o.label) })),
           ]}
         />

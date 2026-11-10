@@ -26,7 +26,7 @@ const pct = (v: number | null, d = 1) => (v == null ? EMPTY_VALUE : fmtPct(v, d)
  *  is open is the caller's (it lives in the URL), so a link — or a click on a
  *  creative elsewhere on the page — can open one directly. */
 export function CreativesView({
-  campaign,
+  campaign: fullCampaign,
   source,
   selected: selectedId,
   onSelect: setTab,
@@ -37,6 +37,13 @@ export function CreativesView({
   onSelect: (tab: CreativeTab) => void;
 }) {
   const { t } = useI18n();
+  // A nightly source (ATK, NEXD) is complete only through yesterday, so each
+  // creative shows just the days that source has — its days then add up to the
+  // same flight as the Daily tab, instead of running a day further.
+  const campaign = useMemo(
+    () => scopeCreativesToSource(fullCampaign, source),
+    [fullCampaign, source],
+  );
   const meta = sourceMeta(campaign, source);
   // A stale or hand-edited id falls back to the overview.
   const tab = campaign.creatives.some((c) => c.id === selectedId) ? selectedId : 'overview';
@@ -90,6 +97,25 @@ export function CreativesView({
   );
 }
 
+/** The campaign with every creative cut to the days `source` reports. */
+function scopeCreativesToSource(campaign: Campaign, source: SourceKey): Campaign {
+  const series = campaign.sources[source];
+  if (!series) return campaign;
+  const days = new Set(series.daily.map((d) => d.date));
+  return {
+    ...campaign,
+    creatives: campaign.creatives.map((c) => {
+      const daily = c.daily.filter((d) => days.has(d.date));
+      return {
+        ...c,
+        daily,
+        impressions: daily.reduce((a, d) => a + d.impressions, 0),
+        ctaClicks: daily.reduce((a, d) => a + d.ctaClicks, 0),
+      };
+    }),
+  };
+}
+
 function CreativesOverview({
   campaign,
   totals,
@@ -103,6 +129,7 @@ function CreativesOverview({
 }) {
   const { t } = useI18n();
   const hasConversions = [...totals.values()].some((r) => r?.conversions != null);
+  const hasDevices = [...totals.values()].some((r) => r?.mobile != null);
   return (
     <Card>
       <SectionTitle hint={t('creatives.overviewHint')}>{t('creatives.title')}</SectionTitle>
@@ -117,6 +144,8 @@ function CreativesOverview({
             <Th align="right">{t('daily.col.viewability')}</Th>
             <Th align="right">{t('daily.col.clicks')}</Th>
             {hasConversions && <Th align="right">{t('daily.col.conversions')}</Th>}
+            {hasDevices && <Th align="right">{t('daily.col.mobile')}</Th>}
+            {hasDevices && <Th align="right">{t('daily.col.desktop')}</Th>}
           </tr>
         </thead>
         <tbody>
@@ -156,6 +185,12 @@ function CreativesOverview({
                   <Td align="right">
                     {row?.conversions == null ? EMPTY_VALUE : fmtInt(row.conversions)}
                   </Td>
+                )}
+                {hasDevices && (
+                  <Td align="right">{row?.mobile == null ? EMPTY_VALUE : fmtInt(row.mobile)}</Td>
+                )}
+                {hasDevices && (
+                  <Td align="right">{row?.desktop == null ? EMPTY_VALUE : fmtInt(row.desktop)}</Td>
                 )}
               </tr>
             );

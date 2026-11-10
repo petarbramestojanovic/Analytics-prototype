@@ -7,9 +7,11 @@
  * `seasonYear` picks which. Quarters and YTD are always relative to today.
  */
 
-import type { DateRange } from '@/features/campaigns';
-
-export type { DateRange };
+/** An inclusive calendar window, YYYY-MM-DD on both ends. */
+export interface DateRange {
+  start: string;
+  end: string;
+}
 
 export const RANGE_PRESETS = [
   'last30',

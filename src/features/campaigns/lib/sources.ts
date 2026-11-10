@@ -29,7 +29,20 @@ export const SOURCE_DEFINITIONS: Record<SourceKey, Pick<SourceMeta, 'key' | 'lab
     key: 'atk',
     label: 'ATK',
     cadence: 'nightly',
-    measures: ['impressions', 'viewable', 'viewability', 'plays', 'uniqueUsers', 'conversions'],
+    // ATK counts the interactions too (game starts, clicktag clicks), so engagement
+    // rate, clicks and CTR are measured here — derived from those counts, like on
+    // every other source. Only in-unit timing (dwell, completion) is not ATK's.
+    measures: [
+      'impressions',
+      'viewable',
+      'viewability',
+      'plays',
+      'engagementRate',
+      'ctaClicks',
+      'ctr',
+      'uniqueUsers',
+      'conversions',
+    ],
   },
   nexd: {
     key: 'nexd',
@@ -79,7 +92,7 @@ export function seriesEngagements(series: SourceSeries): number | null {
 }
 
 /** Interactions with the unit, summed over the flight — null where the primary
- *  source can't see inside the unit (an adserver stops at delivery). */
+ *  source doesn't measure engagement. */
 export function engagementCount(campaign: Campaign): number | null {
   const series = primarySeries(campaign);
   if (!series || series.totals.engagementRate === undefined) return null;
