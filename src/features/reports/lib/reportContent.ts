@@ -2,7 +2,7 @@ import { endOfMonth, format, parseISO, startOfMonth, subDays, subMonths } from '
 import { TODAY, YESTERDAY_ISO } from '@/lib/clock';
 import type { Campaign, CreativeDailyPoint, EmailReport, MetricKey, ReportScope } from '@/types';
 import { primarySeries } from '@/features/campaigns';
-import type { ReportMetric } from './reportMetrics';
+import { DEFAULT_REPORT_METRICS, REPORT_METRICS as REPORT_ORDER, type ReportMetric } from './reportMetrics';
 
 /** What a report is being built from — the form's live values (or a saved
  *  report), so the preview and the sample show exactly what would be sent. */
@@ -82,6 +82,9 @@ function add(acc: Acc, p: CreativeDailyPoint, m: ReturnType<typeof measured>) {
 
 const valuesOf = (a: Acc): MetricValues => ({
   impressions: a.impressions,
+  viewable: a.viewImpr ? a.viewable : null,
+  engagements: a.engImpr ? a.engagements : null,
+  ctaClicks: a.ctrImpr ? a.clicks : null,
   engagementRate: a.engImpr ? a.engagements / a.engImpr : null,
   ctr: a.ctrImpr ? a.clicks / a.ctrImpr : null,
   viewability: a.viewImpr ? a.viewable / a.viewImpr : null,
@@ -116,8 +119,8 @@ function reportPeriod(cadence: EmailReport['cadence']): { start: string; end: st
 export function buildReportContent(draft: ReportDraft, allCampaigns: Campaign[]): ReportContent {
   const scoped = campaignsInScope(allCampaigns, draft.scope).filter((c) => primarySeries(c));
   const metrics = draft.metrics.length
-    ? draft.metrics
-    : (['impressions', 'ctr', 'viewability', 'engagementRate'] as ReportMetric[]);
+    ? REPORT_ORDER.filter((m) => draft.metrics.includes(m))
+    : DEFAULT_REPORT_METRICS;
 
   let { start, end } = reportPeriod(draft.cadence);
   const inPeriod = (date: string) => date >= start && date <= end;

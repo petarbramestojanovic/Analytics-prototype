@@ -46,7 +46,6 @@ import type {
   Clicktag,
   EmailReport,
   InboxEvent,
-  MetricKey,
   Seat,
   SeatMember,
   SeatRole,
@@ -330,7 +329,7 @@ export interface EmailReportInput {
   scope: EmailReport['scope'];
   name: string;
   recipients: string[];
-  metrics: MetricKey[];
+  metrics: EmailReport['metrics'];
   granularity: EmailReport['granularity'];
   cadence: EmailReport['cadence'];
   dayOfWeek?: EmailReport['dayOfWeek'];

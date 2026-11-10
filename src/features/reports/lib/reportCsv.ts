@@ -1,13 +1,6 @@
 import type { TranslateFn } from '@/i18n';
-import { EMPTY_VALUE, fmtInt, fmtMetric, fmtPct } from '@/lib/format';
-import type { MetricValues, ReportContent } from './reportContent';
-import type { ReportMetric } from './reportMetrics';
-
-/** One report value the way it appears in every rendering of a report. */
-export function formatReportValue(metric: ReportMetric, value: number | null): string {
-  if (value == null) return EMPTY_VALUE;
-  return metric === 'impressions' ? fmtInt(value) : fmtMetric(metric, value);
-}
+import type { ReportContent } from './reportContent';
+import { buildReportSheets } from './reportSheets';
 
 const cell = (v: string) => (/[",\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
@@ -22,42 +15,17 @@ export function reportToCsv(
   t: TranslateFn,
   fmtDate: (iso: string) => string,
 ): string {
-  const metricHeaders = content.metrics.map((m) => t(`metric.${m}.label`));
-  // Plain digits for counts: a spreadsheet reads 9592804 as a number but
-  // "9'592'804" as text.
-  const csvValue = (m: ReportMetric, value: number | null) =>
-    m === 'impressions' && value != null ? String(Math.round(value)) : formatReportValue(m, value);
-  const valueCells = (v: MetricValues) => content.metrics.map((m) => csvValue(m, v[m]));
   const blocks: string[][][] = [
     [
       [t('reports.preview.csv.report'), info.name],
       [t('reports.preview.scope'), info.scopeLabel],
       [t('reports.preview.period'), info.period],
     ],
-    [[t('reports.preview.summary')], metricHeaders, valueCells(content.summary)],
-    [
-      [t('reports.preview.creatives')],
-      [t('detail.col.creative'), t('creatives.col.share'), ...metricHeaders],
-      ...content.creatives.map((c) => [
-        c.format,
-        fmtPct(c.share, 0),
-        ...valueCells(c.values),
-      ]),
-    ],
+    ...buildReportSheets(content, t, fmtDate, { plainCounts: true }).map((s) => [
+      [s.title],
+      s.headers,
+      ...s.rows,
+    ]),
   ];
-  if (content.campaigns.length) {
-    blocks.push([
-      [t('reports.preview.campaigns')],
-      [t('campaigns.col.campaign'), ...metricHeaders],
-      ...content.campaigns.map((c) => [c.name, ...valueCells(c.values)]),
-    ]);
-  }
-  if (content.daily) {
-    blocks.push([
-      [t('reports.preview.daily')],
-      [t('daily.col.date'), ...metricHeaders],
-      ...content.daily.map((d) => [fmtDate(d.date), ...valueCells(d.values)]),
-    ]);
-  }
   return blocks.map((rows) => rows.map((r) => r.map(cell).join(',')).join('\n')).join('\n\n');
 }

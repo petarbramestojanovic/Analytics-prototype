@@ -1,20 +1,30 @@
 import type { TranslateFn } from '@/i18n';
-import type { EmailReport, MetricKey } from '@/types';
+import type { EmailReport, ReportMetricKey } from '@/types';
 
 /**
- * The metrics selectable when building an email report — the four already
- * shown on Overview/Campaigns, not the full MetricKey set. Several MetricKey
- * values (avg. dwell time, completion rate, unique users, …) are per-campaign
- * engagement detail that doesn't belong in a portfolio-level summary.
+ * The figures selectable when building a report, in customer-journey order —
+ * the same columns the v1 report template carries: delivered, viewable,
+ * engaged, clicked. Detail such as dwell time or completion rate stays
+ * per-campaign and doesn't belong in a summary.
  */
 export const REPORT_METRICS = [
   'impressions',
+  'viewable',
+  'engagements',
+  'engagementRate',
+  'ctaClicks',
   'ctr',
   'viewability',
-  'engagementRate',
-] as const satisfies readonly MetricKey[];
+] as const satisfies readonly ReportMetricKey[];
 
 export type ReportMetric = (typeof REPORT_METRICS)[number];
+
+/** Counts, as opposed to rates: shown as whole numbers, written to a
+ *  spreadsheet as plain digits. */
+export const COUNT_METRICS: readonly ReportMetric[] = ['impressions', 'viewable', 'engagements', 'ctaClicks'];
+
+/** What a new report starts with. */
+export const DEFAULT_REPORT_METRICS: ReportMetric[] = ['impressions', 'ctr', 'viewability', 'engagementRate'];
 
 /** Renders a report's cadence for display — shared by the Reports list and
  *  a client's own reports section. */

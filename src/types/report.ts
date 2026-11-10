@@ -1,4 +1,16 @@
-import type { MetricKey } from './campaign';
+
+/** The figures a report can carry — the same columns as the v1 report
+ *  template (Impressions, Visibility, ENG, ENG-Rate, Clicks, CTR,
+ *  Viewability). `engagements` is a count derived from the daily series, which
+ *  is why it is not one of the campaign `MetricKey`s. */
+export type ReportMetricKey =
+  | 'impressions'
+  | 'viewable'
+  | 'engagements'
+  | 'engagementRate'
+  | 'ctaClicks'
+  | 'ctr'
+  | 'viewability';
 
 /** What a report summarizes — one client's whole portfolio, one account's
  *  whole book, or a single campaign. Same shape as AlertRuleScope
@@ -18,9 +30,8 @@ export interface EmailReport {
   scope: ReportScope;
   name: string;
   recipients: string[];
-  /** Restricted in the UI to REPORT_METRICS — the four metrics already shown
-   *  on Overview/Campaigns — even though the type allows any MetricKey. */
-  metrics: MetricKey[];
+  /** In the order they are offered (see REPORT_METRICS). */
+  metrics: ReportMetricKey[];
   /** Aggregated totals for the period, or a day-by-day breakdown. */
   granularity: 'total' | 'daily';
   cadence: 'daily' | 'weekly' | 'monthly';
