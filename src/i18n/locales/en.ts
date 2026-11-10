@@ -188,7 +188,7 @@ export const en = {
 
   // Auth — shared
   'auth.brandHeadline': 'Analytics for every playable campaign.',
-  'auth.brandBody': 'One source of truth for delivery, engagement and attribution, with every number tied to where it came from.',
+  'auth.brandBody': 'One source of truth for delivery and engagement, with every number tied to where it came from.',
   'auth.brandPoint1': 'Never sums figures across measurement sources',
   'auth.brandPoint2': 'Per-source freshness, always labelled',
   'auth.brandPoint3': 'Salesforce-owned fields, never silently overwritten',
@@ -273,8 +273,6 @@ export const en = {
   'delivery.status.poor': 'Behind',
   'metric.uniqueUsers.label': 'Unique users',
   'metric.uniqueUsers.help': 'Approximate distinct users, counted with a HyperLogLog sketch.',
-  'metric.footnote.uniqueUsers': 'HyperLogLog estimate',
-  'metric.footnote.avgDwell': 'per engaged session',
 
   // Source switcher
   'source.primarySource': 'primary source',
@@ -548,16 +546,6 @@ export const en = {
   'detail.col.creative': 'Creative',
   'detail.col.impr': 'Impr.',
   'detail.col.eng': 'Eng.',
-  'detail.col.dwell': 'Dwell',
-
-  'detail.attributionTitle': 'Attribution',
-  'detail.attributionHint': 'Traffic attributed by UTM parameters on the CTA click',
-  'detail.col.source': 'Source',
-  'detail.col.medium': 'Medium',
-  'detail.col.campaignTag': 'Campaign tag',
-  'detail.col.sessions': 'Sessions',
-  'detail.col.ctaClicks': 'CTA clicks',
-  'detail.col.convToClick': 'Conv. to click',
 
   'detail.compareNothingTitle': 'Nothing to compare',
   'detail.compareNothingBody':

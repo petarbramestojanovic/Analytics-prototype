@@ -336,20 +336,6 @@ function buildCampaign(s: CampaignSeed): Campaign {
   });
 
   const campaignTag = `${s.id.replace('cmp-', 'brame_')}_q3`;
-  const utmRows: Campaign['utm'] = (
-    [
-      ['goldbach', 'display', 0.41],
-      ['admeira', 'display', 0.27],
-      ['ringier', 'display', 0.18],
-      ['direct', 'none', 0.14],
-    ] as const
-  ).map(([source, medium, share]) => ({
-    source,
-    medium,
-    campaign: campaignTag,
-    sessions: Math.round(ctaSeed * 2.4 * share),
-    ctaClicks: Math.round(ctaSeed * share),
-  }));
 
   return {
     id: s.id,
@@ -401,7 +387,6 @@ function buildCampaign(s: CampaignSeed): Campaign {
     ctas,
     devices,
     creatives,
-    utm: utmRows,
   };
 }
 

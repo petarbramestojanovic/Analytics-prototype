@@ -1,11 +1,20 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip as RTooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { Monitor, MousePointerClick, Timer } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import { fmtCompact, fmtInt, fmtPct } from '@/lib/format';
+import { EMPTY_VALUE, fmtCompact, fmtInt, fmtPct } from '@/lib/format';
 import { CHART_COLORS, tooltipIntOnly, useAxisStyle } from '@/components/charts';
 import { Card, ProgressBar } from '@/components/ui';
 import { SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
+import { isRowClick } from '@/components/table/isRowClick';
 import type { Campaign } from '@/types';
 import { deviceBuckets } from '../../lib/devices';
 
@@ -35,7 +44,9 @@ export function PageFlowCard({ campaign }: { campaign: Campaign }) {
                 </span>
                 <span className="tnum text-gray-500 dark:text-gray-400">
                   {fmtInt(p.views)}
-                  <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">{fmtPct(share, 0)}</span>
+                  <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">
+                    {fmtPct(share, 0)}
+                  </span>
                 </span>
               </div>
               <ProgressBar value={share} />
@@ -69,7 +80,9 @@ export function CtaCard({ campaign }: { campaign: Campaign }) {
                   <MousePointerClick size={12} className="text-brame-teal" />
                   {c.label}
                 </div>
-                <div className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{c.destination}</div>
+                <div className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                  {c.destination}
+                </div>
               </Td>
               <Td align="right">{fmtInt(c.clicks)}</Td>
               <Td align="right">{fmtInt(c.uniqueClicks)}</Td>
@@ -82,7 +95,13 @@ export function CtaCard({ campaign }: { campaign: Campaign }) {
   );
 }
 
-export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; showEngagement: boolean }) {
+export function DevicesCard({
+  campaign,
+  showEngagement,
+}: {
+  campaign: Campaign;
+  showEngagement: boolean;
+}) {
   const { t } = useI18n();
   const { axis, grid, cursorFill, tooltipStyle, animate } = useAxisStyle();
   // Two buckets, same as the Total/Mobile/Desktop tabs above: Tablet is part
@@ -95,10 +114,33 @@ export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; 
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={buckets} layout="vertical" barSize={26}>
             <CartesianGrid strokeDasharray="3 3" stroke={grid} horizontal={false} />
-            <XAxis type="number" tickFormatter={fmtCompact} tick={axis} tickLine={false} axisLine={false} />
-            <YAxis type="category" dataKey="device" tick={axis} tickLine={false} axisLine={false} width={60} />
-            <RTooltip cursor={{ fill: cursorFill }} formatter={tooltipIntOnly} contentStyle={tooltipStyle} />
-            <Bar isAnimationActive={animate} dataKey="impressions" name={t('detail.legendImpressions')} fill={CHART_COLORS.teal} radius={[0, 4, 4, 0]} />
+            <XAxis
+              type="number"
+              tickFormatter={fmtCompact}
+              tick={axis}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="device"
+              tick={axis}
+              tickLine={false}
+              axisLine={false}
+              width={60}
+            />
+            <RTooltip
+              cursor={{ fill: cursorFill }}
+              formatter={tooltipIntOnly}
+              contentStyle={tooltipStyle}
+            />
+            <Bar
+              isAnimationActive={animate}
+              dataKey="impressions"
+              name={t('detail.legendImpressions')}
+              fill={CHART_COLORS.teal}
+              radius={[0, 4, 4, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -130,11 +172,14 @@ export function DevicesCard({ campaign, showEngagement }: { campaign: Campaign; 
 export function CreativesCard({
   campaign,
   showEngagement,
-  showDwell,
+  showCtr,
+  onOpenCreative,
 }: {
   campaign: Campaign;
   showEngagement: boolean;
-  showDwell: boolean;
+  showCtr: boolean;
+  /** Jumps to that creative's own view in the Creatives tab. */
+  onOpenCreative: (creativeId: string) => void;
 }) {
   const { t } = useI18n();
   return (
@@ -146,54 +191,33 @@ export function CreativesCard({
             <Th>{t('detail.col.creative')}</Th>
             <Th align="right">{t('detail.col.impr')}</Th>
             {showEngagement && <Th align="right">{t('detail.col.eng')}</Th>}
-            {showDwell && <Th align="right">{t('detail.col.dwell')}</Th>}
+            {showCtr && <Th align="right">{t('detail.col.ctr')}</Th>}
           </tr>
         </thead>
         <tbody>
           {campaign.creatives.map((cr) => (
-            <tr key={cr.id}>
+            <tr
+              key={cr.id}
+              className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+              onClick={(e) => isRowClick(e) && onOpenCreative(cr.id)}
+            >
               <Td>
-                <div className="font-medium text-brame-dark dark:text-gray-100">{cr.format}</div>
+                <button
+                  type="button"
+                  onClick={() => onOpenCreative(cr.id)}
+                  className="text-left font-medium text-brame-teal hover:underline dark:text-brame-turquoise-light"
+                >
+                  {cr.format}
+                </button>
                 <div className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{cr.name}</div>
               </Td>
               <Td align="right">{fmtCompact(cr.impressions)}</Td>
               {showEngagement && <Td align="right">{fmtPct(cr.engagementRate)}</Td>}
-              {showDwell && <Td align="right">{cr.avgDwell}s</Td>}
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </Card>
-  );
-}
-
-export function AttributionCard({ campaign }: { campaign: Campaign }) {
-  const { t } = useI18n();
-  return (
-    <Card>
-      <SectionTitle hint={t('detail.attributionHint')}>{t('detail.attributionTitle')}</SectionTitle>
-      <Table>
-        <thead>
-          <tr>
-            <Th>{t('detail.col.source')}</Th>
-            <Th>{t('detail.col.medium')}</Th>
-            <Th>{t('detail.col.campaignTag')}</Th>
-            <Th align="right">{t('detail.col.sessions')}</Th>
-            <Th align="right">{t('detail.col.ctaClicks')}</Th>
-            <Th align="right">{t('detail.col.convToClick')}</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {campaign.utm.map((u) => (
-            <tr key={`${u.source}-${u.medium}`}>
-              <Td className="font-medium">{u.source}</Td>
-              <Td>{u.medium}</Td>
-              <Td>
-                <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs dark:bg-white/10">{u.campaign}</code>
-              </Td>
-              <Td align="right">{fmtInt(u.sessions)}</Td>
-              <Td align="right">{fmtInt(u.ctaClicks)}</Td>
-              <Td align="right">{fmtPct(u.ctaClicks / u.sessions)}</Td>
+              {showCtr && (
+                <Td align="right">
+                  {cr.impressions ? fmtPct(cr.ctaClicks / cr.impressions, 2) : EMPTY_VALUE}
+                </Td>
+              )}
             </tr>
           ))}
         </tbody>

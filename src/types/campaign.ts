@@ -99,14 +99,6 @@ export interface CreativeRow {
   daily: CreativeDailyPoint[];
 }
 
-interface UtmRow {
-  source: string;
-  medium: string;
-  campaign: string;
-  sessions: number;
-  ctaClicks: number;
-}
-
 export interface Clicktag {
   id: string;
   label: string;
@@ -210,6 +202,5 @@ export interface Campaign {
   ctas: CtaRow[];
   devices: DeviceRow[];
   creatives: CreativeRow[];
-  utm: UtmRow[];
 }
 

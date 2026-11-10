@@ -2,6 +2,7 @@ import { useMemo, useState, type ComponentProps } from 'react';
 import { ArrowRight, Cable, Layers, Monitor, Settings2, Smartphone, Unplug } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n, type TranslationKey } from '@/i18n';
+import { cn } from '@/lib/cn';
 import { fmtCompact, fmtMetric } from '@/lib/format';
 import { Button, ButtonLink, Card, Tabs, Tooltip } from '@/components/ui';
 import { EmptyState } from '@/components/feedback';
@@ -13,7 +14,7 @@ import { TrendChart } from '../../components/TrendChart';
 import { deviceSplit, scaleSeriesForDevice, type DeviceTab } from '../../lib/devices';
 import { METRIC_KEYS, seriesEngagements, sourceMeta } from '../../lib/sources';
 import { buildCampaignTrend } from '../../lib/trend';
-import { AttributionCard, CreativesCard, CtaCard, DevicesCard, PageFlowCard } from './SourceSections';
+import { CreativesCard, CtaCard, DevicesCard, PageFlowCard } from './SourceSections';
 
 /** Page flow and Calls to action are hidden for now: they need per-screen and
  *  per-button data that isn't confirmed to exist yet (today they show demo
@@ -22,20 +23,17 @@ const SHOW_IN_UNIT_CARDS = false;
 
 const DEVICE_TAB_ICONS = { total: Layers, mobile: Smartphone, desktop: Monitor } as const;
 
-const METRIC_FOOTNOTES: Partial<Record<MetricKey, string>> = {
-  uniqueUsers: 'metric.footnote.uniqueUsers',
-  avgDwell: 'metric.footnote.avgDwell',
-};
-
 /** One source's own view — renders only what that platform measures. */
 export function SourceView({
   campaign,
   source,
   onSwitchSource,
+  onOpenCreative,
 }: {
   campaign: Campaign;
   source: SourceKey;
   onSwitchSource: (s: SourceKey) => void;
+  onOpenCreative: (creativeId: string) => void;
 }) {
   const { t } = useI18n();
   const { isAdmin, isInternal } = useSession();
@@ -46,11 +44,12 @@ export function SourceView({
   const split = useMemo(() => deviceSplit(campaign), [campaign]);
   const scopedSeries = useMemo(
     () => (series ? scaleSeriesForDevice(series, campaign, deviceTab) : null),
-    [series, campaign, deviceTab]
+    [series, campaign, deviceTab],
   );
   const trendData = useMemo(
-    () => (scopedSeries ? buildCampaignTrend(scopedSeries, campaign.salesforce.bookedImpressions) : []),
-    [scopedSeries, campaign]
+    () =>
+      scopedSeries ? buildCampaignTrend(scopedSeries, campaign.salesforce.bookedImpressions) : [],
+    [scopedSeries, campaign],
   );
   const benchmarks = useIndustryBenchmark(campaign.companyId, isInternal);
 
@@ -84,9 +83,13 @@ export function SourceView({
         }
         action={
           isAdmin ? (
-            <ButtonLink to={paths.setup(campaign.id)} variant="primary" icon={<Settings2 size={14} />}>
-                {t('detail.openSetup')}
-              </ButtonLink>
+            <ButtonLink
+              to={paths.setup(campaign.id)}
+              variant="primary"
+              icon={<Settings2 size={14} />}
+            >
+              {t('detail.openSetup')}
+            </ButtonLink>
           ) : undefined
         }
       />
@@ -111,9 +114,10 @@ export function SourceView({
   const engagementSeries = seriesFor('engagementRate');
   const engagements = engagementSeries ? seriesEngagements(engagementSeries) : null;
 
-  // The customer journey, left to right and top to bottom: delivered →
-  // engaged → clicked → viewable, then what only some sources/campaigns have.
-  // A count and its rate share a widget (the rate small in the corner).
+  // The five headline numbers, one widget each, in the order they are read:
+  // delivered, engaged, clicked, viewable, then the engagement rate. A widget
+  // appears only where the source measures it (never a made-up zero). A
+  // campaign that tracks conversions gets that one too.
   const widgets: (ComponentProps<typeof KpiWidget> & { key: string })[] = [
     {
       key: 'impressions',
@@ -121,9 +125,6 @@ export function SourceView({
       help: help('impressions'),
       value: fmtMetric('impressions', totals.impressions),
       emphasis: true,
-      secondary: has('viewable')
-        ? { label: label('viewable'), value: fmtMetric('viewable', totals.viewable), help: help('viewable') }
-        : undefined,
     },
     ...(engagements != null
       ? [
@@ -132,42 +133,43 @@ export function SourceView({
             label: label('engagements'),
             help: help('engagements'),
             value: fmtCompact(engagements),
-            secondary: { label: label('engagementRate'), value: rate('engagementRate'), help: help('engagementRate') },
           },
         ]
       : []),
-    // CTR leads (it is what is read and compared); the click count sits small
-    // in the corner. A source that has clicks but no CTR shows the count alone.
     ...(has('ctr')
+      ? [{ key: 'ctr', label: label('ctr'), help: help('ctr'), value: rate('ctr') }]
+      : []),
+    ...(has('viewability')
       ? [
           {
-            key: 'ctr',
-            label: label('ctr'),
-            help: help('ctr'),
-            value: rate('ctr'),
-            secondary: has('ctaClicks')
-              ? { label: label('ctaClicks'), value: fmtMetric('ctaClicks', totals.ctaClicks), help: help('ctaClicks') }
-              : undefined,
+            key: 'viewability',
+            label: label('viewability'),
+            help: help('viewability'),
+            value: rate('viewability'),
           },
         ]
-      : has('ctaClicks')
-        ? [{ key: 'clicks', label: label('ctaClicks'), help: help('ctaClicks'), value: fmtMetric('ctaClicks', totals.ctaClicks) }]
-        : []),
-    ...(has('viewability')
-      ? [{ key: 'viewability', label: label('viewability'), help: help('viewability'), value: rate('viewability') }]
       : []),
-    ...(has('plays') ? [{ key: 'plays', label: label('plays'), help: help('plays'), value: fmtMetric('plays', totals.plays) }] : []),
-    ...(campaign.salesforce.conversionTracking && has('conversions') && totals.conversions !== undefined
-      ? [{ key: 'conversions', label: label('conversions'), help: help('conversions'), value: fmtMetric('conversions', totals.conversions) }]
+    ...(has('engagementRate')
+      ? [
+          {
+            key: 'engagementRate',
+            label: label('engagementRate'),
+            help: help('engagementRate'),
+            value: rate('engagementRate'),
+          },
+        ]
       : []),
-    ...(has('completionRate')
-      ? [{ key: 'completionRate', label: label('completionRate'), help: help('completionRate'), value: fmtMetric('completionRate', totals.completionRate) }]
-      : []),
-    ...(has('avgDwell')
-      ? [{ key: 'avgDwell', label: label('avgDwell'), help: help('avgDwell'), value: fmtMetric('avgDwell', totals.avgDwell), footnote: t(METRIC_FOOTNOTES.avgDwell!) }]
-      : []),
-    ...(has('uniqueUsers')
-      ? [{ key: 'uniqueUsers', label: label('uniqueUsers'), help: help('uniqueUsers'), value: fmtMetric('uniqueUsers', totals.uniqueUsers), footnote: t(METRIC_FOOTNOTES.uniqueUsers!) }]
+    ...(campaign.salesforce.conversionTracking &&
+    has('conversions') &&
+    totals.conversions !== undefined
+      ? [
+          {
+            key: 'conversions',
+            label: label('conversions'),
+            help: help('conversions'),
+            value: fmtMetric('conversions', totals.conversions),
+          },
+        ]
       : []),
   ];
 
@@ -176,12 +178,20 @@ export function SourceView({
       <section>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <div>
-            <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">{t('detail.keyMetrics')}</h2>
+            <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">
+              {t('detail.keyMetrics')}
+            </h2>
             {isInternal && (
               <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                {t('detail.showingMetrics', { count: meta.measures.length, source: t(`connectors.source.${meta.key}`) })}
+                {t('detail.showingMetrics', {
+                  count: meta.measures.length,
+                  source: t(`connectors.source.${meta.key}`),
+                })}
                 {meta.measures.length < METRIC_KEYS.length && (
-                  <span className="text-gray-400 dark:text-gray-500"> {t('detail.metricsNotTracked')}</span>
+                  <span className="text-gray-400 dark:text-gray-500">
+                    {' '}
+                    {t('detail.metricsNotTracked')}
+                  </span>
                 )}
               </p>
             )}
@@ -210,7 +220,16 @@ export function SourceView({
             </div>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div
+          className={cn(
+            'grid grid-cols-2 gap-3',
+            widgets.length > 5
+              ? 'lg:grid-cols-6'
+              : widgets.length > 4
+                ? 'lg:grid-cols-5'
+                : 'lg:grid-cols-4',
+          )}
+        >
           {widgets.map(({ key, ...w }) => (
             <KpiWidget key={key} {...w} />
           ))}
@@ -234,7 +253,11 @@ export function SourceView({
       <Card>
         <TrendChart
           title={t('detail.deliveryTitle')}
-          hint={isInternal ? t('detail.deliveryHint', { source: t(`connectors.source.${meta.key}`) }) : t('detail.deliveryHintClient')}
+          hint={
+            isInternal
+              ? t('detail.deliveryHint', { source: t(`connectors.source.${meta.key}`) })
+              : t('detail.deliveryHintClient')
+          }
           daily={trendData}
           defaultMetrics={['impressions', 'delivery']}
           frameBenchmark={benchmarks.frameBenchmark}
@@ -260,10 +283,16 @@ export function SourceView({
               <h3 className="text-sm font-semibold text-brame-dark dark:text-gray-100">
                 {t('detail.noInUnitTitle', { source: t(`connectors.source.${meta.key}`) })}
               </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('detail.noInUnitBody')}</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {t('detail.noInUnitBody')}
+              </p>
               {campaign.sources.custom && (
                 <div className="mt-3">
-                  <Button variant="primary" icon={<ArrowRight size={13} />} onClick={() => onSwitchSource('custom')}>
+                  <Button
+                    variant="primary"
+                    icon={<ArrowRight size={13} />}
+                    onClick={() => onSwitchSource('custom')}
+                  >
                     {t('detail.switchToBrame')}
                   </Button>
                 </div>
@@ -278,12 +307,10 @@ export function SourceView({
         <CreativesCard
           campaign={campaign}
           showEngagement={measuresEngagement}
-          showDwell={meta.measures.includes('avgDwell')}
+          showCtr={has('ctr') || has('ctaClicks')}
+          onOpenCreative={onOpenCreative}
         />
       </div>
-
-      {/* UTM attribution only exists where our own tags are on the click. */}
-      {source === 'custom' && <AttributionCard campaign={campaign} />}
     </div>
   );
 }

@@ -1,10 +1,9 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { CalendarDays, Images, LayoutDashboard } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { Tabs } from '@/components/ui';
 import { PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page } from '@/components/page';
@@ -34,8 +33,38 @@ export function CampaignDetailPage() {
   const { data: fetched, isLoading } = useCampaign(id);
   const { t } = useI18n();
   const [tab, setTab] = useState<SourceTab | null>(null);
-  const [viewParam, setViewParam] = useSearchParamState('view', 'overview');
-  const view: View = (VIEWS as readonly string[]).includes(viewParam) ? (viewParam as View) : 'overview';
+  // The open view and, within Creatives, the open creative both live in the
+  // URL, so a link or a click elsewhere on the page can land on them directly.
+  const [params, setParams] = useSearchParams();
+  const viewParam = params.get('view') ?? 'overview';
+  const view: View = (VIEWS as readonly string[]).includes(viewParam)
+    ? (viewParam as View)
+    : 'overview';
+  const creativeParam = params.get('creative') ?? 'overview';
+  const viewsRef = useRef<HTMLDivElement>(null);
+  // One update for both params — two back-to-back updaters would each start
+  // from the same stale copy and the second would undo the first.
+  const updateParams = (patch: Record<string, string | null>) =>
+    setParams(
+      (prev) => {
+        const out = new URLSearchParams(prev);
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === null) out.delete(k);
+          else out.set(k, v);
+        }
+        return out;
+      },
+      { replace: true },
+    );
+  const setView = (next: string) =>
+    updateParams({ view: next === 'overview' ? null : next, creative: null });
+  const setCreative = (id: string) => updateParams({ creative: id === 'overview' ? null : id });
+  const openCreative = (id: string) => {
+    updateParams({ view: 'creatives', creative: id });
+    requestAnimationFrame(() =>
+      viewsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
+  };
 
   // Out of scope reads exactly like "doesn't exist" — not an access-denied
   // message, which would itself leak that the campaign exists.
@@ -58,9 +87,10 @@ export function CampaignDetailPage() {
   // Default the source tab to whatever is currently primary, but only once —
   // otherwise saving a primarySource edit while on this tab would yank the
   // view out from under a mid-review account manager.
-  // Clients and agencies never see which source is primary or switch between
-  // them: they get the primary source's numbers and nothing else.
-  const activeTab = session.isInternal ? (tab ?? campaign.primarySource) : campaign.primarySource;
+  // Only admins see which source is primary or switch between them; everyone
+  // else (sales, clients, agencies) gets the primary source's numbers and the
+  // same view tabs — Overview, Daily, Creatives — without the source panel.
+  const activeTab = session.isAdmin ? (tab ?? campaign.primarySource) : campaign.primarySource;
 
   return (
     <Page>
@@ -72,42 +102,54 @@ export function CampaignDetailPage() {
         <GoalCard campaign={campaign} isInternal={session.isInternal} />
       </div>
       {session.isInternal && <CampaignAlertsBox campaignId={campaign.id} />}
-      <MeasurementSourcePanel
-        campaign={campaign}
-        activeTab={activeTab}
-        onTabChange={setTab}
-        showSources={session.isInternal}
-      >
-        {/* Views only make sense where the source has data; without it
+      <div ref={viewsRef} className="scroll-mt-4">
+        <MeasurementSourcePanel
+          campaign={campaign}
+          activeTab={activeTab}
+          onTabChange={setTab}
+          showSources={session.isAdmin}
+        >
+          {/* Views only make sense where the source has data; without it
             SourceView shows the "no connector" state on its own. */}
-        {activeTab !== 'compare' && campaign.sources[activeTab] && (
-          <Tabs
-            value={view}
-            onChange={setViewParam}
-            groupLabel={t('detail.view.label')}
-            options={VIEWS.map((value) => {
-              const Icon = VIEW_ICONS[value];
-              return {
-                value,
-                label: (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Icon size={13} />
-                    {t(`detail.view.${value}`)}
-                  </span>
-                ),
-              };
-            })}
-          />
-        )}
-      </MeasurementSourcePanel>
+          {activeTab !== 'compare' && campaign.sources[activeTab] && (
+            <Tabs
+              value={view}
+              onChange={setView}
+              groupLabel={t('detail.view.label')}
+              options={VIEWS.map((value) => {
+                const Icon = VIEW_ICONS[value];
+                return {
+                  value,
+                  label: (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Icon size={13} />
+                      {t(`detail.view.${value}`)}
+                    </span>
+                  ),
+                };
+              })}
+            />
+          )}
+        </MeasurementSourcePanel>
+      </div>
       {activeTab === 'compare' ? (
         <CompareView campaign={campaign} />
       ) : campaign.sources[activeTab] && view === 'daily' ? (
         <DailyView campaign={campaign} source={activeTab} />
       ) : campaign.sources[activeTab] && view === 'creatives' ? (
-        <CreativesView campaign={campaign} source={activeTab} />
+        <CreativesView
+          campaign={campaign}
+          source={activeTab}
+          selected={creativeParam}
+          onSelect={setCreative}
+        />
       ) : (
-        <SourceView campaign={campaign} source={activeTab} onSwitchSource={setTab} />
+        <SourceView
+          campaign={campaign}
+          source={activeTab}
+          onSwitchSource={setTab}
+          onOpenCreative={openCreative}
+        />
       )}
     </Page>
   );

@@ -186,7 +186,7 @@ export const de: Record<TranslationKey, string> = {
 
   // Auth — shared
   'auth.brandHeadline': 'Analytics für jede Playable-Kampagne.',
-  'auth.brandBody': 'Eine verlässliche Quelle für Delivery, Engagement und Attribution, jede Zahl mit klarer Herkunft.',
+  'auth.brandBody': 'Eine verlässliche Quelle für Delivery und Engagement, jede Zahl mit klarer Herkunft.',
   'auth.brandPoint1': 'Zahlen werden nie über Quellen hinweg summiert',
   'auth.brandPoint2': 'Aktualität pro Quelle, immer klar gekennzeichnet',
   'auth.brandPoint3': 'Salesforce-eigene Felder werden nie stillschweigend überschrieben',
@@ -272,8 +272,6 @@ export const de: Record<TranslationKey, string> = {
   'delivery.status.poor': 'Im Rückstand',
   'metric.uniqueUsers.label': 'Unique User',
   'metric.uniqueUsers.help': 'Näherungsweise eindeutige Nutzer, geschätzt mit HyperLogLog.',
-  'metric.footnote.uniqueUsers': 'HyperLogLog-Schätzung',
-  'metric.footnote.avgDwell': 'pro engagierter Sitzung',
 
   // Source switcher
   'source.primarySource': 'Primärquelle',
@@ -547,16 +545,7 @@ export const de: Record<TranslationKey, string> = {
   'detail.col.creative': 'Creative',
   'detail.col.impr': 'Impr.',
   'detail.col.eng': 'Eng.',
-  'detail.col.dwell': 'Verweildauer',
 
-  'detail.attributionTitle': 'Attribution',
-  'detail.attributionHint': 'Traffic, zugeordnet über UTM-Parameter beim CTA-Klick',
-  'detail.col.source': 'Quelle',
-  'detail.col.medium': 'Medium',
-  'detail.col.campaignTag': 'Kampagnen-Tag',
-  'detail.col.sessions': 'Sitzungen',
-  'detail.col.ctaClicks': 'CTA-Klicks',
-  'detail.col.convToClick': 'Conv. zu Klick',
 
   'detail.compareNothingTitle': 'Nichts zu vergleichen',
   'detail.compareNothingBody': 'Nur eine Quelle liefert Daten für diese Kampagne, es gibt keine zweite Zählung als Kontrolle.',

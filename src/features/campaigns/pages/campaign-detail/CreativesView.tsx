@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { EMPTY_VALUE, fmtInt, fmtPct } from '@/lib/format';
@@ -7,6 +7,7 @@ import { Card, ProgressBar, Tabs } from '@/components/ui';
 import { EmptyState } from '@/components/feedback';
 import { SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
+import { isRowClick } from '@/components/table/isRowClick';
 import { StatTile } from '@/components/display';
 import { useSession } from '@/features/session';
 import type { Campaign, CreativeRow, SourceKey } from '@/types';
@@ -21,15 +22,28 @@ type CreativeTab = string;
 const pct = (v: number | null, d = 1) => (v == null ? EMPTY_VALUE : fmtPct(v, d));
 
 /** The Creatives tab. Overview compares every creative over the whole flight;
- *  each creative then has its own tab with its day-by-day metrics. */
-export function CreativesView({ campaign, source }: { campaign: Campaign; source: SourceKey }) {
+ *  each creative then has its own tab with its day-by-day metrics. Which tab
+ *  is open is the caller's (it lives in the URL), so a link — or a click on a
+ *  creative elsewhere on the page — can open one directly. */
+export function CreativesView({
+  campaign,
+  source,
+  selected: selectedId,
+  onSelect: setTab,
+}: {
+  campaign: Campaign;
+  source: SourceKey;
+  selected: CreativeTab;
+  onSelect: (tab: CreativeTab) => void;
+}) {
   const { t } = useI18n();
   const meta = sourceMeta(campaign, source);
-  const [tab, setTab] = useState<CreativeTab>('overview');
+  // A stale or hand-edited id falls back to the overview.
+  const tab = campaign.creatives.some((c) => c.id === selectedId) ? selectedId : 'overview';
 
   const totals = useMemo(
     () => new Map(campaign.creatives.map((c) => [c.id, totalDailyRow(c.daily, meta.measures)])),
-    [campaign.creatives, meta.measures]
+    [campaign.creatives, meta.measures],
   );
   const flightImpressions = campaign.creatives.reduce((a, c) => a + c.impressions, 0);
 
@@ -58,9 +72,19 @@ export function CreativesView({ campaign, source }: { campaign: Campaign; source
         ]}
       />
       {selected ? (
-        <CreativeDetail campaign={campaign} creative={selected} total={totals.get(selected.id) ?? null} source={source} />
+        <CreativeDetail
+          campaign={campaign}
+          creative={selected}
+          total={totals.get(selected.id) ?? null}
+          source={source}
+        />
       ) : (
-        <CreativesOverview campaign={campaign} totals={totals} flightImpressions={flightImpressions} onOpen={setTab} />
+        <CreativesOverview
+          campaign={campaign}
+          totals={totals}
+          flightImpressions={flightImpressions}
+          onOpen={setTab}
+        />
       )}
     </div>
   );
@@ -100,7 +124,11 @@ function CreativesOverview({
             const row = totals.get(c.id);
             const share = flightImpressions ? c.impressions / flightImpressions : 0;
             return (
-              <tr key={c.id} className="transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
+              <tr
+                key={c.id}
+                className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                onClick={(e) => isRowClick(e) && onOpen(c.id)}
+              >
                 <Td>
                   <button
                     type="button"
@@ -115,7 +143,9 @@ function CreativesOverview({
                 <Td>
                   <div className="flex items-center gap-2">
                     <ProgressBar value={share} size="sm" className="w-20" />
-                    <span className="tnum text-xs text-gray-500 dark:text-gray-400">{fmtPct(share, 0)}</span>
+                    <span className="tnum text-xs text-gray-500 dark:text-gray-400">
+                      {fmtPct(share, 0)}
+                    </span>
                   </div>
                 </Td>
                 <Td align="right">{pct(row?.engagementRate ?? null)}</Td>
@@ -123,7 +153,9 @@ function CreativesOverview({
                 <Td align="right">{pct(row?.viewability ?? null)}</Td>
                 <Td align="right">{row?.clicks == null ? EMPTY_VALUE : fmtInt(row.clicks)}</Td>
                 {hasConversions && (
-                  <Td align="right">{row?.conversions == null ? EMPTY_VALUE : fmtInt(row.conversions)}</Td>
+                  <Td align="right">
+                    {row?.conversions == null ? EMPTY_VALUE : fmtInt(row.conversions)}
+                  </Td>
                 )}
               </tr>
             );
@@ -148,16 +180,27 @@ function CreativeDetail({
   const { t } = useI18n();
   const { isInternal } = useSession();
   const meta = sourceMeta(campaign, source);
-  const rows = useMemo(() => buildDailyRows(creative.daily, meta.measures), [creative.daily, meta.measures]);
+  const rows = useMemo(
+    () => buildDailyRows(creative.daily, meta.measures),
+    [creative.daily, meta.measures],
+  );
   const sourceLabel = t(`connectors.source.${meta.key}`);
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile compact label={t('daily.col.impressions')} value={fmtInt(creative.impressions)} />
-        <StatTile compact label={t('daily.col.engagementRate')} value={pct(total?.engagementRate ?? null)} />
+        <StatTile
+          compact
+          label={t('daily.col.engagementRate')}
+          value={pct(total?.engagementRate ?? null)}
+        />
         <StatTile compact label={t('daily.col.ctr')} value={pct(total?.ctr ?? null, 2)} />
-        <StatTile compact label={t('daily.col.viewability')} value={pct(total?.viewability ?? null)} />
+        <StatTile
+          compact
+          label={t('daily.col.viewability')}
+          value={pct(total?.viewability ?? null)}
+        />
         {total?.conversions != null && (
           <StatTile compact label={t('daily.col.conversions')} value={fmtInt(total.conversions)} />
         )}
@@ -168,7 +211,11 @@ function CreativeDetail({
       <Card>
         <DailyMetricsTable
           title={t('creatives.detailTitle', { name: creative.format })}
-          hint={isInternal ? t('creatives.detailHint', { name: creative.name, source: sourceLabel }) : creative.name}
+          hint={
+            isInternal
+              ? t('creatives.detailHint', { name: creative.name, source: sourceLabel })
+              : creative.name
+          }
           rows={rows}
           total={total}
           sourceLabel={sourceLabel}
