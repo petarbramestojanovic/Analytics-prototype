@@ -37,6 +37,16 @@ function capabilities(measures: readonly MetricKey[], daily: readonly Counts[]) 
 
 const ratio = (n: number, d: number) => (d ? n / d : null);
 
+/** Mobile (smartphone + tablet) and desktop impressions for one day: the day's
+ *  own split where it has one (a creative's), else — there is no per-day device
+ *  data on a campaign — the campaign's overall mobile share applied to the day. */
+function deviceCounts(d: Counts, mobileShare?: number) {
+  const mobile =
+    d.mobileImpressions ??
+    (mobileShare === undefined ? null : Math.round(d.impressions * mobileShare));
+  return { mobile, desktop: mobile === null ? null : d.impressions - mobile };
+}
+
 /**
  * Turns a daily series (a source's, or one creative's) into table rows.
  * Rates are recomputed from the counts — never averaged across days — so the
@@ -45,6 +55,7 @@ const ratio = (n: number, d: number) => (d ? n / d : null);
 export function buildDailyRows(
   daily: readonly Counts[],
   measures: readonly MetricKey[],
+  mobileShare?: number,
 ): DailyRow[] {
   const cap = capabilities(measures, daily);
   return daily.map((d, i) => ({
@@ -57,8 +68,7 @@ export function buildDailyRows(
     ctr: cap.clicks ? ratio(d.ctaClicks, d.impressions) : null,
     viewability: cap.viewability ? ratio(d.viewable, d.impressions) : null,
     conversions: cap.conversions ? (d.conversions ?? 0) : null,
-    mobile: d.mobileImpressions ?? null,
-    desktop: d.mobileImpressions == null ? null : d.impressions - d.mobileImpressions,
+    ...deviceCounts(d, mobileShare),
   }));
 }
 
@@ -66,6 +76,7 @@ export function buildDailyRows(
 export function totalDailyRow(
   daily: readonly Counts[],
   measures: readonly MetricKey[],
+  mobileShare?: number,
 ): DailyRow | null {
   if (!daily.length) return null;
   const sum = (k: 'impressions' | 'viewable' | 'engagements' | 'ctaClicks') =>
@@ -88,6 +99,13 @@ export function totalDailyRow(
     ],
     measures,
   );
+  // Where the days are split by the campaign's mix, the total is the sum of the
+  // days shown, not a re-rounded total.
+  const days = mobileShare === undefined ? null : buildDailyRows(daily, measures, mobileShare);
+  if (days) {
+    const mobile = days.reduce((a, r) => a + (r.mobile ?? 0), 0);
+    return { ...row, day: daily.length, mobile, desktop: row.impressions - mobile };
+  }
   return { ...row, day: daily.length };
 }
 

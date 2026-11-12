@@ -15,8 +15,9 @@ import { useSession } from '@/features/session';
 import {
   buildPortfolioSummary,
   ChartCard,
+  isAwaitingSetup,
+  missingConnectors,
   PortfolioSummaryTiles,
-  primarySeries,
   useScopedCampaigns,
 } from '@/features/campaigns';
 import {
@@ -26,13 +27,13 @@ import {
   type BenchmarkScope,
 } from '@/features/benchmarks';
 import { OverviewFilters } from '../components/OverviewFilters';
-import { PrimaryKpiCard } from '../components/PrimaryKpiCard';
 import {
   applyEntityFilters,
   DEFAULT_OVERVIEW_FILTERS,
   entityFilterCount,
   OVERVIEW_ALLOWED,
 } from '../lib/overviewFilters';
+import { PrimaryKpiCard } from '../components/PrimaryKpiCard';
 import { BestCampaignCard } from '../components/BestCampaignCard';
 import { LiveCampaignsCard } from '../components/LiveCampaignsCard';
 
@@ -54,18 +55,27 @@ export function OverviewPage() {
     OVERVIEW_ALLOWED,
   );
 
+  // "All time" runs from the earliest flight to today; every other preset
+  // resolves to its own dates.
+  const allTime = filters.range === 'all';
+  const earliestFlight = useMemo(
+    () => scoped.reduce((min, c) => (c.flightStart < min ? c.flightStart : min), TODAY_ISO),
+    [scoped],
+  );
   const range = useMemo(
     () =>
-      resolveRange(
-        {
-          preset: filters.range as RangePreset,
-          from: filters.from,
-          to: filters.to,
-          seasonYear: filters.year,
-        },
-        TODAY_ISO,
-      ),
-    [filters.range, filters.from, filters.to, filters.year],
+      allTime
+        ? { start: earliestFlight, end: TODAY_ISO }
+        : resolveRange(
+            {
+              preset: filters.range as RangePreset,
+              from: filters.from,
+              to: filters.to,
+              seasonYear: filters.year,
+            },
+            TODAY_ISO,
+          ),
+    [allTime, earliestFlight, filters.range, filters.from, filters.to, filters.year],
   );
   const campaigns = useMemo(
     () => applyEntityFilters(scoped, filters, isInternal),
@@ -74,19 +84,33 @@ export function OverviewPage() {
   const summary = useMemo(() => buildPortfolioSummary(campaigns, TODAY, range), [campaigns, range]);
   // The same window a year earlier, for the year-over-year comparison.
   const previous = useMemo(
-    () => (filters.yoy ? buildPortfolioSummary(campaigns, TODAY, previousYear(range)) : undefined),
-    [filters.yoy, campaigns, range],
+    () =>
+      filters.yoy && !allTime
+        ? buildPortfolioSummary(campaigns, TODAY, previousYear(range))
+        : undefined,
+    [filters.yoy, allTime, campaigns, range],
   );
-  // Setup gaps are campaign-management info — shown to Klea seats only, as on
-  // the Campaigns list — and counted on the same entity-filtered set, so the
-  // tile never disagrees with the list a click away.
-  const awaitingSetup = useMemo(() => campaigns.filter((c) => !primarySeries(c)).length, [campaigns]);
+  // Setup gaps are campaign-management info — shown to Klea seats only. They
+  // describe the campaigns themselves, so they follow the client/account/country
+  // filters but not the period, and each tile links to the Campaigns list with
+  // the same filters carried over (campaigns' lib/setup), so the number and the
+  // list behind it agree.
+  const awaitingSetup = useMemo(() => campaigns.filter(isAwaitingSetup).length, [campaigns]);
+  const noConnector = useMemo(
+    () => campaigns.reduce((sum, c) => sum + missingConnectors(c), 0),
+    [campaigns],
+  );
+  const carry = {
+    company: isInternal ? filters.companyFilter : undefined,
+    account: isInternal ? filters.accountFilter : undefined,
+    country: filters.countryFilter,
+  };
   const companyIds = useMemo(() => [...new Set(scoped.map((c) => c.companyId))], [scoped]);
   const singleCompanyId = companyIds.length === 1 ? companyIds[0] : undefined;
 
-  // Benchmarks are cross-tenant and keyed by flight, not by salesperson or
-  // campaign manager — so they follow the period and the country, and the
-  // other filters visibly don't apply (see the note above the benchmark charts).
+  // Benchmarks are cross-tenant and keyed by flight, not by client or account —
+  // so they follow the period and the country, and the other filters visibly
+  // don't apply (see the note above the benchmark charts).
   const benchmarkScope = useMemo<BenchmarkScope>(
     () => ({ range, markets: parseSelection(filters.countryFilter) }),
     [range, filters.countryFilter],
@@ -128,8 +152,10 @@ export function OverviewPage() {
         ) : (
           <EmptyState
             icon={<LayoutDashboard size={32} />}
-            title={t('overview.emptyFiltered.title')}
-            body={t('overview.emptyFiltered.body')}
+            title={t('overview.emptyPeriod.title')}
+            body={t('overview.emptyPeriod.body', {
+              range: fmtDateRange(range.start, range.end, true),
+            })}
           />
         )
       ) : (
@@ -141,6 +167,9 @@ export function OverviewPage() {
             showImpressions
             allImpressions
             awaitingSetup={isInternal ? awaitingSetup : undefined}
+            awaitingSetupTo={paths.campaignsBySetup('awaiting', carry)}
+            noConnector={isInternal ? noConnector : undefined}
+            noConnectorTo={paths.campaignsBySetup('noConnector', carry)}
             showEngagement
           />
 

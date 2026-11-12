@@ -1,3 +1,4 @@
+import { parseSelection } from '@/lib/selection';
 import type { BenchmarkCampaign, BenchmarkCreative } from '@/types';
 
 /**
@@ -393,8 +394,14 @@ export const sliceLabel = (c: BenchmarkCampaign, dim: SliceDim): string | null =
 
 export interface SlicePart {
   dim: SliceDim;
+  /** One bucket, or several joined by a comma (see lib/selection) — "DE,AT" is
+   *  Germany and Austria together, a group of buckets treated as one. */
   value: string;
 }
+
+/** Whether a campaign sits in any of the buckets a cut names. */
+export const partMatches = (c: BenchmarkCampaign, p: SlicePart): boolean =>
+  parseSelection(p.value).includes(sliceKey(c, p.dim));
 
 /** Stats for the campaigns sitting in every given bucket at once (industry ×
  *  market = one bucket per pair). `excludeId` leaves the campaign — or, for a
@@ -410,7 +417,7 @@ export function sliceStats(
 ): MetricStats {
   const excluded = (id: string) => (typeof excludeId === 'string' ? id === excludeId : !!excludeId?.has(id));
   return statsFor(
-    withinWindow(pool, now, scope).filter((c) => !excluded(c.id) && parts.every((p) => sliceKey(c, p.dim) === p.value))
+    withinWindow(pool, now, scope).filter((c) => !excluded(c.id) && parts.every((p) => partMatches(c, p)))
   );
 }
 

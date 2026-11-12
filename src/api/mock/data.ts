@@ -189,9 +189,8 @@ function briefFor(
 function buildCampaign(s: CampaignSeed): Campaign {
   const company = companies.find((c) => c.id === s.companyId)!;
   const dates = daysBetween(s.flightStart, s.flightEnd);
-  // What the campaign actually ran: all of its flight, or only the days up to
-  // the pause for a paused one.
-  const ranDates = s.pausedOn ? dates.filter((d) => d <= s.pausedOn!) : dates;
+  // What the campaign actually ran: all of its flight.
+  const ranDates = dates;
   const rand = rng(s.seed);
   const missing = new Set(s.missingSources ?? []);
   const tracksConversions = s.seed % 2 === 1;
@@ -413,8 +412,6 @@ function withDelivery(c: Campaign): Campaign {
   const end = new Date(c.flightEnd).getTime() + day;
   const elapsed = Math.min(Math.max((TODAY.getTime() - start) / (end - start), 0), 1);
   const delivered = deliveryPacing(c);
-  // A paused campaign isn't pacing — it has stopped, so it gets no on-track/behind verdict.
-  if (c.status === 'paused') return { ...c, delivery: { health: null, expectedPacing: elapsed || null } };
   if (delivered == null || elapsed === 0)
     return { ...c, delivery: { health: null, expectedPacing: elapsed ? elapsed : null } };
   const ratio = delivered / elapsed;

@@ -36,7 +36,7 @@ src/
 │   │                       made clickable via `onRowClick`)
 │   ├── page/               Page, PageHeader, BackLink, SectionTitle, NotFoundState,
 │   │                       ListToolbar, SearchInput, FilterSelect, FilterMultiSelect,
-│   │                       DateFilter, FilterSheet (slide-in tray), Toolbar buttons
+│   │                       FilterSheet (slide-in tray), Toolbar buttons
 │   ├── display/            StatTile/SummaryTile/StatGrid, ItemCard, ListItemButton,
 │   │                       ReadOnlyRow/SettingRow/ListRow, DeltaValue, TextLink, …
 │   ├── feedback/           LoadingState, ErrorState, EmptyState/EmptyText, ConfirmDialog

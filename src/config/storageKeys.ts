@@ -20,11 +20,12 @@ export const STORAGE_KEYS = {
   notifInboxInvitations: 'brame-prototype-notif-inbox-invitations',
   inboxState: 'brame-prototype-inbox-state',
   recentPages: 'brame-prototype-recent-pages',
+  overviewFilters: 'brame-prototype-overview-filters',
   campaignsFilters: 'brame-prototype-campaigns-filters',
   campaignsColumns: 'brame-prototype-campaigns-columns-v2',
-  overviewFilters: 'brame-prototype-overview-filters',
   clientsFilters: 'brame-prototype-clients-filters',
   trendMetrics: 'brame-prototype-trend-metrics',
+  benchmarkSubject: 'brame-prototype-benchmark-subject',
   benchmarkCompare: 'brame-prototype-benchmark-compare',
   overviewCharts: 'brame-prototype-overview-charts',
 } as const;

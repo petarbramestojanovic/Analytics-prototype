@@ -7,6 +7,7 @@ import type { Campaign, SourceKey } from '@/types';
 import { DailyTrendCard } from '../../components/DailyTrendCard';
 import { DailyMetricsTable } from '../../components/DailyMetricsTable';
 import { buildDailyRows, totalDailyRow } from '../../lib/dailyMetrics';
+import { deviceSplit } from '../../lib/devices';
 import { sourceMeta } from '../../lib/sources';
 
 /** The Daily tab: one source's day-by-day numbers, exportable. Per source on
@@ -16,13 +17,14 @@ export function DailyView({ campaign, source }: { campaign: Campaign; source: So
   const { isInternal } = useSession();
   const meta = sourceMeta(campaign, source);
   const series = campaign.sources[source];
+  const share = useMemo(() => deviceSplit(campaign)?.mobile, [campaign]);
   const rows = useMemo(
-    () => buildDailyRows(series?.daily ?? [], meta.measures),
-    [series, meta.measures],
+    () => buildDailyRows(series?.daily ?? [], meta.measures, share),
+    [series, meta.measures, share],
   );
   const total = useMemo(
-    () => totalDailyRow(series?.daily ?? [], meta.measures),
-    [series, meta.measures],
+    () => totalDailyRow(series?.daily ?? [], meta.measures, share),
+    [series, meta.measures, share],
   );
   const sourceLabel = t(`connectors.source.${meta.key}`);
 
@@ -32,7 +34,11 @@ export function DailyView({ campaign, source }: { campaign: Campaign; source: So
       <Card>
         <DailyMetricsTable
           title={t('daily.title')}
-          hint={isInternal ? t('daily.hint', { count: rows.length, source: sourceLabel }) : t('daily.hintClient', { count: rows.length })}
+          hint={
+            isInternal
+              ? t('daily.hint', { count: rows.length, source: sourceLabel })
+              : t('daily.hintClient', { count: rows.length })
+          }
           rows={rows}
           total={total}
           sourceLabel={sourceLabel}

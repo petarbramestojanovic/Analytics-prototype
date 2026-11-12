@@ -30,8 +30,6 @@ export interface CampaignSeed {
   primarySource: SourceKey;
   flightStart: string;
   flightEnd: string;
-  /** Paused campaigns only: the last day it delivered before it was paused. */
-  pausedOn?: string;
   dailyImpressions: number;
   viewability: number;
   engagementRate: number;
@@ -94,11 +92,10 @@ export const seeds: CampaignSeed[] = [
     salesforceId: '006Qy00000ALm51IAB',
     name: 'Swisscom blue Play',
     companyId: 'c-swisscom',
-    status: 'paused',
+    status: 'live',
     primarySource: 'nexd',
     flightStart: '2026-10-07',
     flightEnd: '2026-11-19',
-    pausedOn: '2026-10-21',
     dailyImpressions: 158_000,
     viewability: 0.87,
     engagementRate: 0.048,
@@ -292,11 +289,10 @@ export const seeds: CampaignSeed[] = [
     name: 'Denner Frische-Offensive',
     companyId: 'c-denner',
     accountId: 'ag-groupm',
-    status: 'paused',
+    status: 'live',
     primarySource: 'custom',
     flightStart: '2026-09-29',
     flightEnd: '2026-12-09',
-    pausedOn: '2026-10-18',
     dailyImpressions: 58_000,
     viewability: 0.7,
     engagementRate: 0.06,
@@ -470,11 +466,10 @@ export const seeds: CampaignSeed[] = [
     salesforceId: '006Qy00000ALmL1IAB',
     name: 'Nestlé KitKat Break',
     companyId: 'c-nestle',
-    status: 'paused',
+    status: 'live',
     primarySource: 'atk',
     flightStart: '2026-10-01',
     flightEnd: '2026-11-29',
-    pausedOn: '2026-10-22',
     dailyImpressions: 128_000,
     viewability: 0.79,
     engagementRate: 0.048,
@@ -792,7 +787,6 @@ function volumeSeeds(): CampaignSeed[] {
   const DAY = 86_400_000;
 
   const out: CampaignSeed[] = [];
-  let pausableLive = 0;
   // Three campaigns per industry × market, then a few more on the busiest cells.
   const plan: { industry: string; market: string; source: SourceKey }[] = [];
   for (const industry of industries)
@@ -808,20 +802,14 @@ function volumeSeeds(): CampaignSeed[] {
     const length = 14 + Math.floor(rand() * 29);
     let start: number;
     let status: Campaign['status'];
-    let pausedOn: string | undefined;
     // A flight that starts in the future has no status of its own (there is
     // no "scheduled"), so it is left out. Its random draws are still taken, so
     // every other generated campaign stays exactly as it was.
     let future = false;
     if (roll < 0.28) {
-      // Running today — except every fifth one that has been going a while,
-      // which was paused part-way through and keeps the history it delivered.
+      // Running today.
       start = TODAY_MS - (2 + Math.floor(rand() * (length - 4))) * DAY;
       status = 'live';
-      if (TODAY_MS - start >= 7 * DAY && pausableLive++ % 5 === 0) {
-        status = 'paused';
-        pausedOn = iso(start + Math.floor(((TODAY_MS - start) / DAY) * 0.6) * DAY);
-      }
     } else if (roll < 0.33) {
       start = TODAY_MS + (3 + Math.floor(rand() * 30)) * DAY;
       status = 'ended';
@@ -845,7 +833,6 @@ function volumeSeeds(): CampaignSeed[] {
       primarySource: source,
       flightStart: iso(start),
       flightEnd: iso(end),
-      ...(pausedOn && { pausedOn }),
       dailyImpressions,
       viewability: Math.round((0.68 + rand() * 0.22) * 1000) / 1000,
       engagementRate: Math.round((INDUSTRY_ENGAGEMENT[industry] ?? 0.05) * MARKET_ENGAGEMENT[market] * (0.8 + rand() * 0.4) * 10_000) / 10_000,

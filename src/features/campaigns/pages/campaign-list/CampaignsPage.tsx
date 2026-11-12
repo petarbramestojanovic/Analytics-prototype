@@ -21,7 +21,6 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { ALL, matchesSelection, parseSelection, serializeSelection } from '@/lib/selection';
 import { exportToXlsx } from '@/lib/exportXlsx';
-import { fmtCompact } from '@/lib/format';
 import { codecs } from '@/lib/storage';
 import { matchesQuery } from '@/lib/text';
 import { Avatar, Button, Card, Collapse, Tabs } from '@/components/ui';
@@ -32,6 +31,7 @@ import {
   FilterField,
   FilterSheet,
   FilterMultiSelect,
+  FilterSelect,
   FilterToggleButton,
   ListToolbar,
   Page,
@@ -42,7 +42,6 @@ import {
   ToolbarResetButton,
 } from '@/components/page';
 import { ColumnVisibilityMenu, DataTable } from '@/components/table';
-import { StatGrid, SummaryTile } from '@/components/display';
 import { useSession } from '@/features/session';
 import type { Campaign } from '@/types';
 import { useScopedCampaigns } from '../../hooks/useScopedCampaigns';
@@ -56,7 +55,7 @@ import {
   personOptions,
 } from '../../lib/filterOptions';
 import { totalsInRange } from '../../lib/portfolio';
-import { primarySeries, SOURCE_KEYS } from '../../lib/sources';
+import { matchesSetup, SETUP_FILTERS, type SetupFilter } from '../../lib/setup';
 import {
   campaignExportColumns,
   useCampaignColumns,
@@ -64,7 +63,7 @@ import {
 } from './campaignColumns';
 import { SORT_ONLY_COLUMNS } from './sortOnlyColumns';
 
-const STATUS_FILTERS = ['all', 'live', 'paused', 'ended'] as const satisfies readonly (
+const STATUS_FILTERS = ['all', 'live', 'ended'] as const satisfies readonly (
   'all' | Campaign['status']
 )[];
 type StatusFilter = (typeof STATUS_FILTERS)[number];
@@ -80,6 +79,9 @@ const DEFAULT_FILTERS = {
   categoryFilter: 'all',
   salesFilter: 'all',
   managerFilter: 'all',
+  // A setup gap (internal only): 'all', 'awaiting' or 'noConnector' — what the
+  // Overview's setup tiles link to.
+  setupFilter: 'all' as SetupFilter,
   // The period works as on the Overview: 'all' (no period) or a preset, with
   // custom bounds in `from`/`to` (YYYY-MM-DD) and a calendar year for the
   // seasonal presets. `yoy` is only there because the shared picker's state has it.
@@ -119,6 +121,7 @@ export function CampaignsPage() {
     {
       statusFilter: STATUS_FILTERS,
       range: RANGE_ALLOWED,
+      setupFilter: SETUP_FILTERS,
     },
   );
   const {
@@ -130,6 +133,7 @@ export function CampaignsPage() {
     categoryFilter,
     salesFilter,
     managerFilter,
+    setupFilter,
   } = filters;
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Which columns are shown is a personal preference, not part of a shared
@@ -168,6 +172,7 @@ export function CampaignsPage() {
           (statusFilter === 'all' || c.status === statusFilter) &&
           // As on the Overview, a period keeps the campaigns that delivered in it.
           (!periodActive || totalsInRange(c, range) !== null) &&
+          (!isInternal || matchesSetup(setupFilter, c)) &&
           (!isInternal || matchesSelection(companyFilter, c.companyId)) &&
           (!isInternal || matchesSelection(countryFilter, c.salesforce.market)) &&
           (!isInternal || matchesSelection(accountFilter, c.accountId ?? DIRECT_ACCOUNT_KEY)) &&
@@ -181,6 +186,7 @@ export function CampaignsPage() {
       periodActive,
       range,
       isInternal,
+      setupFilter,
       companyFilter,
       countryFilter,
       accountFilter,
@@ -288,7 +294,8 @@ export function CampaignsPage() {
   const activePanelFilters = (isInternal ? panelFilters : []).filter(
     (f) => filters[f.key] !== 'all',
   );
-  const activeFilterCount = activePanelFilters.length;
+  const setupActive = isInternal && setupFilter !== 'all';
+  const activeFilterCount = activePanelFilters.length + Number(setupActive);
 
   /** One chip per filter, already labelled ("Sales"): the value itself when
    *  there is one, otherwise just how many are picked — with up to three
@@ -356,17 +363,6 @@ export function CampaignsPage() {
   // instead of ballooning its rows.
   const fillsPage = table.getRowModel().rows.length >= table.getState().pagination.pageSize;
 
-  // The tiles describe exactly what the list shows: every filter (status,
-  // period, search, the panel dropdowns) narrows them, never just "live".
-  const shown = table.getFilteredRowModel().rows.map((r) => r.original);
-  const shownImpressions = shown.reduce(
-    (sum, c) =>
-      sum +
-      (periodActive
-        ? (totalsInRange(c, range)?.impressions ?? 0)
-        : (primarySeries(c)?.totals.impressions ?? 0)),
-    0,
-  );
   const exportRows = () =>
     exportToXlsx(
       'campaigns.xlsx',
@@ -390,26 +386,6 @@ export function CampaignsPage() {
           </Button>
         }
       />
-
-      <StatGrid>
-        <SummaryTile label={t('campaigns.tile.all')} value={String(shown.length)} />
-        <SummaryTile label={t('campaigns.tile.impressions')} value={fmtCompact(shownImpressions)} />
-        {/* Setup and connector gaps are campaign-management info, not for clients. */}
-        {isInternal && (
-          <>
-            <SummaryTile
-              label={t('campaigns.tile.awaitingSetup')}
-              value={String(shown.filter((c) => !primarySeries(c)).length)}
-            />
-            <SummaryTile
-              label={t('campaigns.tile.noConnector')}
-              value={String(
-                shown.reduce((a, c) => a + SOURCE_KEYS.filter((s) => !c.sources[s]).length, 0),
-              )}
-            />
-          </>
-        )}
-      </StatGrid>
 
       <>
         <Card padded={false} className={fillsPage ? 'flex flex-1 flex-col' : undefined}>
@@ -465,6 +441,15 @@ export function CampaignsPage() {
 
           <Collapse open={!filtersOpen && activeFilterCount > 0}>
             <ActiveFilterChips>
+              {setupActive && (
+                <FilterChip
+                  label={t('campaigns.filter.label.setup')}
+                  removeLabel={t('campaigns.filter.remove')}
+                  onRemove={() => setFilter({ setupFilter: 'all' })}
+                >
+                  {t(`campaigns.filter.setup.${setupFilter}`)}
+                </FilterChip>
+              )}
               {activePanelFilters.map((f) => (
                 <FilterChip
                   key={f.key}
@@ -518,6 +503,19 @@ export function CampaignsPage() {
             </>
           }
         >
+          {isInternal && (
+            <FilterField label={t('campaigns.filter.label.setup')}>
+              <FilterSelect
+                className="w-full"
+                value={setupFilter}
+                onChange={(v) => setFilter({ setupFilter: v as SetupFilter })}
+                options={SETUP_FILTERS.map((value) => ({
+                  value,
+                  label: t(`campaigns.filter.setup.${value}`),
+                }))}
+              />
+            </FilterField>
+          )}
           {isInternal &&
             panelFilters.map((f) => (
               <FilterField key={f.key} label={f.label}>

@@ -144,9 +144,8 @@ interface Money {
   currency: 'CHF' | 'EUR';
 }
 
-/** `paused` is set in Salesforce (it can't be derived from the data); `live`
- *  and `ended` follow the flight. `archived` is hidden from every list. */
-export type CampaignStatus = 'live' | 'paused' | 'ended' | 'archived';
+/** `live` and `ended` follow the flight. `archived` is hidden from every list. */
+export type CampaignStatus = 'live' | 'ended' | 'archived';
 
 export interface Campaign {
   /** Our UUID stays the primary key (RFC §5). */

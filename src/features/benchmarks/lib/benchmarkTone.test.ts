@@ -25,7 +25,7 @@ describe('benchmarkTone', () => {
 
   it('has no colour when the average rests on a single campaign (the value itself)', () => {
     expect(benchmarkTone(0.0086, 0.0086, 1)).toBeNull();
-    expect(benchmarkTone(0.0070, 0.0090, 2)).toBe('below');
+    expect(benchmarkTone(0.007, 0.009, 2)).toBe('below');
   });
 
   it('has no colour without a benchmark or a value', () => {

@@ -82,7 +82,7 @@ export function DailyMetricsTable({
 
   // Conversions only get a column on campaigns that track them.
   const hasConversions = rows.some((r) => r.conversions != null);
-  // Mobile / Desktop only where the rows carry a device split (creatives).
+  // Mobile / Desktop only where the rows carry a device split.
   const hasDevices = rows.some((r) => r.mobile != null);
   const columns: ColumnId[] = [
     'engagements',

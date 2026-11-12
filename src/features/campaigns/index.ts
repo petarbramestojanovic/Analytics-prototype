@@ -16,8 +16,9 @@ export {
 export { deliveryPacing } from './lib/delivery';
 export { deviceSplit } from './lib/devices';
 export { buildGoalGroups } from './lib/goal';
-export { buildPortfolioSummary, totalsInRange, type DateRange, type PortfolioSummary } from './lib/portfolio';
-export { companyOptions, marketOptions, personOptions } from './lib/filterOptions';
+export { buildPortfolioSummary, type DateRange, type PortfolioSummary } from './lib/portfolio';
+export { isAwaitingSetup, missingConnectors } from './lib/setup';
+export { accountOptions, companyOptions, DIRECT_ACCOUNT_KEY, marketOptions } from './lib/filterOptions';
 
 export { CampaignNameCell } from './components/CampaignNameCell';
 export { CampaignStatusPill } from './components/CampaignStatusPill';
@@ -27,5 +28,4 @@ export { LivePill } from './components/FreshnessBar';
 export { MetricTile } from './components/MetricTile';
 export { MetricValueCell } from './components/MetricValueCell';
 export { PortfolioSummaryTiles } from './components/PortfolioSummaryTiles';
-export { PersonLabel } from './components/PersonLabel';
 export { type BenchmarkValues } from './components/TrendChart';

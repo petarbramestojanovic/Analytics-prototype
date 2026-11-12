@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { BarChart3 } from 'lucide-react';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
+import { useListFilters } from '@/hooks/useListFilters';
+import { ALL, parseSelection, serializeSelection } from '@/lib/selection';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Tabs } from '@/components/ui';
+import { FilterMultiSelect } from '@/components/page';
 import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader } from '@/components/page';
 import { useBenchmarkCreatives, useBenchmarkPool } from '@/api/hooks/useBenchmarks';
@@ -18,19 +20,25 @@ import { ViewsMenu } from '../components/ViewsMenu';
 import { MechanicsView } from '../components/MechanicsView';
 import type { BenchmarkCampaign } from '@/types';
 import type { BenchmarkView } from '../lib/benchmarkView';
+import { SLICE_DIMS, sliceKey, sliceLabel, type SliceDim, type SlicePart } from '../lib/benchmarks';
+import { bucketName } from '../lib/compareLabels';
 import {
-  findSubject,
+  campaignSubjects,
+  campaignsWhere,
+  findCampaign,
+  findSegment,
   parseSubjectKind,
   SUBJECT_KINDS,
-  subjectsOf,
   type SubjectKind,
 } from '../lib/compareSubject';
 import {
   defaultCharts,
   defaultColumns,
+  DEFAULT_SUBJECT,
   defaultState,
   sanitizeState,
   type CompareState,
+  type SubjectState,
 } from '../lib/compareViews';
 
 type PoolView = Extract<BenchmarkView, 'compare' | 'mechanics'>;
@@ -62,39 +70,43 @@ const defaultCampaign = (pool: BenchmarkCampaign[]) => {
   );
 };
 
-/** The URL param each kind keeps its pick in. `campaign` is the original one,
- *  so older links still open the same comparison. */
-const PICK_PARAM: Record<SubjectKind, string> = {
-  campaign: 'campaign',
-  client: 'client',
-  industry: 'industry',
-};
+/** What is being compared — kept in the URL (a link opens the same comparison)
+ *  and in localStorage (leaving the page or reloading brings it back). A
+ *  segment's cuts use the cut's own name as the key, so `market=DE,AT` is Germany
+ *  and Austria together; `all` = no narrowing, as on the Campaigns list. */
+const SUBJECT_DEFAULTS = { ...DEFAULT_SUBJECT, kind: 'campaign' as string };
+// `client` and `industry` are what links from before segments carry.
+const SUBJECT_ALLOWED = { kind: ['campaign', 'segment', 'client', 'industry'] };
 
 function CompareBody() {
   const { t } = useI18n();
   const { data: pool, isLoading, isError, refetch } = useBenchmarkPool();
-  const [params, setParams] = useSearchParams();
+  const { filters, setFilter } = useListFilters(
+    STORAGE_KEYS.benchmarkSubject,
+    SUBJECT_DEFAULTS,
+    SUBJECT_ALLOWED,
+  );
   const [state, setState] = usePersistentState<CompareState>(
     STORAGE_KEYS.benchmarkCompare,
     defaultState,
     { parse: (raw) => sanitizeState(JSON.parse(raw)), serialize: (v) => JSON.stringify(v) },
   );
 
-  const kind = parseSubjectKind(params.get('kind'));
+  const kind = parseSubjectKind(filters.kind);
+  const cuts: SlicePart[] = SLICE_DIMS.flatMap((dim) =>
+    filters[dim] === ALL ? [] : [{ dim, value: filters[dim] }],
+  );
 
-  const options = useMemo(
+  const campaignOptions = useMemo(
     () =>
-      subjectsOf(pool ?? [], kind)
+      campaignSubjects(pool ?? [])
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((x) => ({
           value: x.id,
           label: x.name,
-          description:
-            kind === 'campaign'
-              ? `${x.subtitle} · ${x.campaigns[0].market}`
-              : `${x.subtitle ? `${x.subtitle} · ` : ''}${t('cmp.matrix.sampleValue', { n: x.campaigns.length })}`,
+          description: `${x.subtitle} · ${x.campaigns[0].market}`,
         })),
-    [pool, kind, t],
+    [pool],
   );
 
   if (isLoading) return <PageSkeleton variant="list" />;
@@ -109,40 +121,49 @@ function CompareBody() {
     );
   }
 
-  // What is compared lives in the URL, so a link opens the same comparison.
-  // Without a (valid) pick, the first sensible one of that kind is shown.
-  const wanted = params.get(PICK_PARAM[kind]);
-  const fallback = () => {
-    if (kind === 'campaign') {
-      const c = defaultCampaign(pool);
-      return c ? findSubject(pool, 'campaign', c.id) : null;
-    }
-    // The biggest client / industry, so the first view has a real sample.
-    const biggest = subjectsOf(pool, kind).sort(
-      (a, b) => b.campaigns.length - a.campaigns.length,
-    )[0];
-    return biggest ?? null;
+  // Without a (valid) campaign, the newest complete one is shown.
+  const subject =
+    kind === 'campaign'
+      ? (findCampaign(pool, filters.campaign) ??
+        findCampaign(pool, defaultCampaign(pool)?.id ?? null))
+      : findSegment(pool, cuts);
+
+  // What a saved view remembers: the campaign actually on screen (even when it
+  // is the default one), or the segment's cuts.
+  const currentSubject: SubjectState = {
+    kind,
+    campaign: subject?.kind === 'campaign' ? subject.id : filters.campaign,
+    industry: filters.industry,
+    market: filters.market,
+    client: filters.client,
+    account: filters.account,
   };
-  const subject = findSubject(pool, kind, wanted) ?? fallback();
-  const pick = (id: string) =>
-    setParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        next.set(PICK_PARAM[kind], id);
-        return next;
-      },
-      { replace: true },
-    );
-  const switchKind = (next: SubjectKind) =>
-    setParams(
-      (prev) => {
-        const params = new URLSearchParams(prev);
-        if (next === 'campaign') params.delete('kind');
-        else params.set('kind', next);
-        return params;
-      },
-      { replace: true },
-    );
+  const pickCampaign = (id: string) => setFilter({ campaign: id });
+  const setCut = (dim: SliceDim, values: string[]) =>
+    setFilter({ [dim]: serializeSelection(values) });
+  const switchKind = (to: SubjectKind) => {
+    // A first visit to Segment starts from the client with the most campaigns,
+    // so there is a real sample to show; clear it to compare against all of KLEA.
+    if (to === 'segment' && !cuts.length && filters.kind === 'campaign') {
+      const counts = new Map<string, number>();
+      for (const c of pool) counts.set(c.companyId, (counts.get(c.companyId) ?? 0) + 1);
+      const [biggest] = [...counts].sort((a, b) => b[1] - a[1])[0] ?? [];
+      setFilter({ kind: to, ...(biggest && { client: biggest }) });
+      return;
+    }
+    setFilter({ kind: to });
+  };
+
+  /** Options for one cut: the values among campaigns that match the other cuts —
+   *  so a combination is never a dead end — keeping the current pick. */
+  const cutOptions = (dim: SliceDim) => {
+    const others = cuts.filter((c) => c.dim !== dim);
+    const labels = new Map<string, string | null>();
+    for (const c of campaignsWhere(pool, others)) labels.set(sliceKey(c, dim), sliceLabel(c, dim));
+    return [...labels]
+      .map(([value, label]) => ({ value, label: bucketName(t, label) }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  };
 
   return (
     <div>
@@ -156,20 +177,42 @@ function CompareBody() {
           groupLabel={t('cmp.subject.label')}
           options={SUBJECT_KINDS.map((value) => ({ value, label: t(`cmp.subject.${value}`) }))}
         />
-        <CampaignAutocomplete
-          // A fresh field per kind, so a half-typed search doesn't carry over.
-          key={kind}
-          value={subject?.id ?? null}
-          onChange={pick}
-          options={options}
-          label={t(`cmp.subject.${kind}`)}
-          placeholder={t(`cmp.subject.placeholder.${kind}`)}
-          noneLabel={t(`cmp.subject.none.${kind}`)}
-        />
+        {kind === 'campaign' ? (
+          <CampaignAutocomplete
+            value={subject?.id ?? null}
+            onChange={pickCampaign}
+            options={campaignOptions}
+            label={t('cmp.subject.campaign')}
+            placeholder={t('cmp.subject.placeholder.campaign')}
+            noneLabel={t('cmp.subject.none.campaign')}
+          />
+        ) : (
+          <>
+            {SLICE_DIMS.map((dim) => (
+              <FilterMultiSelect
+                key={dim}
+                className="w-48"
+                values={parseSelection(filters[dim])}
+                onChange={(v) => setCut(dim, v)}
+                allLabel={t(`cmp.segment.any.${dim}`)}
+                options={cutOptions(dim)}
+              />
+            ))}
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {subject
+                ? t('cmp.matrix.sampleValue', { n: subject.campaigns.length })
+                : t('cmp.segment.none')}
+            </span>
+          </>
+        )}
         <div className="ml-auto">
           <ViewsMenu
             views={state.views}
-            onLoad={(v) => setState((s) => ({ ...s, columns: v.columns, charts: v.charts }))}
+            onLoad={(v) => {
+              setState((s) => ({ ...s, columns: v.columns, charts: v.charts }));
+              // The view is about something — bring that back too.
+              if (v.subject) setFilter(v.subject);
+            }}
             onSave={(name) =>
               setState((s) => ({
                 ...s,
@@ -178,6 +221,7 @@ function CompareBody() {
                   {
                     id: `v-${Date.now().toString(36)}`,
                     name,
+                    subject: currentSubject,
                     columns: s.columns,
                     charts: s.charts,
                   },
@@ -187,9 +231,10 @@ function CompareBody() {
             onDelete={(id) =>
               setState((s) => ({ ...s, views: s.views.filter((v) => v.id !== id) }))
             }
-            onReset={() =>
-              setState((s) => ({ ...s, columns: defaultColumns(), charts: defaultCharts() }))
-            }
+            onReset={() => {
+              setState((s) => ({ ...s, columns: defaultColumns(), charts: defaultCharts() }));
+              setFilter(DEFAULT_SUBJECT);
+            }}
           />
         </div>
       </div>

@@ -45,7 +45,7 @@ const HEADER_KEY: Record<string, string> = {
 };
 
 /** Lifecycle order, not alphabetical — "Live" first reads as the useful sort. */
-const STATUS_ORDER: CampaignStatus[] = ['live', 'paused', 'ended', 'archived'];
+const STATUS_ORDER: CampaignStatus[] = ['live', 'ended', 'archived'];
 
 const accountLabel = (c: Campaign, t: TranslateFn) =>
   c.accountName ?? t('campaigns.account.direct');

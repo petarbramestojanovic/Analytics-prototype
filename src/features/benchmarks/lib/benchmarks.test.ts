@@ -90,7 +90,9 @@ describe('rankBuckets', () => {
       ),
     ];
     const q4 = { range: { start: '2026-10-01', end: '2026-12-31' } };
-    expect(rankBuckets(pool, NOW, 'market', 'engagementRate', q4).map((r) => r.key)).toEqual(['AT']);
+    expect(rankBuckets(pool, NOW, 'market', 'engagementRate', q4).map((r) => r.key)).toEqual([
+      'AT',
+    ]);
     expect(
       rankBuckets(pool, NOW, 'market', 'engagementRate', { markets: ['DE'] }).map((r) => r.key),
     ).toEqual(['DE']);

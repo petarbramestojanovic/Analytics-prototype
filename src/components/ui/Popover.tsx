@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 const MARGIN = 8;
 
 /**
- * A panel that opens under its trigger and closes on outside click or Escape.
+ * A panel that opens under its trigger (or above, or slid up to fit) and closes on outside click or Escape.
  * Unlike a dropdown menu it can hold any content (chips, inputs, a calendar),
  * so it stays open while you interact inside it; `children` receives `close`
  * for the controls that should dismiss it.
@@ -46,10 +46,15 @@ export function Popover({
     // there is room above, as when the trigger is in the last card of a page.
     const below = rect.bottom + MARGIN;
     const height = panel.offsetHeight;
-    const top =
-      below + height > window.innerHeight - MARGIN && rect.top - MARGIN - height >= MARGIN
+    const fitsBelow = below + height <= window.innerHeight - MARGIN;
+    const fitsAbove = rect.top - MARGIN - height >= MARGIN;
+    // Neither side has room (a tall trigger low on the page): slide the panel up
+    // over it so it ends at the bottom of the window, never past it.
+    const top = fitsBelow
+      ? below
+      : fitsAbove
         ? rect.top - MARGIN - height
-        : below;
+        : Math.max(MARGIN, window.innerHeight - MARGIN - height);
     setPos((prev) => (prev && prev.top === top && prev.left === left ? prev : { top, left }));
   };
 

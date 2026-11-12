@@ -86,6 +86,7 @@ const GRID_COLUMNS = {
   4: 'grid-cols-2 lg:grid-cols-4',
   5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
   6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
+  7: 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-7',
 } as const;
 
 /** The responsive row summary tiles sit in at the top of a page. */

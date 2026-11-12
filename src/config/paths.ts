@@ -12,6 +12,18 @@ export const paths = {
 
   overview: '/overview',
   campaigns: '/campaigns',
+  /** The campaigns list narrowed to one setup gap (see campaigns' lib/setup). */
+  campaignsBySetup: (
+    setup: 'awaiting' | 'noConnector',
+    /** Entity filters to carry over (the Campaigns list's own keys), so the list
+     *  shows exactly the campaigns a filtered tile counted. */
+    carry: { company?: string; account?: string; country?: string } = {},
+  ) => {
+    const params = new URLSearchParams({ setup });
+    for (const [key, value] of Object.entries(carry))
+      if (value && value !== 'all') params.set(key, value);
+    return `/campaigns?${params}`;
+  },
   campaign: (id: string) => `/campaigns/${id}`,
   reports: '/reports',
   inbox: '/inbox',
@@ -23,7 +35,8 @@ export const paths = {
     const qs = new URLSearchParams(params as Record<string, string> | undefined).toString();
     return qs ? `/benchmarks?${qs}` : '/benchmarks';
   },
-  benchmarkGroup: (dimension: string, key: string) => `/benchmarks/${dimension}/${encodeURIComponent(key)}`,
+  benchmarkGroup: (dimension: string, key: string) =>
+    `/benchmarks/${dimension}/${encodeURIComponent(key)}`,
   clients: '/admin/clients',
   client: (id: string) => `/admin/clients/${id}`,
   // Alerts sit on two levels, each with an overview and a detail page: the
@@ -33,7 +46,8 @@ export const paths = {
   alertRules: '/admin/alerts/rules',
   alertRule: (id: string) => `/admin/alerts/rules/${id}`,
 
-  setup: (campaignId?: string) => (campaignId ? `/admin/setup?campaign=${campaignId}` : '/admin/setup'),
+  setup: (campaignId?: string) =>
+    campaignId ? `/admin/setup?campaign=${campaignId}` : '/admin/setup',
   connectors: '/admin/connectors',
   seats: (seatId?: string) => (seatId ? `/admin/seats?seat=${seatId}` : '/admin/seats'),
 } as const;
