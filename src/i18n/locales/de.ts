@@ -392,6 +392,7 @@ export const de: Record<TranslationKey, string> = {
   'campaigns.sort.name': 'Name',
   'campaigns.col.company': 'Kunde',
   'campaigns.col.account': 'Account',
+  'campaigns.col.primarySource': 'Primärquelle',
   'campaigns.account.direct': 'Direkt',
   'campaigns.col.country': 'Land',
   'campaigns.col.category': 'Kategorie',

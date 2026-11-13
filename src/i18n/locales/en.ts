@@ -393,6 +393,7 @@ export const en = {
   'campaigns.sort.name': 'Name',
   'campaigns.col.company': 'Client',
   'campaigns.col.account': 'Account',
+  'campaigns.col.primarySource': 'Primary source',
   'campaigns.account.direct': 'Direct',
   'campaigns.col.country': 'Country',
   'campaigns.col.category': 'Category',

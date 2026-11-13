@@ -1,16 +1,19 @@
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
-import { Card, CardHeader } from '@/components/ui';
+import { usePagination } from '@/hooks/usePagination';
+import { Card, CardFooter, CardHeader } from '@/components/ui';
 import { EmptyText } from '@/components/feedback';
-import { Table, Td, Th, Tr } from '@/components/table';
+import { Pagination, Table, Td, Th, Tr } from '@/components/table';
 import { CampaignNameCell, DeliveryBar, deliveryPacing, MetricValueCell, sourceMeta } from '@/features/campaigns';
 import type { Campaign, MetricKey } from '@/types';
 
 const METRICS: MetricKey[] = ['impressions', 'ctr', 'viewability', 'engagementRate'];
+const PAGE_SIZE = 10;
 
 /** Every campaign of one client, with its headline numbers. */
 export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
   const { t } = useI18n();
+  const { paged, pagination } = usePagination(campaigns, PAGE_SIZE);
   return (
     <Card padded={false} className="mb-5">
       <CardHeader title={t('companyDetail.campaignsTitle')} hint={t('companyDetail.campaignsHint')} />
@@ -32,7 +35,7 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((c) => (
+            {paged.map((c) => (
               <Tr key={c.id} to={paths.campaign(c.id)} newTab>
                 <Td>
                   <CampaignNameCell campaign={c} newTab />
@@ -51,6 +54,11 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
             ))}
           </tbody>
         </Table>
+      )}
+      {campaigns.length > PAGE_SIZE && (
+        <CardFooter>
+          <Pagination {...pagination} />
+        </CardFooter>
       )}
     </Card>
   );

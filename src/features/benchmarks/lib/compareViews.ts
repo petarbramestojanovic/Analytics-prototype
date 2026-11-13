@@ -87,11 +87,11 @@ function cleanSubject(raw: unknown): SubjectState | undefined {
 
 const ORDER = (dims: SliceDim[]) => SLICE_DIMS.filter((d) => dims.includes(d));
 
-export const ownColumn = (dims: SliceDim[]): MatrixColumn => {
+const ownColumn = (dims: SliceDim[]): MatrixColumn => {
   const sorted = ORDER(dims);
   return { id: `own:${sorted.join('+')}`, kind: 'own', dims: sorted };
 };
-export const fixedColumn = (dim: SliceDim, value: string, label: string): MatrixColumn => ({
+const fixedColumn = (dim: SliceDim, value: string, label: string): MatrixColumn => ({
   id: `fixed:${dim}:${value}`,
   kind: 'fixed',
   dim,

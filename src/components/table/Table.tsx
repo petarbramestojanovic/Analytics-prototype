@@ -96,7 +96,7 @@ export function Th({
       scope="col"
       aria-sort={sort}
       className={cn(
-        'whitespace-nowrap border-b border-gray-200 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:text-gray-400',
+        'whitespace-nowrap border-b border-gray-200 py-2.5 text-xs font-semibold text-gray-500 dark:border-white/10 dark:text-gray-400',
         dense ? 'px-2.5' : 'px-4',
         alignClass[align],
         className

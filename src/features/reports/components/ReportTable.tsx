@@ -3,11 +3,11 @@ import { cn } from '@/lib/cn';
 import type { ReportSheet } from '../lib/reportSheets';
 
 const head =
-  'border-b border-gray-200 px-3 py-1.5 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500';
+  'border-b border-gray-200 px-3 py-1.5 text-right text-xs font-semibold text-gray-500';
 const cellCls = 'border-b border-gray-100 px-3 py-1.5 text-right tnum';
 // A table with many metric columns tightens up instead of scrolling sideways.
 const denseHead =
-  'border-b border-gray-200 px-1 py-1.5 text-right text-[9px] font-semibold uppercase tracking-tight text-gray-500';
+  'border-b border-gray-200 px-1 py-1.5 text-right text-[10px] font-semibold text-gray-500';
 const denseCell = 'border-b border-gray-100 px-1 py-1.5 text-right text-[11px] tnum';
 const DENSE_FROM = 7;
 
