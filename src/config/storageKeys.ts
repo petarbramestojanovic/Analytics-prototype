@@ -25,6 +25,7 @@ export const STORAGE_KEYS = {
   campaignsColumns: 'brame-prototype-campaigns-columns-v2',
   clientsFilters: 'brame-prototype-clients-filters',
   trendMetrics: 'brame-prototype-trend-metrics',
+  benchmarkPeriod: 'brame-prototype-benchmark-period',
   benchmarkSubject: 'brame-prototype-benchmark-subject',
   benchmarkCompare: 'brame-prototype-benchmark-compare',
   overviewCharts: 'brame-prototype-overview-charts',

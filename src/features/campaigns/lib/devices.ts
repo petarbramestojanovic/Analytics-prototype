@@ -27,7 +27,6 @@ export interface DeviceBucket {
   device: 'Mobile' | 'Desktop';
   impressions: number;
   viewability: number;
-  engagementRate: number;
   /** Mobile only: how much of it is tablet, kept visible so the fold-in is
    *  never silent. */
   tabletImpressions?: number;
@@ -40,7 +39,6 @@ export function deviceBuckets(campaign: Campaign): DeviceBucket[] {
     device,
     impressions: rows.reduce((sum, d) => sum + d.impressions, 0),
     viewability: weightedDeviceRate(rows, 'viewability'),
-    engagementRate: weightedDeviceRate(rows, 'engagementRate'),
     ...(device === 'Mobile' && {
       tabletImpressions: rows.filter((d) => d.device === 'Tablet').reduce((sum, d) => sum + d.impressions, 0),
     }),
@@ -66,9 +64,12 @@ export type DeviceTab = 'total' | 'mobile' | 'desktop';
  * Splits a source's own series by device for the Total/Mobile/Desktop tabs on
  * Campaign Details. There's no real per-day, per-device delivery in the mock
  * data, so volume metrics (impressions, plays, ctaClicks, uniqueUsers, conversions) are
- * scaled by that device's share of total impressions, while rate metrics
- * (viewability, engagementRate) switch to the actual per-device rate already
- * on `campaign.devices` rather than just being scaled along with volume.
+ * scaled by that device's share of total impressions, while viewability
+ * switches to the actual per-device rate already on `campaign.devices` rather
+ * than just being scaled along with volume.
+ * Engagement is only measured per creative, never per device, so on a device
+ * tab there is no engagement rate or engagement count at all (`engagementRate`
+ * is left out of the totals, which every reader treats as "not measured").
  * CTR and dwell/completion have no per-device breakdown to switch to, so
  * those rates carry over unchanged.
  */
@@ -79,14 +80,13 @@ export function scaleSeriesForDevice(series: SourceSeries, campaign: Campaign, t
   const share = tab === 'mobile' ? split.mobile : split.desktop;
   const rows = tab === 'mobile' ? campaign.devices.filter(isMobileRow) : campaign.devices.filter((d) => !isMobileRow(d));
   const viewability = weightedDeviceRate(rows, 'viewability');
-  const engagementRate = weightedDeviceRate(rows, 'engagementRate');
 
   const daily = series.daily.map((d) => ({
     ...d,
     impressions: Math.round(d.impressions * share),
     viewable: Math.round(d.impressions * share * viewability),
     plays: Math.round(d.plays * share),
-    engagements: Math.round(d.impressions * share * engagementRate),
+    engagements: 0,
     ctaClicks: Math.round(d.ctaClicks * share),
     uniqueUsers: Math.round(d.uniqueUsers * share),
     ...(d.conversions !== undefined && { conversions: Math.round(d.conversions * share) }),
@@ -98,7 +98,7 @@ export function scaleSeriesForDevice(series: SourceSeries, campaign: Campaign, t
   if (totals.viewable != null) totals.viewable = scaledImpressions != null ? Math.round(scaledImpressions * viewability) : undefined;
   if (totals.viewability != null) totals.viewability = viewability;
   if (totals.plays != null) totals.plays = Math.round(totals.plays * share);
-  if (totals.engagementRate != null) totals.engagementRate = engagementRate;
+  delete totals.engagementRate;
   if (totals.ctaClicks != null) totals.ctaClicks = Math.round(totals.ctaClicks * share);
   if (totals.uniqueUsers != null) totals.uniqueUsers = Math.round(totals.uniqueUsers * share);
   if (totals.conversions != null) totals.conversions = Math.round(totals.conversions * share);

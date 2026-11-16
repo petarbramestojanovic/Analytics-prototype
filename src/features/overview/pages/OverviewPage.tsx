@@ -3,14 +3,13 @@ import { BarChart3, LayoutDashboard } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { useFormatters, useI18n } from '@/i18n';
-import { ALL, parseSelection } from '@/lib/selection';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useListFilters } from '@/hooks/useListFilters';
 import { TODAY, TODAY_ISO } from '@/lib/clock';
 import { previousYear, resolveRange, type RangePreset } from '@/lib/dateRange';
 import { ButtonLink, Card } from '@/components/ui';
 import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
-import { Page, PageHeader } from '@/components/page';
+import { Page, PageHeader, PeriodPicker } from '@/components/page';
 import { useSession } from '@/features/session';
 import {
   buildPortfolioSummary,
@@ -26,14 +25,7 @@ import {
   useIndustryBenchmark,
   type BenchmarkScope,
 } from '@/features/benchmarks';
-import { OverviewFilters } from '../components/OverviewFilters';
-import {
-  applyEntityFilters,
-  DEFAULT_OVERVIEW_FILTERS,
-  entityFilterCount,
-  OVERVIEW_ALLOWED,
-} from '../lib/overviewFilters';
-import { PrimaryKpiCard } from '../components/PrimaryKpiCard';
+import { DEFAULT_OVERVIEW_FILTERS, OVERVIEW_ALLOWED } from '../lib/overviewFilters';
 import { BestCampaignCard } from '../components/BestCampaignCard';
 import { LiveCampaignsCard } from '../components/LiveCampaignsCard';
 
@@ -48,8 +40,8 @@ export function OverviewPage() {
   usePageTitle(t('overview.title'));
   const { isInternal } = useSession();
   const { fmtDateRange } = useFormatters();
-  const { campaigns: scoped, isLoading, isError, refetch } = useScopedCampaigns();
-  const { filters, setFilter, resetFilters, filtersActive } = useListFilters(
+  const { campaigns, isLoading, isError, refetch } = useScopedCampaigns();
+  const { filters, setFilter } = useListFilters(
     STORAGE_KEYS.overviewFilters,
     DEFAULT_OVERVIEW_FILTERS,
     OVERVIEW_ALLOWED,
@@ -59,8 +51,8 @@ export function OverviewPage() {
   // resolves to its own dates.
   const allTime = filters.range === 'all';
   const earliestFlight = useMemo(
-    () => scoped.reduce((min, c) => (c.flightStart < min ? c.flightStart : min), TODAY_ISO),
-    [scoped],
+    () => campaigns.reduce((min, c) => (c.flightStart < min ? c.flightStart : min), TODAY_ISO),
+    [campaigns],
   );
   const range = useMemo(
     () =>
@@ -77,10 +69,6 @@ export function OverviewPage() {
           ),
     [allTime, earliestFlight, filters.range, filters.from, filters.to, filters.year],
   );
-  const campaigns = useMemo(
-    () => applyEntityFilters(scoped, filters, isInternal),
-    [scoped, filters, isInternal],
-  );
   const summary = useMemo(() => buildPortfolioSummary(campaigns, TODAY, range), [campaigns, range]);
   // The same window a year earlier, for the year-over-year comparison.
   const previous = useMemo(
@@ -91,32 +79,18 @@ export function OverviewPage() {
     [filters.yoy, allTime, campaigns, range],
   );
   // Setup gaps are campaign-management info — shown to Klea seats only. They
-  // describe the campaigns themselves, so they follow the client/account/country
-  // filters but not the period, and each tile links to the Campaigns list with
-  // the same filters carried over (campaigns' lib/setup), so the number and the
-  // list behind it agree.
+  // describe the campaigns themselves, not the period, and each tile links to
+  // the Campaigns list, so the number and the list behind it agree.
   const awaitingSetup = useMemo(() => campaigns.filter(isAwaitingSetup).length, [campaigns]);
   const noConnector = useMemo(
     () => campaigns.reduce((sum, c) => sum + missingConnectors(c), 0),
     [campaigns],
   );
-  const carry = {
-    company: isInternal ? filters.companyFilter : undefined,
-    account: isInternal ? filters.accountFilter : undefined,
-    country: filters.countryFilter,
-  };
-  const companyIds = useMemo(() => [...new Set(scoped.map((c) => c.companyId))], [scoped]);
+  const companyIds = useMemo(() => [...new Set(campaigns.map((c) => c.companyId))], [campaigns]);
   const singleCompanyId = companyIds.length === 1 ? companyIds[0] : undefined;
 
-  // Benchmarks are cross-tenant and keyed by flight, not by client or account —
-  // so they follow the period and the country, and the other filters visibly
-  // don't apply (see the note above the benchmark charts).
-  const benchmarkScope = useMemo<BenchmarkScope>(
-    () => ({ range, markets: parseSelection(filters.countryFilter) }),
-    [range, filters.countryFilter],
-  );
-  const benchmarkFiltersIgnored =
-    entityFilterCount({ ...filters, countryFilter: ALL }, isInternal) > 0;
+  // Benchmarks are cross-tenant and keyed by flight, so they follow the period.
+  const benchmarkScope = useMemo<BenchmarkScope>(() => ({ range }), [range]);
 
   const { frameBenchmark } = useIndustryBenchmark(undefined, isInternal, benchmarkScope);
 
@@ -130,20 +104,20 @@ export function OverviewPage() {
         subtitle={t(isInternal ? 'overview.subtitleAdmin' : 'overview.subtitleClient', {
           range: fmtDateRange(range.start, range.end, true),
         })}
-      />
-
-      <OverviewFilters
-        campaigns={scoped}
-        filters={filters}
-        range={range}
-        onChange={setFilter}
-        onReset={resetFilters}
-        active={filtersActive}
-        isInternal={isInternal}
+        actions={
+          <PeriodPicker
+            allowAll
+            align="end"
+            showYoy={!allTime}
+            filters={filters}
+            range={range}
+            onChange={setFilter}
+          />
+        }
       />
 
       {summary.campaignCount === 0 ? (
-        scoped.length === 0 ? (
+        campaigns.length === 0 ? (
           <EmptyState
             icon={<LayoutDashboard size={32} />}
             title={t('overview.empty.title')}
@@ -167,13 +141,11 @@ export function OverviewPage() {
             showImpressions
             allImpressions
             awaitingSetup={isInternal ? awaitingSetup : undefined}
-            awaitingSetupTo={paths.campaignsBySetup('awaiting', carry)}
+            awaitingSetupTo={paths.campaignsBySetup('awaiting')}
             noConnector={isInternal ? noConnector : undefined}
-            noConnectorTo={paths.campaignsBySetup('noConnector', carry)}
+            noConnectorTo={paths.campaignsBySetup('noConnector')}
             showEngagement
           />
-
-          <PrimaryKpiCard campaigns={campaigns} />
 
           {previous && previous.campaignCount === 0 && (
             <p className="-mt-2 mb-4 text-xs text-gray-500 dark:text-gray-400">
@@ -190,11 +162,6 @@ export function OverviewPage() {
 
           {isInternal ? (
             <div className="mb-4">
-              {benchmarkFiltersIgnored && (
-                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                  {t('overview.topScopeNote')}
-                </p>
-              )}
               <PortfolioBenchmarkCharts scope={benchmarkScope} />
             </div>
           ) : (

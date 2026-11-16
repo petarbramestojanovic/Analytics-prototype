@@ -16,7 +16,7 @@ import { ViewsMenu } from './ViewsMenu';
 /**
  * The Overview's benchmark charts: up to four ranked-bucket charts (each its
  * own metric and grouping — industry, market, client or account), with the
- * KLEA average as a line, following the Overview's period and country. What
+ * KLEA average as a line, following the Overview's period. What
  * is on screen can be saved as a named view and loaded again. Charts and
  * views live in this browser. Klea-internal: it reads the whole pool, so the
  * caller only renders it for internal seats.

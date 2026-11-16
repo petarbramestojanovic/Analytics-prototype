@@ -53,6 +53,7 @@ export function PeriodPicker({
   onChange,
   allowAll = false,
   showYoy = true,
+  align,
 }: {
   filters: PeriodFilterState;
   /** The resolved bounds of the selected period (a stand-in while 'all'). */
@@ -62,6 +63,8 @@ export function PeriodPicker({
   allowAll?: boolean;
   /** The year-over-year comparison toggle, for pages that show rate deltas. */
   showYoy?: boolean;
+  /** Which edge of the button the panel lines up with — `end` for a button at the right of the page. */
+  align?: 'start' | 'end';
 }) {
   const { t } = useI18n();
   const { fmtDateRange } = useFormatters();
@@ -76,6 +79,7 @@ export function PeriodPicker({
 
   return (
     <Popover
+      align={align}
       rootClassName="max-w-full min-w-0"
       trigger={({ open, toggle }) => (
         <button

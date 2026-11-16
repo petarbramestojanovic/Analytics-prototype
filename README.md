@@ -151,19 +151,15 @@ rather than hidden entirely.
 
 ## Filtering
 
-- **Overview** — one bar: a **period** (last 30/90 days, this/last quarter,
-  year to date, last 12 months, Q4 / Black Friday week / Christmas for a chosen
-  year, or a custom range, with an optional **year-over-year** comparison that
-  shows each rate's change against the same window a year earlier) plus
-  combinable multi-select dropdowns for sales
-  person, campaign manager, campaign and country. The period works on delivery
-  *days*: a campaign counts only for the days it delivered inside it. Sales and
-  campaign manager are Klea-side cuts and hidden from clients. Everything
-  (tiles, trend, benchmark cards) follows the selection and it is kept in the
-  URL, so a link reproduces the view. A **Primary KPI performance** card groups
-  live campaigns by the KPI they were briefed on and shows how many are on
-  target. The demo includes 13 finished 2025 campaigns so the year-over-year
-  comparison has something to compare against.
+- **Overview** — one filter, the **period**, in the page header (all time,
+  last 30/90 days, this/last quarter, year to date, last 12 months, Q4 / Black
+  Friday week / Christmas for a chosen year, or a custom range, with an optional
+  **year-over-year** comparison that shows each rate's change against the same
+  window a year earlier). The period works on delivery *days*: a campaign counts
+  only for the days it delivered inside it. Everything (tiles, trend, benchmark
+  cards) follows it and it is kept in the URL, so a link reproduces the view.
+  The demo includes 13 finished 2025 campaigns so the year-over-year comparison
+  has something to compare against.
 - **Campaigns list** — search and status tabs in the toolbar; everything else in
   a **Filters** panel that slides in from the right (start date, end date, and,
   for Klea seats, sales, campaign manager, client, account, country,
@@ -189,7 +185,8 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 Klea seats get a **Benchmarks** page with three views; every seat gets a light
 "How it compares" read on its own campaigns.
 
-- **Rankings** — industry / client / market over a rolling 12 months, with a
+- **Rankings** — industry / client / market over a chosen period (the same
+  picker as the Overview, last 12 months by default; Mechanics shares it), with a
   "vs. KLEA" column and the industries furthest above the KLEA average.
 - **Compare** — pick a campaign (sticky autocomplete) and read it against a
   matrix of benchmark columns (client, market, industry, account, KLEA, or any

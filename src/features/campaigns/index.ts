@@ -15,10 +15,9 @@ export {
 } from './lib/divergence';
 export { deliveryPacing } from './lib/delivery';
 export { deviceSplit } from './lib/devices';
-export { buildGoalGroups } from './lib/goal';
-export { buildPortfolioSummary, type DateRange, type PortfolioSummary } from './lib/portfolio';
+export { buildPortfolioSummary, type PortfolioSummary } from './lib/portfolio';
 export { isAwaitingSetup, missingConnectors } from './lib/setup';
-export { accountOptions, companyOptions, DIRECT_ACCOUNT_KEY, marketOptions } from './lib/filterOptions';
+export { companyOptions } from './lib/filterOptions';
 
 export { CampaignNameCell } from './components/CampaignNameCell';
 export { CampaignStatusPill } from './components/CampaignStatusPill';

@@ -1,6 +1,6 @@
 import type { PillTone } from '@/components/ui';
 import type { Campaign, GoalMetric } from '@/types';
-import { isLiveCampaign, primarySeries } from './sources';
+import { primarySeries } from './sources';
 
 /**
  * The campaign's main goal (primary KPI) and, for Klea, its performance
@@ -73,48 +73,4 @@ export function guaranteeRead(campaign: Campaign): GuaranteeRead | null {
     value,
     status: value == null ? 'no-data' : value >= g.value ? 'ok' : 'breach',
   };
-}
-
-export interface GoalGroup {
-  metric: GoalMetric;
-  campaigns: number;
-  /** Campaigns with both a measurable value and a target — the ones that can be on or off target. */
-  judged: number;
-  met: number;
-  avgValue: number | null;
-  avgTarget: number | null;
-}
-
-/**
- * Live campaigns grouped by the goal they were briefed on — the Overview's
- * "are we hitting what we sold" read. Averages are simple means across
- * campaigns, the same convention as the other portfolio averages. Live
- * campaigns without a briefed goal are counted, not hidden.
- */
-export function buildGoalGroups(campaigns: Campaign[]): { groups: GoalGroup[]; unbriefed: number } {
-  const byMetric = new Map<GoalMetric, GoalRead[]>();
-  let unbriefed = 0;
-  for (const c of campaigns.filter(isLiveCampaign)) {
-    const read = goalRead(c);
-    if (!read) {
-      unbriefed += 1;
-      continue;
-    }
-    byMetric.set(read.metric, [...(byMetric.get(read.metric) ?? []), read]);
-  }
-  const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
-  const groups = [...byMetric.entries()]
-    .map(([metric, reads]): GoalGroup => {
-      const judged = reads.filter((r) => r.status === 'met' || r.status === 'close' || r.status === 'behind');
-      return {
-        metric,
-        campaigns: reads.length,
-        judged: judged.length,
-        met: judged.filter((r) => r.status === 'met').length,
-        avgValue: mean(reads.map((r) => r.value).filter((v): v is number => v != null)),
-        avgTarget: mean(reads.map((r) => r.target).filter((v): v is number => v != null)),
-      };
-    })
-    .sort((a, b) => b.campaigns - a.campaigns);
-  return { groups, unbriefed };
 }

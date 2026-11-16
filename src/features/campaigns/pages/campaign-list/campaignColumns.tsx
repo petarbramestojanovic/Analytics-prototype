@@ -13,7 +13,6 @@ import { MetricValueCell, type CellMetric } from '../../components/MetricValueCe
 import { deliveryPacing } from '../../lib/delivery';
 import { deviceSplit } from '../../lib/devices';
 import { engagementCount, primarySeries } from '../../lib/sources';
-import { CampaignRowActions } from './CampaignRowActions';
 import { DateCell, DeviceSplitCell, TruncatedText } from './cells';
 
 /** Metric columns, in table order. Each renders through MetricValueCell, so
@@ -142,13 +141,6 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
           </span>
         ),
         cell: ({ row }) => <DeviceSplitCell campaign={row.original} />,
-      },
-      {
-        id: 'actions',
-        header: '',
-        enableSorting: false,
-        enableHiding: false,
-        cell: ({ row }) => <CampaignRowActions campaign={row.original} />,
       },
     ];
     return showInternal ? cols : cols.filter((c) => !INTERNAL_ONLY.has(c.id!));

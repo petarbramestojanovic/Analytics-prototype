@@ -7,10 +7,11 @@ import { ALL, parseSelection, serializeSelection } from '@/lib/selection';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Tabs } from '@/components/ui';
-import { FilterMultiSelect } from '@/components/page';
+import { FilterMultiSelect, PeriodPicker } from '@/components/page';
 import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader } from '@/components/page';
 import { useBenchmarkCreatives, useBenchmarkPool } from '@/api/hooks/useBenchmarks';
+import { useBenchmarkPeriod } from '../hooks/useBenchmarkPeriod';
 import { BenchmarkViewTabs } from '../components/BenchmarkViewTabs';
 import { CampaignAutocomplete } from '../components/CampaignAutocomplete';
 import { CompareCharts } from '../components/CompareCharts';
@@ -19,8 +20,9 @@ import { CrossMarket } from '../components/CrossMarket';
 import { ViewsMenu } from '../components/ViewsMenu';
 import { MechanicsView } from '../components/MechanicsView';
 import type { BenchmarkCampaign } from '@/types';
+import type { DateRange } from '@/lib/dateRange';
 import type { BenchmarkView } from '../lib/benchmarkView';
-import { SLICE_DIMS, sliceKey, sliceLabel, type SliceDim, type SlicePart } from '../lib/benchmarks';
+import { SLICE_DIMS, sliceKey, type BenchmarkScope, sliceLabel, type SliceDim, type SlicePart } from '../lib/benchmarks';
 import { bucketName } from '../lib/compareLabels';
 import {
   campaignSubjects,
@@ -50,11 +52,32 @@ export function BenchmarkPoolView({ view }: { view: PoolView }) {
   const { t } = useI18n();
   usePageTitle(t('benchmarks.title'));
 
+  return view === 'compare' ? (
+    <Page>
+      <PageHeader title={t('benchmarks.title')} subtitle={t('benchmarks.subtitle.compare')} />
+      <BenchmarkViewTabs view={view} />
+      <CompareBody />
+    </Page>
+  ) : (
+    <MechanicsPage />
+  );
+}
+
+/** Mechanics is the one pool view a period applies to: it averages over every
+ *  creative, so it follows the same period picker as Rankings. (Compare is about
+ *  one campaign or segment, whose flights have fixed dates.) */
+function MechanicsPage() {
+  const { t } = useI18n();
+  const { filters, setFilter, range, scope } = useBenchmarkPeriod();
   return (
     <Page>
-      <PageHeader title={t('benchmarks.title')} subtitle={t(`benchmarks.subtitle.${view}`)} />
-      <BenchmarkViewTabs view={view} />
-      {view === 'compare' ? <CompareBody /> : <MechanicsBody />}
+      <PageHeader
+        title={t('benchmarks.title')}
+        subtitle={t('benchmarks.subtitle.mechanics')}
+        actions={<PeriodPicker align="end" showYoy={false} filters={filters} range={range} onChange={setFilter} />}
+      />
+      <BenchmarkViewTabs view="mechanics" />
+      <MechanicsBody scope={scope} range={range} />
     </Page>
   );
 }
@@ -257,7 +280,7 @@ function CompareBody() {
   );
 }
 
-function MechanicsBody() {
+function MechanicsBody({ scope, range }: { scope: BenchmarkScope; range: DateRange }) {
   const { t } = useI18n();
   const { data: creatives, isLoading, isError, refetch } = useBenchmarkCreatives();
   if (isLoading) return <PageSkeleton variant="list" />;
@@ -271,5 +294,5 @@ function MechanicsBody() {
       />
     );
   }
-  return <MechanicsView creatives={creatives} />;
+  return <MechanicsView creatives={creatives} scope={scope} periodEnd={range.end} />;
 }

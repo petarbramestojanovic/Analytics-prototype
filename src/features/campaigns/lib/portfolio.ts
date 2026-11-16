@@ -14,8 +14,6 @@ import type { TrendPoint } from './trend';
 
 const TREND_WINDOW_DAYS = 90;
 
-export type { DateRange };
-
 export interface PortfolioSummary {
   campaignCount: number;
   liveCount: number;

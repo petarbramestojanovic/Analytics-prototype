@@ -472,7 +472,6 @@ export function CampaignsPage() {
               table={table}
               emptyMessage={t('campaigns.noMatches')}
               align={(id) => (id === 'campaign' ? 'left' : 'center')}
-              stickyColumnId="actions"
               stickyStartColumnId="campaign"
               fill={fillsPage}
               dense

@@ -13,13 +13,16 @@ import { KpiWidget } from '../../components/KpiWidget';
 import { TrendChart } from '../../components/TrendChart';
 import { deviceSplit, scaleSeriesForDevice, type DeviceTab } from '../../lib/devices';
 import { METRIC_KEYS, seriesEngagements, sourceMeta } from '../../lib/sources';
-import { buildCampaignTrend } from '../../lib/trend';
+import { buildCampaignTrend, TREND_METRICS } from '../../lib/trend';
 import { CreativesCard, CtaCard, DevicesCard, PageFlowCard } from './SourceSections';
 
 /** Page flow and Calls to action are hidden for now: they need per-screen and
  *  per-button data that isn't confirmed to exist yet (today they show demo
  *  numbers). Flip to `true` once the data does. */
 const SHOW_IN_UNIT_CARDS = false;
+
+/** What the trend chart offers on a device tab, where engagement isn't measured. */
+const TREND_METRICS_NO_ENGAGEMENT = TREND_METRICS.filter((m) => m !== 'engagementRate');
 
 const DEVICE_TAB_ICONS = { total: Layers, mobile: Smartphone, desktop: Monitor } as const;
 
@@ -113,10 +116,16 @@ export function SourceView({
   const engagementSeries = seriesFor('engagementRate');
   const engagements = engagementSeries ? seriesEngagements(engagementSeries) : null;
 
-  // The five headline numbers, one widget each, in the order they are read:
-  // delivered, engaged, clicked, viewable, then the engagement rate. A widget
+  // The headline numbers, one widget each, in the order they are read:
+  // delivered, engagement rate, engagements, clicks, CTR, viewability. A widget
   // appears only where the source measures it (never a made-up zero). A
-  // campaign that tracks conversions gets that one too.
+  // campaign that tracks conversions gets that one last.
+  // (On a Mobile/Desktop tab engagement is not measured — see scaleSeriesForDevice.)
+  const rateWidget = (metric: 'engagementRate' | 'ctr' | 'viewability') =>
+    valueOf(metric) !== undefined
+      ? [{ key: metric, label: label(metric), help: help(metric), value: rate(metric) }]
+      : [];
+  const clicks = seriesFor('ctaClicks')?.totals.ctaClicks;
   const widgets: (ComponentProps<typeof KpiWidget> & { key: string })[] = [
     {
       key: 'impressions',
@@ -125,6 +134,7 @@ export function SourceView({
       value: fmtMetric('impressions', totals.impressions),
       emphasis: true,
     },
+    ...rateWidget('engagementRate'),
     ...(engagements != null
       ? [
           {
@@ -135,29 +145,18 @@ export function SourceView({
           },
         ]
       : []),
-    ...(has('ctr')
-      ? [{ key: 'ctr', label: label('ctr'), help: help('ctr'), value: rate('ctr') }]
-      : []),
-    ...(has('viewability')
+    ...(clicks != null
       ? [
           {
-            key: 'viewability',
-            label: label('viewability'),
-            help: help('viewability'),
-            value: rate('viewability'),
+            key: 'ctaClicks',
+            label: label('ctaClicks'),
+            help: help('ctaClicks'),
+            value: fmtMetric('ctaClicks', clicks),
           },
         ]
       : []),
-    ...(has('engagementRate')
-      ? [
-          {
-            key: 'engagementRate',
-            label: label('engagementRate'),
-            help: help('engagementRate'),
-            value: rate('engagementRate'),
-          },
-        ]
-      : []),
+    ...rateWidget('ctr'),
+    ...rateWidget('viewability'),
     ...(campaign.salesforce.conversionTracking &&
     has('conversions') &&
     totals.conversions !== undefined
@@ -222,11 +221,15 @@ export function SourceView({
         <div
           className={cn(
             'grid grid-cols-2 gap-3',
-            widgets.length > 5
-              ? 'lg:grid-cols-6'
-              : widgets.length > 4
-                ? 'lg:grid-cols-5'
-                : 'lg:grid-cols-4',
+            // Seven or six tiles only sit in one row on a wide screen; below that
+            // they wrap, so a tile keeps room for its label.
+            widgets.length > 6
+              ? 'lg:grid-cols-4 2xl:grid-cols-7'
+              : widgets.length > 5
+                ? 'lg:grid-cols-3 xl:grid-cols-6'
+                : widgets.length > 4
+                  ? 'lg:grid-cols-5'
+                  : 'lg:grid-cols-4',
           )}
         >
           {widgets.map(({ key, ...w }) => (
@@ -259,6 +262,7 @@ export function SourceView({
           }
           daily={trendData}
           defaultMetrics={['impressions', 'delivery']}
+          availableMetrics={deviceTab === 'total' ? undefined : TREND_METRICS_NO_ENGAGEMENT}
           frameBenchmark={benchmarks.frameBenchmark}
           industryBenchmark={benchmarks.industryBenchmark}
           industryLabel={benchmarks.industry}
@@ -273,7 +277,7 @@ export function SourceView({
       )}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <DevicesCard campaign={campaign} showEngagement={measuresEngagement} />
+        <DevicesCard campaign={campaign} />
         <CreativesCard
           campaign={campaign}
           showEngagement={measuresEngagement}

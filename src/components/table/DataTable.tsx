@@ -29,7 +29,7 @@ const ROW_HOVER =
 
 /**
  * Renders a TanStack Table instance in the app's table style: sortable
- * headers, hover rows, an optional sticky last column (row actions), an empty
+ * headers, hover rows, an optional sticky first column, an empty
  * row, and the pagination footer. The caller owns the table instance (data,
  * columns, sorting/filter state); this owns only the markup.
  */
@@ -37,7 +37,6 @@ export function DataTable<T>({
   table,
   emptyMessage,
   align = () => 'left',
-  stickyColumnId,
   stickyStartColumnId,
   paginated = true,
   fill = false,
@@ -49,8 +48,6 @@ export function DataTable<T>({
   emptyMessage: ReactNode;
   /** Per-column alignment, by column id. */
   align?: (columnId: string) => 'left' | 'center' | 'right';
-  /** A column (usually row actions) that stays visible while scrolling. */
-  stickyColumnId?: string;
   /** A first column (the record's name) that stays in view while the rest
    *  scrolls sideways — what keeps a wide table readable on a phone. */
   stickyStartColumnId?: string;
@@ -68,7 +65,6 @@ export function DataTable<T>({
   onRowClick?: (record: T, event: MouseEvent<HTMLTableRowElement>) => void;
 }) {
   const rows = table.getRowModel().rows;
-  const sticky = (id: string) => id === stickyColumnId;
   const stickyStart = (id: string) => id === stickyStartColumnId;
 
   return (
@@ -91,8 +87,6 @@ export function DataTable<T>({
                       header.column.getCanSort() ? ariaSort(header.column.getIsSorted()) : undefined
                     }
                     className={cn(
-                      sticky(header.column.id) &&
-                        'sticky right-0 bg-white dark:bg-brame-dark-light',
                       stickyStart(header.column.id) &&
                         'sticky left-0 z-10 bg-white dark:bg-brame-dark-light',
                     )}
@@ -137,7 +131,6 @@ export function DataTable<T>({
                     ROW_HOVER,
                     // Pinned cells need an opaque base so scrolled content
                     // doesn't show through; their hover color is the same.
-                    sticky(cell.column.id) && 'sticky right-0 bg-white dark:bg-brame-dark-light',
                     stickyStart(cell.column.id) &&
                       'sticky left-0 z-10 bg-white dark:bg-brame-dark-light',
                   )}

@@ -15,17 +15,19 @@ import {
   meetsSample,
   MIN_COMPARE_SAMPLE,
   type BenchmarkMetric,
+  type BenchmarkScope,
   type MechanicGroup,
   type Trend,
 } from '../lib/benchmarks';
 
 const MONTH_MS = 30 * 86_400_000;
 
-/** Creatives started in the last three months against the three before — the
- *  demand signal for a mechanic, which is about how often it is booked. */
-function demandTrend(group: MechanicGroup) {
-  const now = TODAY.getTime();
-  const starts = group.creatives.map((c) => new Date(c.flightStart).getTime());
+/** Creatives started in the last three months up to the period's end against the
+ *  three before — the demand signal for a mechanic, which is about how often it
+ *  is booked. It reads every creative of the mechanic, not just those in the
+ *  period, so a short period still has its prior three months to compare with. */
+function demandTrend(starts: number[], end: string) {
+  const now = new Date(end).getTime();
   const recent = starts.filter((s) => s >= now - 3 * MONTH_MS).length;
   const prior = starts.filter((s) => s >= now - 6 * MONTH_MS && s < now - 3 * MONTH_MS).length;
   const trend: Trend = recent > prior ? 'improving' : recent < prior ? 'declining' : 'stable';
@@ -43,9 +45,26 @@ function demandTrend(group: MechanicGroup) {
  * a mechanic is booked always shows, which is the other use: what to invest in
  * and what to retire.
  */
-export function MechanicsView({ creatives }: { creatives: BenchmarkCreative[] }) {
+export function MechanicsView({
+  creatives,
+  scope,
+  periodEnd,
+}: {
+  creatives: BenchmarkCreative[];
+  scope?: BenchmarkScope;
+  /** Last day of the period (ISO), which the demand trend counts back from. */
+  periodEnd: string;
+}) {
   const { t } = useI18n();
-  const groups = useMemo(() => groupMechanics(creatives, TODAY), [creatives]);
+  const groups = useMemo(() => groupMechanics(creatives, TODAY, scope), [creatives, scope]);
+  // Start dates per mechanic across the whole pool, for the demand trend.
+  const startsByMechanic = useMemo(() => {
+    const by = new Map<string, number[]>();
+    for (const c of creatives) {
+      if (c.mechanic) by.set(c.mechanic, [...(by.get(c.mechanic) ?? []), new Date(c.flightStart).getTime()]);
+    }
+    return by;
+  }, [creatives]);
   const totalCreatives = groups.reduce((sum, g) => sum + g.creativeCount, 0);
   const top = groups[0];
   const lowDemand = groups.filter((g) => totalCreatives && g.creativeCount / totalCreatives < 0.08);
@@ -141,7 +160,7 @@ export function MechanicsView({ creatives }: { creatives: BenchmarkCreative[] })
           <tbody>
             {groups.map((g) => {
               const share = totalCreatives ? g.creativeCount / totalCreatives : 0;
-              const demand = demandTrend(g);
+              const demand = demandTrend(startsByMechanic.get(g.mechanic) ?? [], periodEnd);
               return (
                 <Tr key={g.mechanic}>
                   <Td className="font-medium text-brame-dark dark:text-gray-100">

@@ -13,11 +13,12 @@ import { matchesQuery } from '@/lib/text';
 import { compareValues, toggleSort, type SortState } from '@/lib/sort';
 import { Button, Card, CardFooter, Tabs, Tooltip } from '@/components/ui';
 import { EmptyState, EmptyText, ErrorState, PageSkeleton } from '@/components/feedback';
-import { FilterSelect, ListToolbar, Page, PageHeader, SearchInput, SectionTitle } from '@/components/page';
+import { FilterSelect, ListToolbar, Page, PageHeader, PeriodPicker, SearchInput, SectionTitle } from '@/components/page';
 import { Pagination, SortableTh, Table, TableEmptyRow, Td, Th, Tr } from '@/components/table';
 import { StatGrid, SummaryTile, TextLink } from '@/components/display';
 import { relativeChange } from '@/features/campaigns';
 import { useBenchmarks } from '@/api/hooks/useBenchmarks';
+import { useBenchmarkPeriod } from '../hooks/useBenchmarkPeriod';
 import { BenchmarkViewTabs } from '../components/BenchmarkViewTabs';
 import { LowSamplePill } from '../components/LowSamplePill';
 import { parseBenchmarkView } from '../lib/benchmarkView';
@@ -93,7 +94,8 @@ function RankingsView() {
 
   const [q, setQ] = useSearchParamState('q');
   const [sort, setSort] = useState<SortState<SortKey>>({ key: 'impressions', desc: true });
-  const { data, isLoading, isError, refetch } = useBenchmarks(dimension);
+  const { filters: period, setFilter: setPeriod, range, scope } = useBenchmarkPeriod();
+  const { data, isLoading, isError, refetch } = useBenchmarks(dimension, true, scope);
 
   const rows = useMemo(() => {
     const filtered = (data?.groups ?? []).filter((g) => matchesQuery(q, g.displayName));
@@ -152,9 +154,12 @@ function RankingsView() {
         title={t('benchmarks.title')}
         subtitle={t('benchmarks.subtitle')}
         actions={
-          <Button variant="primary" icon={<Download size={13} />} onClick={exportRows} disabled={rows.length === 0}>
-            {t('common.exportCsv')}
-          </Button>
+          <>
+            <PeriodPicker align="end" showYoy={false} filters={period} range={range} onChange={setPeriod} />
+            <Button variant="primary" icon={<Download size={13} />} onClick={exportRows} disabled={rows.length === 0}>
+              {t('common.exportCsv')}
+            </Button>
+          </>
         }
       />
 

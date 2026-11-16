@@ -95,13 +95,7 @@ export function CtaCard({ campaign }: { campaign: Campaign }) {
   );
 }
 
-export function DevicesCard({
-  campaign,
-  showEngagement,
-}: {
-  campaign: Campaign;
-  showEngagement: boolean;
-}) {
+export function DevicesCard({ campaign }: { campaign: Campaign }) {
   const { t } = useI18n();
   const { axis, grid, cursorFill, tooltipStyle, animate } = useAxisStyle();
   // Two buckets, same as the Total/Mobile/Desktop tabs above: Tablet is part
@@ -154,7 +148,6 @@ export function DevicesCard({
               </span>
               <span className="tnum text-gray-500 dark:text-gray-400">
                 {fmtPct(d.viewability)} {t('detail.viewableSuffix')}
-                {showEngagement && ` · ${fmtPct(d.engagementRate)} ${t('detail.engagedSuffix')}`}
               </span>
             </div>
             {d.tabletImpressions != null && d.tabletImpressions > 0 && (
