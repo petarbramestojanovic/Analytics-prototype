@@ -18,10 +18,18 @@ export function ProfileSettingsModal({ open, onOpenChange }: { open: boolean; on
   const [tab, setTab] = useState<Tab>('profile');
   const [profileDirty, setProfileDirty] = useState(false);
   const [logOutAllOpen, setLogOutAllOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   useEffect(() => {
-    if (open) setTab('profile');
+    if (open) {
+      setTab('profile');
+      setProfileDirty(false);
+    }
   }, [open]);
+
+  // Closing with unsaved profile edits asks first. Saving closes through
+  // `onOpenChange` directly, so it is never intercepted.
+  const requestClose = () => (tab === 'profile' && profileDirty ? setDiscardOpen(true) : onOpenChange(false));
 
   const tabs: { value: Tab; label: string; icon: ReactNode }[] = [
     { value: 'profile', label: t('profile.tabs.profile'), icon: <User size={13} /> },
@@ -31,7 +39,7 @@ export function ProfileSettingsModal({ open, onOpenChange }: { open: boolean; on
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(true) : requestClose())}>
       {/* Fixed height so switching tabs never resizes the dialog — only the
           middle section scrolls when a tab's content runs long. */}
       <DialogContent className="flex h-[min(680px,85vh)] max-w-lg flex-col p-0">
@@ -74,7 +82,7 @@ export function ProfileSettingsModal({ open, onOpenChange }: { open: boolean; on
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => onOpenChange(false)}>{tab === 'profile' ? t('common.cancel') : t('common.close')}</Button>
+            <Button onClick={requestClose}>{tab === 'profile' ? t('common.cancel') : t('common.close')}</Button>
             {tab === 'profile' && (
               <Button type="submit" form={PROFILE_FORM_ID} variant="primary" icon={<Save size={13} />} disabled={!profileDirty}>
                 {t('common.save')}
@@ -83,6 +91,19 @@ export function ProfileSettingsModal({ open, onOpenChange }: { open: boolean; on
           </div>
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title={t('common.discardTitle')}
+        description={t('common.discardBody')}
+        confirmLabel={t('common.discardConfirm')}
+        cancelLabel={t('common.keepEditing')}
+        onConfirm={() => {
+          setDiscardOpen(false);
+          onOpenChange(false);
+        }}
+      />
 
       <ConfirmDialog
         open={logOutAllOpen}

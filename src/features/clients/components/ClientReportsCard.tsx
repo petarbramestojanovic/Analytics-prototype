@@ -33,7 +33,7 @@ export function ClientReportsCard({ reports }: { reports: EmailReport[] }) {
                 <ReportStatusPill enabled={r.enabled} />
               </div>
               <div className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                {humanCadence(t, r)} · {r.recipients.length} {t('companyDetail.recipients')}
+                {humanCadence(t, r)} · {t('companyDetail.recipients', { count: r.recipients.length })}
               </div>
             </div>
           ))}

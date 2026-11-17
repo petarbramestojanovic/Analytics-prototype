@@ -56,4 +56,39 @@ describe('FormModal', () => {
 
     expect(screen.queryByText('Test modal')).not.toBeInTheDocument();
   });
+
+  it('asks before closing a dirty form, and only closes once discarded', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    renderWithProviders(
+      <FormModal open dirty onClose={onClose} title="Test modal" onSubmit={vi.fn()} submitLabel="Save">
+        <input aria-label="name" />
+      </FormModal>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Discard your changes?')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Keep editing' }));
+    expect(onClose).not.toHaveBeenCalled();
+
+    await user.keyboard('{Escape}');
+    await user.click(await screen.findByRole('button', { name: 'Discard changes' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes a clean form straight away', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    renderWithProviders(
+      <FormModal open onClose={onClose} title="Test modal" onSubmit={vi.fn()} submitLabel="Save">
+        <input aria-label="name" />
+      </FormModal>
+    );
+
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Discard your changes?')).not.toBeInTheDocument();
+  });
 });

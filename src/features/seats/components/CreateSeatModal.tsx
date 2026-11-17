@@ -53,7 +53,7 @@ export function CreateSeatModal({
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues,
@@ -85,6 +85,7 @@ export function CreateSeatModal({
     <FormModal
       open={open}
       onClose={close}
+      dirty={isDirty}
       title={t('seats.create.title')}
       description={t('seats.create.subtitle')}
       onSubmit={handleSubmit(onSubmit)}

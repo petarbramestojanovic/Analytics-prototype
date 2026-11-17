@@ -38,7 +38,7 @@ export function InviteUserModal({
     handleSubmit,
     control,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues,
@@ -57,6 +57,7 @@ export function InviteUserModal({
     <FormModal
       open={open}
       onClose={close}
+      dirty={isDirty}
       title={t('invite.title')}
       description={t('invite.subtitle', { company: seatName })}
       onSubmit={handleSubmit(onSubmit)}

@@ -42,7 +42,7 @@ export function CreateApiKeyModal({
     handleSubmit,
     control,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues });
 
   const close = () => {
@@ -66,6 +66,7 @@ export function CreateApiKeyModal({
     <FormModal
       open={open}
       onClose={close}
+      dirty={isDirty}
       title={t('apiAccess.create.title')}
       description={t('apiAccess.create.subtitle', { seat: seatName })}
       onSubmit={handleSubmit(onSubmit)}

@@ -5,7 +5,8 @@ import { paths } from '@/config/paths';
 import { useInbox } from '@/features/inbox';
 import { RecentMenu } from './RecentMenu';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
-import { useI18n } from '@/i18n';
+import { useFormatters, useI18n } from '@/i18n';
+import { TODAY_ISO } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { focusRing, IconButton, Pill } from '@/components/ui';
 import { useScopeLabel, useSession } from '@/features/session';
@@ -20,6 +21,7 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
   const { seatCategory, isInternal } = useSession();
   const scopeLabel = useScopeLabel();
   const { t } = useI18n();
+  const { fmtDateLong } = useFormatters();
   const ScopeIcon = !isInternal ? Building2 : seatCategory === 'brame' ? BarChart3 : ShieldCheck;
 
   // Publish the bar's height so a page can pin its own sticky strip right
@@ -70,8 +72,12 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
           <div className="hidden sm:flex">
             <ThemeToggleButton />
           </div>
-          <Pill tone="amber" className="hidden sm:inline-flex">
+          <Pill tone="amber" className="hidden sm:inline-flex" title={t('common.prototypeBadgeHint')}>
             {t('common.prototypeBadge')}
+            <span className="hidden xl:inline">
+              {' · '}
+              {t('common.prototypeBadgeDate', { date: fmtDateLong(TODAY_ISO) })}
+            </span>
           </Pill>
         </div>
       </div>

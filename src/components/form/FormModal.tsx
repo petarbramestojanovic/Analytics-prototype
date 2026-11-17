@@ -1,4 +1,4 @@
-import type { FormEventHandler, ReactNode } from 'react';
+import { useState, type FormEventHandler, type ReactNode } from 'react';
 import {
   Button,
   Dialog,
@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui';
+import { ConfirmDialog } from '@/components/feedback';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 
@@ -17,6 +18,10 @@ import { cn } from '@/lib/cn';
  * `onClose` is called both by the Cancel button and by Radix's own dismiss
  * (Escape/overlay/X) — callers that need to reset form state on close (most
  * of them) should do that inside `onClose` itself.
+ *
+ * Pass `dirty` (the form has unsaved edits) and a dismiss asks first, so a
+ * stray Escape or backdrop click can't throw the edits away. Closing from the
+ * caller's own code, such as after a successful save, is never intercepted.
  */
 export function FormModal({
   open,
@@ -28,6 +33,7 @@ export function FormModal({
   submitIcon,
   submitDisabled,
   pending,
+  dirty = false,
   footerStart,
   wide = false,
   children,
@@ -41,6 +47,8 @@ export function FormModal({
   submitIcon?: ReactNode;
   submitDisabled?: boolean;
   pending?: boolean;
+  /** The form has unsaved edits: dismissing the dialog asks to discard them. */
+  dirty?: boolean;
   /** Extra controls at the left of the footer, apart from Cancel/Save. */
   footerStart?: ReactNode;
   /** A wider dialog, for forms laid out in two columns. */
@@ -48,11 +56,13 @@ export function FormModal({
   children: ReactNode;
 }) {
   const { t } = useI18n();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const requestClose = () => (dirty ? setConfirmOpen(true) : onClose());
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) requestClose();
       }}
     >
       {/* A flex column: header and footer stay put, only the fields scroll —
@@ -71,7 +81,7 @@ export function FormModal({
           </div>
           <DialogFooter className="mt-4 border-t border-gray-100 pt-4 dark:border-white/10">
             {footerStart && <div className="mr-auto">{footerStart}</div>}
-            <Button variant="secondary" type="button" onClick={onClose}>
+            <Button variant="secondary" type="button" onClick={requestClose}>
               {t('common.cancel')}
             </Button>
             <Button
@@ -85,6 +95,18 @@ export function FormModal({
           </DialogFooter>
         </form>
       </DialogContent>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('common.discardTitle')}
+        description={t('common.discardBody')}
+        confirmLabel={t('common.discardConfirm')}
+        cancelLabel={t('common.keepEditing')}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          onClose();
+        }}
+      />
     </Dialog>
   );
 }

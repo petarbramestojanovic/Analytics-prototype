@@ -16,6 +16,7 @@ export function ConfirmDialog({
   description,
   onConfirm,
   confirmLabel,
+  cancelLabel,
   pending,
 }: {
   open: boolean;
@@ -24,6 +25,8 @@ export function ConfirmDialog({
   description: string;
   onConfirm: () => void;
   confirmLabel?: string;
+  /** The dismiss button's text; defaults to Cancel. */
+  cancelLabel?: string;
   pending?: boolean;
 }) {
   const { t } = useI18n();
@@ -33,7 +36,7 @@ export function ConfirmDialog({
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction destructive onClick={onConfirm}>
             {pending ? t('common.saving') : (confirmLabel ?? t('common.remove'))}
           </AlertDialogAction>

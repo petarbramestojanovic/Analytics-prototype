@@ -30,7 +30,7 @@ export function AddClicktagModal({
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues });
 
   const close = () => {
@@ -42,6 +42,7 @@ export function AddClicktagModal({
     <FormModal
       open={open}
       onClose={close}
+      dirty={isDirty}
       title={t('clicktag.addTitle')}
       onSubmit={handleSubmit((clicktag) => addClicktag.mutate({ campaignId, clicktag }, { onSuccess: close }))}
       submitLabel={t('clicktag.add')}

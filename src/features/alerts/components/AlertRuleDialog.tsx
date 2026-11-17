@@ -310,6 +310,7 @@ export function AlertRuleDialog({
     <FormModal
       open={open}
       onClose={() => onOpenChange(false)}
+      dirty={isDirty}
       title={rule ? t('alerts.rules.editTitle') : t('alerts.rules.createTitle')}
       description={t('alerts.rules.dialogHint')}
       onSubmit={handleSubmit(onSubmit)}

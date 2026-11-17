@@ -314,6 +314,7 @@ export function EmailReportModal({
     <FormModal
       open={open}
       onClose={() => onOpenChange(false)}
+      dirty={isDirty}
       title={report ? t('reports.email.editTitle') : t('reports.email.createTitle')}
       description={t('reports.emailHint')}
       onSubmit={handleSubmit(onSubmit)}

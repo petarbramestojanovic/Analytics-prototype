@@ -144,7 +144,9 @@ Seat…), it belongs in that feature's `components/` instead.
 
 **Add a translation**
 Add the key to `i18n/locales/en.ts`, then `de.ts` — German is typed against
-the English keys, so a missing translation is a compile error.
+the English keys, so a missing translation is a compile error. Counts take a
+plural form with `{{count}} {{count|campaign|campaigns}}` (one form for exactly
+1, the other for everything else) — never `campaign(s)`.
 
 **Add persisted state**
 Add a key to `config/storageKeys.ts`, then
