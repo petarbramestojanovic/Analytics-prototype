@@ -99,7 +99,7 @@ export function DevicesCard({ campaign }: { campaign: Campaign }) {
   const { t } = useI18n();
   const { axis, grid, cursorFill, tooltipStyle, animate } = useAxisStyle();
   // Two buckets, same as the Total/Mobile/Desktop tabs above: Tablet is part
-  // of Mobile. The data keeps it separate, so it is shown as a sub-line.
+  // of Mobile, and isn't reported separately.
   const buckets = deviceBuckets(campaign);
   return (
     <Card>
@@ -150,11 +150,6 @@ export function DevicesCard({ campaign }: { campaign: Campaign }) {
                 {fmtPct(d.viewability)} {t('detail.viewableSuffix')}
               </span>
             </div>
-            {d.tabletImpressions != null && d.tabletImpressions > 0 && (
-              <div className="tnum mt-0.5 pl-[17px] text-[11px] text-gray-400 dark:text-gray-500">
-                {t('detail.device.tabletIncluded', { value: fmtCompact(d.tabletImpressions) })}
-              </div>
-            )}
           </div>
         ))}
       </div>

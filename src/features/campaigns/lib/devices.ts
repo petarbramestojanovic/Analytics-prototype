@@ -27,9 +27,6 @@ export interface DeviceBucket {
   device: 'Mobile' | 'Desktop';
   impressions: number;
   viewability: number;
-  /** Mobile only: how much of it is tablet, kept visible so the fold-in is
-   *  never silent. */
-  tabletImpressions?: number;
 }
 
 /** The two device buckets the UI shows — Mobile (smartphone + tablet) and
@@ -39,9 +36,6 @@ export function deviceBuckets(campaign: Campaign): DeviceBucket[] {
     device,
     impressions: rows.reduce((sum, d) => sum + d.impressions, 0),
     viewability: weightedDeviceRate(rows, 'viewability'),
-    ...(device === 'Mobile' && {
-      tabletImpressions: rows.filter((d) => d.device === 'Tablet').reduce((sum, d) => sum + d.impressions, 0),
-    }),
   });
   return [make('Mobile', campaign.devices.filter(isMobileRow)), make('Desktop', campaign.devices.filter((d) => !isMobileRow(d)))];
 }

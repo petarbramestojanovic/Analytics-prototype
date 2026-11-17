@@ -2,6 +2,7 @@ import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu';
 import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import { CHECK_BOX } from './checkboxStyles';
 
 export const DropdownMenu = DropdownPrimitive.Root;
 export const DropdownMenuTrigger = DropdownPrimitive.Trigger;
@@ -67,9 +68,9 @@ export function DropdownMenuCheckboxItem({
       checked={checked}
       onCheckedChange={onCheckedChange}
       onSelect={(event) => event.preventDefault()}
-      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-brame-dark outline-none transition-colors data-[highlighted]:bg-gray-100 dark:text-gray-200 dark:data-[highlighted]:bg-white/10"
+      className="group flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-brame-dark outline-none transition-colors data-[highlighted]:bg-gray-100 dark:text-gray-200 dark:data-[highlighted]:bg-white/10"
     >
-      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-sm border border-gray-300 text-brame-teal dark:border-white/25">
+      <span className={CHECK_BOX}>
         <DropdownPrimitive.ItemIndicator>
           <Check size={11} strokeWidth={3} />
         </DropdownPrimitive.ItemIndicator>

@@ -17,7 +17,7 @@ describe('device split', () => {
 
   it('shows two buckets that match the split, keeping tablet visible inside mobile', () => {
     const [mobile, desktop] = deviceBuckets(campaign);
-    expect(mobile).toMatchObject({ device: 'Mobile', impressions: 700, tabletImpressions: 100 });
+    expect(mobile).toMatchObject({ device: 'Mobile', impressions: 700 });
     expect(desktop).toMatchObject({ device: 'Desktop', impressions: 300 });
     // Impression-weighted, not a plain average of 0.8 and 0.7.
     expect(mobile.viewability).toBeCloseTo((600 * 0.8 + 100 * 0.7) / 700);

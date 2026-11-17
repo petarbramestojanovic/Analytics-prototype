@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
-/** A labelled native checkbox. forwardRef so react-hook-form's register()
+/** A labelled native checkbox, styled app-wide in index.css. forwardRef so react-hook-form's register()
  *  works on it directly. */
 export const Checkbox = forwardRef<
   HTMLInputElement,
@@ -12,7 +12,7 @@ export const Checkbox = forwardRef<
       <input
         ref={ref}
         type="checkbox"
-        className="mt-0.5 h-5 w-5 flex-shrink-0 rounded border-gray-300 sm:h-4 sm:w-4 text-brame-teal focus:ring-brame-teal dark:border-white/20 dark:bg-brame-dark-light"
+        className="mt-px"
         {...props}
       />
       <span>{label}</span>

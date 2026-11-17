@@ -57,6 +57,78 @@ body {
   }
 }
 
+/* Checkboxes — one Klea look for every native checkbox in the app: a softly
+   rounded box that fills teal with a white tick when checked (and a dash when
+   mixed), a teal edge on hover and a teal focus halo. The browser default is
+   a blue square that ignores the theme. */
+@layer base {
+  input[type='checkbox'] {
+    appearance: none;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    border: 1.5px solid #cbd0d0;
+    border-radius: 0.3125rem;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.8rem;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+  }
+
+  input[type='checkbox']:hover:not(:disabled) {
+    border-color: var(--color-brame-teal-light);
+  }
+
+  input[type='checkbox']:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(10 144 144 / 0.28);
+  }
+
+  input[type='checkbox']:checked,
+  input[type='checkbox']:indeterminate {
+    border-color: var(--color-brame-teal);
+    background-color: var(--color-brame-teal);
+  }
+
+  input[type='checkbox']:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M3.5 8.5l3 3 6-7' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+  }
+
+  input[type='checkbox']:indeterminate {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M4 8h8' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3e%3c/svg%3e");
+  }
+
+  input[type='checkbox']:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .dark input[type='checkbox'] {
+    border-color: rgb(255 255 255 / 0.3);
+    background-color: transparent;
+  }
+
+  .dark input[type='checkbox']:hover:not(:disabled) {
+    border-color: var(--color-brame-turquoise);
+  }
+
+  .dark input[type='checkbox']:checked,
+  .dark input[type='checkbox']:indeterminate {
+    border-color: var(--color-brame-teal-light);
+    background-color: var(--color-brame-teal-light);
+  }
+
+  .dark input[type='checkbox']:focus-visible {
+    box-shadow: 0 0 0 3px rgb(64 184 184 / 0.35);
+  }
+}
+
 /* Tabular figures everywhere a number is compared vertically in a table or
    KPI row — otherwise proportional digits make columns visibly ragged. */
 .tnum {

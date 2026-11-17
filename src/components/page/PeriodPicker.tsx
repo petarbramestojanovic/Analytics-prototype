@@ -226,7 +226,6 @@ export function PeriodPicker({
                 type="checkbox"
                 checked={filters.yoy}
                 onChange={(e) => onChange({ yoy: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300 text-brame-teal focus:ring-brame-teal dark:border-white/20 dark:bg-brame-dark-light"
               />
               <span className="text-sm font-medium text-brame-dark dark:text-gray-100">
                 {t('overview.range.yoy')}

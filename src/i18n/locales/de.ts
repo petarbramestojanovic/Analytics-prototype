@@ -184,6 +184,7 @@ export const de: Record<TranslationKey, string> = {
   'topbar.language': 'Sprache',
 
   // Auth — shared
+  'auth.brandEyebrow': 'Analytics für Playable-Kampagnen',
   'auth.brandHeadline': 'Analytics für jede Playable-Kampagne.',
   'auth.brandBody': 'Eine verlässliche Quelle für Delivery und Engagement, jede Zahl mit klarer Herkunft.',
   'auth.brandPoint1': 'Zahlen werden nie über Quellen hinweg summiert',
@@ -490,7 +491,6 @@ export const de: Record<TranslationKey, string> = {
   'detail.devicesTitle': 'Geräte',
   'detail.device.Mobile': 'Mobile',
   'detail.device.Desktop': 'Desktop',
-  'detail.device.tabletIncluded': 'inkl. {{value}} Tablet',
   'detail.devicesHint': 'Auslieferung nach Geräteklasse. Tablet zählt als Mobile (Smartphone + Tablet).',
   'detail.viewableSuffix': 'sichtbar',
 

@@ -186,6 +186,7 @@ export const en = {
   'topbar.language': 'Language',
 
   // Auth — shared
+  'auth.brandEyebrow': 'Playable campaign analytics',
   'auth.brandHeadline': 'Analytics for every playable campaign.',
   'auth.brandBody': 'One source of truth for delivery and engagement, with every number tied to where it came from.',
   'auth.brandPoint1': 'Never sums figures across measurement sources',
@@ -491,7 +492,6 @@ export const en = {
   'detail.devicesTitle': 'Devices',
   'detail.device.Mobile': 'Mobile',
   'detail.device.Desktop': 'Desktop',
-  'detail.device.tabletIncluded': 'incl. {{value}} tablet',
   'detail.devicesHint': 'Delivery split by device class. Tablet counts as mobile (smartphone + tablet).',
   'detail.viewableSuffix': 'viewable',
 

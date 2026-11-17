@@ -2,11 +2,12 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { paths } from '@/config/paths';
 import { useFormatters, useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { usePagination } from '@/hooks/usePagination';
 import { fmtCompact, fmtMetric } from '@/lib/format';
-import { Card, CardHeader, Pill } from '@/components/ui';
+import { Card, CardFooter, CardHeader, Pill } from '@/components/ui';
 import { ErrorState, PageSkeleton } from '@/components/feedback';
 import { NotFoundState, Page, PageHeader, SectionTitle } from '@/components/page';
-import { Table, Td, Th, Tr } from '@/components/table';
+import { Pagination, Table, Td, Th, Tr } from '@/components/table';
 import { StatGrid, TextLink } from '@/components/display';
 import { DeliveryBar, MetricTile } from '@/features/campaigns';
 import type { BenchmarkCampaign } from '@/types';
@@ -22,6 +23,8 @@ import {
   parseDimension,
   type Dimension,
 } from '../lib/benchmarks';
+
+const PAGE_SIZE = 10;
 
 /**
  * One bucket's distribution and the campaigns behind it. Generic across all
@@ -41,6 +44,10 @@ export function BenchmarkDetailPage() {
 
   const { data, isLoading, isError, refetch } = useBenchmarkGroup(dimension, key);
   usePageTitle(data?.group.displayName);
+  const { paged, pagination } = usePagination(data?.group.campaigns ?? [], PAGE_SIZE, [
+    dimension,
+    key,
+  ]);
 
   const backTo = paths.benchmarks({ dimension, metric });
 
@@ -120,11 +127,16 @@ export function BenchmarkDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {group.campaigns.map((c) => (
+            {paged.map((c) => (
               <CampaignRow key={c.id} campaign={c} dimension={dimension} />
             ))}
           </tbody>
         </Table>
+        {group.campaigns.length > 0 && (
+          <CardFooter>
+            <Pagination {...pagination} />
+          </CardFooter>
+        )}
       </Card>
     </Page>
   );

@@ -4,6 +4,7 @@ import { Check, ChevronDown } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { focusRing } from '@/components/ui/buttonStyles';
+import { CHECK_BOX } from '@/components/ui/checkboxStyles';
 
 const ROW =
   'group flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-brame-dark outline-none data-[highlighted]:bg-gray-100 dark:text-gray-200 dark:data-[highlighted]:bg-white/10';
@@ -87,9 +88,8 @@ export function FilterMultiSelect({
                     labels never shift. */}
                 <span
                   className={cn(
-                    'flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 text-white transition-opacity dark:border-white/30',
-                    'opacity-0 group-hover:opacity-100 group-data-[highlighted]:opacity-100',
-                    'group-data-[state=checked]:border-brame-teal group-data-[state=checked]:bg-brame-teal group-data-[state=checked]:opacity-100',
+                    CHECK_BOX,
+                    'opacity-0 group-hover:opacity-100 group-data-[highlighted]:opacity-100 group-data-[state=checked]:opacity-100',
                   )}
                 >
                   <DropdownPrimitive.ItemIndicator>

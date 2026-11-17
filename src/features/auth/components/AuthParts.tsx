@@ -9,8 +9,8 @@ import { cn } from '@/lib/cn';
 export function AuthHeader({ title, subtitle, centered = false }: { title: string; subtitle: string; centered?: boolean }) {
   return (
     <div className={cn(centered && 'text-center')}>
-      <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{title}</h1>
-      <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-brame-dark dark:text-white">{title}</h1>
+      <p className="mt-1.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{subtitle}</p>
     </div>
   );
 }
