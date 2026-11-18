@@ -1,12 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { BarChart3, Bell, Building2, Menu, RefreshCw, Search, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { paths } from '@/config/paths';
-import { useInbox } from '@/features/inbox';
+import { BarChart3, Building2, Menu, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import { RecentMenu } from './RecentMenu';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
-import { useFormatters, useI18n } from '@/i18n';
-import { TODAY_ISO } from '@/lib/clock';
+import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { focusRing, IconButton, Pill } from '@/components/ui';
 import { useScopeLabel, useSession } from '@/features/session';
@@ -21,7 +17,6 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
   const { seatCategory, isInternal } = useSession();
   const scopeLabel = useScopeLabel();
   const { t } = useI18n();
-  const { fmtDateLong } = useFormatters();
   const ScopeIcon = !isInternal ? Building2 : seatCategory === 'brame' ? BarChart3 : ShieldCheck;
 
   // Publish the bar's height so a page can pin its own sticky strip right
@@ -62,7 +57,6 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
         <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
           <SearchButton onClick={onOpenSearch} />
           <RecentMenu />
-          <InboxButton />
           <RefreshDataButton />
           {/* Below `sm` language and theme live in the account menu, so the
               bar keeps room for the page's name. */}
@@ -72,38 +66,9 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
           <div className="hidden sm:flex">
             <ThemeToggleButton />
           </div>
-          <Pill tone="amber" className="hidden sm:inline-flex" title={t('common.prototypeBadgeHint')}>
-            {t('common.prototypeBadge')}
-            <span className="hidden xl:inline">
-              {' · '}
-              {t('common.prototypeBadgeDate', { date: fmtDateLong(TODAY_ISO) })}
-            </span>
-          </Pill>
         </div>
       </div>
     </div>
-  );
-}
-
-/** The bell: unread count at a glance, one click to the inbox. */
-function InboxButton() {
-  const { t } = useI18n();
-  const navigate = useNavigate();
-  const { unreadCount } = useInbox();
-  return (
-    <span className="relative flex">
-      <IconButton
-        label={t('nav.inbox')}
-        detail={unreadCount > 0 ? t('inbox.unreadCount', { count: unreadCount }) : undefined}
-        icon={<Bell size={14} />}
-        onClick={() => navigate(paths.inbox)}
-      />
-      {unreadCount > 0 && (
-        <span className="pointer-events-none absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white ring-2 ring-white dark:ring-brame-dark">
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-    </span>
   );
 }
 

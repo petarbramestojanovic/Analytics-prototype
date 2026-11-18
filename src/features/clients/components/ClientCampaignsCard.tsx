@@ -1,6 +1,6 @@
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { Card, CardFooter, CardHeader } from '@/components/ui';
 import { EmptyText } from '@/components/feedback';
 import { Pagination, Table, Td, Th, Tr } from '@/components/table';
@@ -8,12 +8,11 @@ import { CampaignNameCell, DeliveryBar, deliveryPacing, MetricValueCell, sourceM
 import type { Campaign, MetricKey } from '@/types';
 
 const METRICS: MetricKey[] = ['impressions', 'ctr', 'viewability', 'engagementRate'];
-const PAGE_SIZE = 10;
 
 /** Every campaign of one client, with its headline numbers. */
 export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
   const { t } = useI18n();
-  const { paged, pagination } = usePagination(campaigns, PAGE_SIZE);
+  const { paged, pagination } = usePagination(campaigns, DEFAULT_PAGE_SIZE);
   return (
     <Card padded={false} className="mb-5">
       <CardHeader title={t('companyDetail.campaignsTitle')} hint={t('companyDetail.campaignsHint')} />
@@ -55,7 +54,7 @@ export function ClientCampaignsCard({ campaigns }: { campaigns: Campaign[] }) {
           </tbody>
         </Table>
       )}
-      {campaigns.length > PAGE_SIZE && (
+      {campaigns.length > DEFAULT_PAGE_SIZE && (
         <CardFooter>
           <Pagination {...pagination} />
         </CardFooter>

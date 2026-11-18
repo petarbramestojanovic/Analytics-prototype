@@ -5,7 +5,7 @@ import { STORAGE_KEYS } from '@/config/storageKeys';
 import { useI18n } from '@/i18n';
 import { useListFilters } from '@/hooks/useListFilters';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { EMPTY_VALUE, fmtCompact, fmtMetric } from '@/lib/format';
 import { matchesQuery } from '@/lib/text';
 import { compareValues, toggleSort } from '@/lib/sort';
@@ -18,8 +18,6 @@ import { TODAY } from '@/lib/clock';
 import { buildPortfolioSummary, useCampaigns, type PortfolioSummary } from '@/features/campaigns';
 import type { Company } from '@/types';
 import { useCompanies } from '@/api/hooks/useOrganizations';
-
-const PAGE_SIZE = 10;
 
 const LIVE_FILTERS = ['all', 'live'] as const;
 const SORT_KEYS = ['name', 'campaigns', 'live', 'ctr'] as const;
@@ -88,7 +86,7 @@ export function ClientsPage() {
     });
   }, [companies, q, liveFilter, sortKey, sortDesc, statsByCompany]);
 
-  const { paged, pagination } = usePagination(filtered, PAGE_SIZE, [q, liveFilter]);
+  const { paged, pagination } = usePagination(filtered, DEFAULT_PAGE_SIZE, [q, liveFilter]);
 
   return (
     <Page>

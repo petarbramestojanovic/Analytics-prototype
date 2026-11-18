@@ -53,7 +53,7 @@ export const DEFAULT_SUBJECT: SubjectState = {
   account: 'all',
 };
 
-export interface CompareView {
+interface CompareView {
   id: string;
   name: string;
   /** What was being compared when the view was saved. Views saved before this
@@ -234,7 +234,7 @@ export function sanitizeState(raw: unknown): CompareState {
 
 /** A named set of charts — what the Overview saves. Unlike a Compare view it
  *  has no matrix columns: the Overview has no campaign to build them around. */
-export interface ChartsView {
+interface ChartsView {
   id: string;
   name: string;
   charts: CompareChart[];

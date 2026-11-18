@@ -1,4 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import { FEATURES } from '@/config/features';
 import { paths } from '@/config/paths';
 import type { Access } from '@/features/session';
 
@@ -83,11 +84,15 @@ export const appRoutes: AppRoute[] = [
   { path: '/admin/alerts/:key', Page: page(() => import('@/features/alerts/pages/AlertDetailPage'), 'AlertDetailPage'), access: 'internal' },
 
   // Klea-operational configuration — Admin seat only.
-  {
-    path: paths.setup(),
-    Page: page(() => import('@/features/campaigns/pages/campaign-setup/CampaignSetupPage'), 'CampaignSetupPage'),
-    access: 'admin',
-  },
+  ...(FEATURES.campaignSetup
+    ? [
+        {
+          path: paths.setup(),
+          Page: page(() => import('@/features/campaigns/pages/campaign-setup/CampaignSetupPage'), 'CampaignSetupPage'),
+          access: 'admin' as const,
+        },
+      ]
+    : []),
   {
     path: paths.connectors,
     Page: page(() => import('@/features/connectors/pages/ConnectorsPage'), 'ConnectorsPage'),

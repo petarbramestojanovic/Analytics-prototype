@@ -36,7 +36,8 @@ Klea rather than as a generic template.
    different clocks, the view says so before anyone panics about a gap.
 5. **Migros Back-to-School** → NEXD tab. No connector, so it is blank with
    a reason and a link to fix it — never a zero.
-6. **Campaign setup** — Salesforce-owned fields locked on top, app-owned
+6. **Campaign setup** _(switched off for now — flip `FEATURES.campaignSetup` in
+   `src/config/features.ts` to bring it back)_ — Salesforce-owned fields locked on top, app-owned
    technical setup editable below, including a **Primary source** selector —
    this is where the primary source actually gets set. Changing it there (or
    via the quicker Edit-campaign modal from the list or detail header) updates
@@ -56,8 +57,8 @@ Two places, same effect:
 
 - **Campaigns list** → row **⋯** menu → *Edit campaign* → **Primary source**
   select. Quickest path.
-- **Campaign setup** (`/admin/setup`) → *Technical setup* panel → **Primary
-  source**. Same control, alongside the rest of the app-owned technical
+- **Campaign setup** (`/admin/setup`, currently switched off — see above) →
+  *Technical setup* panel → **Primary source**. Same control, alongside the rest of the app-owned technical
   config (pixel mapping, live IDs, clicktags).
 
 Both write through the same mutation (`useUpdateCampaign`), so either one

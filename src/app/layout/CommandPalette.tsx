@@ -7,10 +7,9 @@ import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { matchesQuery } from '@/lib/text';
 import { Dialog, DialogContent } from '@/components/ui';
-import { hasAccess, useSession } from '@/features/session';
+import { useSession } from '@/features/session';
 import { CampaignStatusPill, useScopedCampaigns } from '@/features/campaigns';
 import { useCompanies } from '@/features/clients';
-import { NAV_SECTIONS, NAV_TOP_ITEMS } from '../navigation';
 
 /** Per group, so one broad query can't bury the other groups. */
 const MAX_PER_GROUP = 6;
@@ -29,8 +28,8 @@ interface Group {
 }
 
 /**
- * Jump anywhere by name: pages, campaigns and (internal seats) clients.
- * Built on the same access rules and tenant scope as the sidebar and the
+ * Jump to a record by name: campaigns and (internal seats) clients. Pages are
+ * not searched — they are one click away in the sidebar. Built on the same access rules and tenant scope as the sidebar and the
  * list pages, so it can never surface something the seat couldn't open.
  */
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -54,16 +53,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
 
   const groups = useMemo<Group[]>(() => {
     const q = query.trim();
-    const pages: Result[] = [
-      ...NAV_TOP_ITEMS.map((item) => ({ ...item, section: '' })),
-      ...NAV_SECTIONS.filter((s) => hasAccess(session, s.access)).flatMap((s) =>
-        s.items.filter((item) => !item.access || hasAccess(session, item.access)).map((item) => ({ ...item, section: t(s.labelKey) }))
-      ),
-    ]
-      .filter((item) => matchesQuery(q, t(item.labelKey), item.section))
-      .map((item) => ({ id: `page:${item.to}`, to: item.to, label: t(item.labelKey), icon: item.icon, meta: item.section }));
-
-    // Records only once there's something to match — an empty palette
+    // Nothing is listed until there's something to match — an empty palette
     // listing arbitrary campaigns would just be noise.
     const campaignResults: Result[] = q
       ? campaigns
@@ -92,7 +82,6 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
         : [];
 
     return [
-      { label: t('search.groupPages'), results: pages.slice(0, q ? MAX_PER_GROUP : undefined) },
       { label: t('search.groupCampaigns'), results: campaignResults },
       { label: t('search.groupClients'), results: clientResults },
     ].filter((g) => g.results.length > 0);
@@ -129,7 +118,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
 
   let index = -1;
   return (
-    <DialogContent className="top-[12vh] max-w-lg translate-y-0 p-0">
+    <DialogContent className="top-[10dvh] max-w-md translate-y-0 p-0">
       <DialogPrimitive.Title className="sr-only">{t('search.title')}</DialogPrimitive.Title>
       <DialogPrimitive.Description className="sr-only">{t('search.hint')}</DialogPrimitive.Description>
 
@@ -143,7 +132,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
             setActive(0);
           }}
           onKeyDown={onKeyDown}
-          placeholder={t('search.placeholder')}
+          placeholder={t(session.isInternal ? 'search.placeholder' : 'search.placeholderClient')}
           role="combobox"
           aria-expanded
           aria-controls={listId}
@@ -153,10 +142,12 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
         />
       </div>
 
-      <div ref={listRef} id={listId} role="listbox" aria-label={t('search.title')} className="max-h-[50vh] overflow-y-auto p-2">
+      <div ref={listRef} id={listId} role="listbox" aria-label={t('search.title')} className="max-h-[50dvh] overflow-y-auto p-2">
         {groups.length === 0 ? (
           <p className="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            {t('search.noResults', { q: query.trim() })}
+            {query.trim()
+              ? t('search.noResults', { q: query.trim() })
+              : t(session.isInternal ? 'search.empty' : 'search.emptyClient')}
           </p>
         ) : (
           groups.map((group) => (

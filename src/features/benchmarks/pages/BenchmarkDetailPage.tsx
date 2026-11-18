@@ -2,7 +2,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { paths } from '@/config/paths';
 import { useFormatters, useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { fmtCompact, fmtMetric } from '@/lib/format';
 import { Card, CardFooter, CardHeader, Pill } from '@/components/ui';
 import { ErrorState, PageSkeleton } from '@/components/feedback';
@@ -24,8 +24,6 @@ import {
   type Dimension,
 } from '../lib/benchmarks';
 
-const PAGE_SIZE = 10;
-
 /**
  * One bucket's distribution and the campaigns behind it. Generic across all
  * three dimensions — the KPI dashboard had this as three ~420-line files whose
@@ -44,7 +42,7 @@ export function BenchmarkDetailPage() {
 
   const { data, isLoading, isError, refetch } = useBenchmarkGroup(dimension, key);
   usePageTitle(data?.group.displayName);
-  const { paged, pagination } = usePagination(data?.group.campaigns ?? [], PAGE_SIZE, [
+  const { paged, pagination } = usePagination(data?.group.campaigns ?? [], DEFAULT_PAGE_SIZE, [
     dimension,
     key,
   ]);

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { matchesQuery } from '@/lib/text';
 import { Card, CardFooter, Pill } from '@/components/ui';
 import { EmptyText, PageSkeleton } from '@/components/feedback';
@@ -13,8 +13,6 @@ import { useCampaigns } from '@/api/hooks/useCampaigns';
 import { companyOptions } from '../../lib/filterOptions';
 import { AppOwnedPanel } from './AppOwnedPanel';
 import { SalesforcePanel } from './SalesforcePanel';
-
-const PAGE_SIZE = 10;
 
 /**
  * RFC §4 rule 4 as a screen. Salesforce owns campaign identity and commercial
@@ -38,7 +36,7 @@ export function CampaignSetupPage() {
       ),
     [campaigns, q, companyFilter]
   );
-  const { paged, pagination } = usePagination(filtered, PAGE_SIZE, [q, companyFilter]);
+  const { paged, pagination } = usePagination(filtered, DEFAULT_PAGE_SIZE, [q, companyFilter]);
 
   const campaign = campaigns.find((c) => c.id === params.get('campaign')) ?? campaigns[0];
 

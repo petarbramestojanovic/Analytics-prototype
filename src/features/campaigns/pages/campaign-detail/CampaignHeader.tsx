@@ -1,5 +1,6 @@
 import { ArrowLeft, Settings2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { FEATURES } from '@/config/features';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { ButtonLink, Pill } from '@/components/ui';
@@ -59,7 +60,7 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
         {
           // Setup stays Klea-operational — not a client permission,
           // regardless of that client's own Admin/Viewer role.
-          isAdmin && (
+          FEATURES.campaignSetup && isAdmin && (
             <ButtonLink to={paths.setup(campaign.id)} icon={<Settings2 size={14} />}>
               {t('detail.setup')}
             </ButtonLink>

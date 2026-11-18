@@ -5,7 +5,7 @@ import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { cn } from '@/lib/cn';
 import { EMPTY_VALUE, fmtCompact, fmtInt, fmtMetric, fmtSignedPct } from '@/lib/format';
 import { exportToXlsx } from '@/lib/exportXlsx';
@@ -44,7 +44,6 @@ type SortKey = 'group' | 'campaigns' | 'impressions' | BenchmarkMetric;
  *  agreed reading order. The chart's own metric dropdown doesn't touch this:
  *  the table always shows all three, side by side. */
 const TABLE_METRICS: BenchmarkMetric[] = ['engagementRate', 'ctr', 'viewability'];
-const PAGE_SIZE = 10;
 
 /** Missing stats sort last regardless of direction — a group whose sources
  *  never measured this metric is not "the worst performer". */
@@ -105,7 +104,7 @@ function RankingsView() {
     });
   }, [data, q, sort]);
 
-  const { paged, pagination } = usePagination(rows, PAGE_SIZE, [q, sort, dimension]);
+  const { paged, pagination } = usePagination(rows, DEFAULT_PAGE_SIZE, [q, sort, dimension]);
 
   const chartData = useMemo(
     () =>

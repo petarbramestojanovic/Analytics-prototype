@@ -1,5 +1,6 @@
 import { useMemo, useState, type ComponentProps } from 'react';
 import { Layers, Monitor, Settings2, Smartphone, Unplug } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 import { paths } from '@/config/paths';
 import { useI18n, type TranslationKey } from '@/i18n';
 import { cn } from '@/lib/cn';
@@ -80,7 +81,7 @@ export function SourceView({
         }
         body={isInternal ? `${reason} ${t('detail.noDataSuffix')}` : t('detail.noDataBodyClient')}
         action={
-          isAdmin ? (
+          FEATURES.campaignSetup && isAdmin ? (
             <ButtonLink
               to={paths.setup(campaign.id)}
               variant="primary"

@@ -12,6 +12,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 import { paths } from '@/config/paths';
 import type { Access } from '@/features/session';
 
@@ -73,7 +74,7 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     labelKey: 'nav.sectionInternal',
     access: 'admin',
     items: [
-      { to: paths.setup(), labelKey: 'nav.setup', icon: Settings2 },
+      ...(FEATURES.campaignSetup ? [{ to: paths.setup(), labelKey: 'nav.setup', icon: Settings2 }] : []),
       { to: paths.connectors, labelKey: 'nav.connectors', icon: Cable },
       { to: paths.seats(), labelKey: 'nav.seats', icon: Building2 },
     ],

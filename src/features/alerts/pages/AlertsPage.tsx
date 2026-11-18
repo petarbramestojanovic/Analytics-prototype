@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Download, ShieldCheck } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { exportToXlsx } from '@/lib/exportXlsx';
 import { fmtPct, fmtSignedPp } from '@/lib/format';
 import { matchesQuery } from '@/lib/text';
@@ -15,8 +15,6 @@ import { companyOptions, useCampaigns } from '@/features/campaigns';
 import { AlertLogTable } from '../components/AlertLogTable';
 import { ThresholdSettings } from '../components/ThresholdSettings';
 import type { AlertLogRow } from '../lib/alertLog';
-
-const PAGE_SIZE = 10;
 
 /** The title block of the Triggered alerts level: title, subtitle and the
  *  default watch/investigate thresholds. */
@@ -53,7 +51,7 @@ export function AlertLog({ rows: allRows }: { rows: AlertLogRow[] }) {
       ),
     [allRows, companyFilter, isInternal, q]
   );
-  const { paged, pagination } = usePagination(rows, PAGE_SIZE, [q, companyFilter]);
+  const { paged, pagination } = usePagination(rows, DEFAULT_PAGE_SIZE, [q, companyFilter]);
 
   const exportRows = () =>
     exportToXlsx('alerts.xlsx', rows, [

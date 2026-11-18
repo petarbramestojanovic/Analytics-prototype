@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
-import { usePagination } from '@/hooks/usePagination';
+import { DEFAULT_PAGE_SIZE, usePagination } from '@/hooks/usePagination';
 import { cn } from '@/lib/cn';
 import { matchesQuery } from '@/lib/text';
 import { Button, Card, CardFooter, Tabs } from '@/components/ui';
@@ -17,8 +17,6 @@ import { useSeatMembers, useSeats } from '@/api/hooks/useSeats';
 import { CreateSeatModal } from '../components/CreateSeatModal';
 import { SeatMembersPanel } from '../components/SeatMembersPanel';
 import { SEAT_CATEGORIES, SEAT_CATEGORY_ICON } from '../lib/seatCategory';
-
-const PAGE_SIZE = 10;
 
 const countBy = <T,>(items: T[], key: (item: T) => string) => {
   const map = new Map<string, number>();
@@ -63,7 +61,7 @@ export function SeatsPage() {
     () => (seats ?? []).filter((s) => s.category === category && matchesQuery(q, s.name)),
     [seats, category, q]
   );
-  const { paged, pagination } = usePagination(filtered, PAGE_SIZE, [q, category]);
+  const { paged, pagination } = usePagination(filtered, DEFAULT_PAGE_SIZE, [q, category]);
 
   const selected = seats?.find((s) => s.id === (selectedId ?? linkedSeat?.id)) ?? paged[0];
 
@@ -103,7 +101,7 @@ export function SeatsPage() {
         }
       />
 
-      <div className={cn('grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]', paged.length >= PAGE_SIZE ? 'flex-1' : 'lg:items-start')}>
+      <div className={cn('grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]', paged.length >= DEFAULT_PAGE_SIZE ? 'flex-1' : 'lg:items-start')}>
         <Card padded={false} className="flex flex-col">
           <div className="space-y-3 border-b border-gray-200 p-3 dark:border-white/10">
             <Tabs

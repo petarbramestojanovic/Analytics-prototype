@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { PaginationProps } from '@/components/table';
 
+/** Rows per page on every list view unless one asks for a different size. */
+export const DEFAULT_PAGE_SIZE = 10;
+
 /**
  * Page/slice math for any client-side list. Clamps back to the last page
  * whenever `items` shrinks (a new search/filter narrowing the set) so callers
@@ -13,7 +16,7 @@ import type { PaginationProps } from '@/components/table';
  *
  * Spread `pagination` straight into `<Pagination />`.
  */
-export function usePagination<T>(items: T[], pageSize = 10, resetOn: readonly unknown[] = []) {
+export function usePagination<T>(items: T[], pageSize = DEFAULT_PAGE_SIZE, resetOn: readonly unknown[] = []) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const currentPage = Math.min(page, pageCount - 1);

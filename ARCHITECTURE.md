@@ -49,7 +49,7 @@ src/
 ├── i18n/                 I18nProvider, useI18n, useFormatters, locales/{en,de}.ts
 ├── lib/                  Pure utilities: format, clock, storage, text, sort, cn,
 │                         exportXlsx, createStrictContext
-├── config/               paths.ts (every URL), storageKeys.ts (every localStorage key)
+├── config/               paths.ts (every URL), storageKeys.ts (every localStorage key), features.ts (on/off switches)
 ├── types/                The domain model (Campaign, Seat, EmailReport, …)
 └── test/                 Vitest setup
 ```
@@ -73,7 +73,7 @@ features/<name>/
 
 | Feature | Owns |
 |---|---|
-| `campaigns` | The core domain: campaign queries, source/metric rules (`lib/sources.ts`), source comparison (`lib/divergence.ts`), delivery, goal/guarantee (`lib/goal.ts`), device split, trends, portfolio summaries (optionally over a date range); Campaigns list (filter sheet), Campaign detail, Campaign setup |
+| `campaigns` | The core domain: campaign queries, source/metric rules (`lib/sources.ts`), source comparison (`lib/divergence.ts`), delivery, goal/guarantee (`lib/goal.ts`), device split, trends, portfolio summaries (optionally over a date range); Campaigns list (filter sheet), Campaign detail, Campaign setup (switched off via `config/features.ts`) |
 | `overview` | The landing page: the period filter (`lib/overviewFilters.ts`; the shared period logic is `lib/dateRange.ts` and `PeriodPicker` in `components/page`, also used by the Campaigns list), KPI tiles and benchmark cards |
 | `clients` | Company/account queries; Clients directory and client detail |
 | `benchmarks` | The benchmark engine (`lib/benchmarks.ts`: window, active-day floor, 3-campaign minimum, slice stats, bucket ranking, market split, mechanics over creatives, per-client context; `lib/compareViews.ts` holds the Compare workspace's columns, charts and saved views); the Context card every seat sees; Benchmarks pages (Rankings / Compare / Mechanics, Klea-only) |
