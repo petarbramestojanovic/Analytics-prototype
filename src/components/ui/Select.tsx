@@ -48,7 +48,7 @@ export function SelectItem({ children, value }: { children: ReactNode; value: st
       className="relative flex cursor-pointer select-none items-center gap-2 rounded-md py-1.5 pl-7 pr-2.5 text-sm text-brame-dark outline-none data-[highlighted]:bg-gray-100 dark:text-gray-200 dark:data-[highlighted]:bg-white/10"
     >
       <SelectPrimitive.ItemIndicator className="absolute left-2 inline-flex items-center">
-        <Check size={13} className="text-brame-teal" />
+        <Check size={13} className="text-brame-teal dark:text-brame-lime" />
       </SelectPrimitive.ItemIndicator>
       <SelectPrimitive.ItemText>
         <span className="block truncate">{children}</span>

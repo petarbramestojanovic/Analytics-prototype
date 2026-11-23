@@ -40,7 +40,7 @@ const chip = (active: boolean) =>
       : 'bg-gray-100 text-brame-dark hover:bg-gray-200 dark:bg-white/10 dark:text-gray-100 dark:hover:bg-white/15',
   );
 
-const sectionTitle = 'mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400';
+const sectionTitle = 'mb-2 text-xs font-medium text-gray-500 dark:text-gray-400';
 
 /**
  * The period control: one button showing the resolved dates and which preset
@@ -89,7 +89,7 @@ export function PeriodPicker({
           className={cn(
             'inline-flex h-10 max-w-full items-center gap-2 whitespace-nowrap rounded-lg border bg-white px-3 text-sm font-medium text-brame-dark dark:bg-brame-dark-light dark:text-gray-100',
             open
-              ? 'border-brame-teal dark:border-brame-turquoise'
+              ? 'border-brame-teal dark:border-brame-lime'
               : 'border-gray-300 dark:border-white/15',
           )}
         >

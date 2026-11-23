@@ -24,6 +24,7 @@ export function FloatingTip({
   children,
   side = 'top',
   focusable = false,
+  disabled = false,
   className,
 }: {
   content: ReactNode;
@@ -33,6 +34,8 @@ export function FloatingTip({
   /** Make the wrapper itself a tab stop — for triggers that aren't already
    *  focusable (a bar, a pill). Leave off when `children` is a button. */
   focusable?: boolean;
+  /** Keep the trigger but never show the card (e.g. text that isn't clipped). */
+  disabled?: boolean;
   className?: string;
 }) {
   const id = useId();
@@ -42,7 +45,7 @@ export function FloatingTip({
   const [focused, setFocused] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [placement, setPlacement] = useState<Placement | null>(null);
-  const open = hovered || focused || pinned;
+  const open = !disabled && (hovered || focused || pinned);
 
   useLayoutEffect(() => {
     const trigger = triggerRef.current;
@@ -129,7 +132,7 @@ export function FloatingTip({
 
 /** The bold first line of a FloatingTip. */
 export function TipTitle({ children }: { children: ReactNode }) {
-  return <div className="flex items-center gap-2 text-[13px] font-semibold text-brame-dark dark:text-white">{children}</div>;
+  return <div className="flex items-center gap-2 text-xs font-medium text-brame-dark dark:text-white">{children}</div>;
 }
 
 /** A body paragraph in a FloatingTip. */
@@ -142,7 +145,7 @@ export function TipRow({ label, value }: { label: ReactNode; value: ReactNode })
   return (
     <div className="flex items-baseline justify-between gap-4 border-t border-gray-100 py-1.5 first:mt-2 dark:border-white/10">
       <span>{label}</span>
-      <span className="tnum font-semibold text-brame-dark dark:text-white">{value}</span>
+      <span className="tnum font-medium text-brame-dark dark:text-white">{value}</span>
     </div>
   );
 }

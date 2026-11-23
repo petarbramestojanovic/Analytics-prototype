@@ -1,7 +1,7 @@
 // Klea accent colors, excluding lime/cream (too low-contrast for white
 // initials) and dark/teal (too close to the sidebar and card backgrounds
 // this renders against).
-const PALETTE = ['#077070', '#6b5b95', '#40b8b8', '#8b7bb5', '#c5772e', '#2e6ac5'];
+const PALETTE = ['#024a4a', '#0d7373', '#5b67c9', '#a06f0e', '#ba3526', '#2e8e1f'];
 
 function colorForName(name: string): string {
   let hash = 0;
@@ -36,7 +36,7 @@ export function Avatar({
   return (
     <div
       style={{ width: size, height: size, backgroundColor: colorForName(name), fontSize: size * 0.38 }}
-      className="flex flex-shrink-0 items-center justify-center rounded-full font-semibold text-white"
+      className="flex flex-shrink-0 items-center justify-center rounded-full font-medium text-white"
     >
       {initialsFor(name) || '?'}
     </div>

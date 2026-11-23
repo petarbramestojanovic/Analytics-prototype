@@ -4,18 +4,32 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 /**
  * Chart colours as hex literals, because SVG attributes cannot take Tailwind
- * utility classes. These mirror the --color-brame-* tokens in index.css; keep
- * the two in step.
+ * utility classes. They come from the BRAME palette (see the --color-brame-*
+ * tokens in index.css) and follow the guide's pairings: deep teal on light
+ * surfaces, lime on charcoal. Purple and amber are the same hues pushed far
+ * enough from their surface to stay visible as thin lines (>= 3:1).
  */
-export const CHART_COLORS = {
-  teal: '#077070',
-  turquoise: '#40b8b8',
-  turquoiseLight: '#7dd4d4',
-  lime: '#DFFA96',
-  purple: '#6b5b95',
-  amber: '#b45309',
-  blue: '#2e6ac5',
+const LIGHT_CHART_COLORS = {
+  teal: '#024a4a',
+  turquoise: '#28b8b8',
+  turquoiseLight: '#90f1f1',
+  lime: '#9ccf12',
+  purple: '#5b67c9',
+  amber: '#a06f0e',
+  green: '#3d7d59',
 } as const;
+
+const DARK_CHART_COLORS = {
+  teal: '#dffa96',
+  turquoise: '#73e8e8',
+  turquoiseLight: '#4f6a2f',
+  lime: '#dffa96',
+  purple: '#bec6fa',
+  amber: '#edae30',
+  green: '#8fc4a5',
+} as const;
+
+export type ChartPalette = Record<keyof typeof LIGHT_CHART_COLORS, string>;
 
 /**
  * Axis, grid and tooltip styling that follows the dark-mode class. Recharts
@@ -25,14 +39,16 @@ export const CHART_COLORS = {
 export function useAxisStyle() {
   const { theme } = useTheme();
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const textColor = theme === 'dark' ? '#ececec' : '#282929';
+  const textColor = theme === 'dark' ? '#f1f3f3' : '#282929';
   return {
-    axis: { stroke: theme === 'dark' ? '#8b8c8c' : '#9ca3af', fontSize: 11 },
-    grid: theme === 'dark' ? '#3a3b3b' : '#f0f0f0',
+    /** Series colours for the current theme. */
+    colors: theme === 'dark' ? DARK_CHART_COLORS : LIGHT_CHART_COLORS,
+    axis: { stroke: theme === 'dark' ? '#b0b5b5' : '#898c8c', fontSize: 12 },
+    grid: theme === 'dark' ? '#4a4b4b' : '#e0e5e5',
     tooltipStyle: {
       borderRadius: 10,
-      border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.12)' : '#e5e7eb'}`,
-      fontSize: 12,
+      border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.12)' : '#e0e5e5'}`,
+      fontSize: 13,
       background: theme === 'dark' ? '#282929' : '#fff',
       color: textColor,
     },

@@ -128,7 +128,7 @@ export function useLabelTip<T extends HTMLElement>(label: string, { side = 'bott
             {detail && <span className="mt-0.5 block font-normal text-gray-500 dark:text-gray-400">{detail}</span>}
           </span>
           {shortcut && (
-            <kbd className="rounded border border-gray-200 px-1 py-px font-sans text-[10px] font-semibold text-gray-500 dark:border-white/15 dark:text-gray-300">
+            <kbd className="rounded border border-gray-200 px-1 py-px font-sans text-xs font-medium text-gray-500 dark:border-white/15 dark:text-gray-300">
               {shortcut}
             </kbd>
           )}

@@ -12,7 +12,7 @@ import { codecs, type StorageCodec } from '@/lib/storage';
 
 const SIDEBAR_MIN_WIDTH = 216;
 const SIDEBAR_MAX_WIDTH = 400;
-const SIDEBAR_DEFAULT_WIDTH = 264;
+const SIDEBAR_DEFAULT_WIDTH = 280;
 const SIDEBAR_COLLAPSED_WIDTH = 76;
 const SIDEBAR_KEYBOARD_STEP = 16;
 

@@ -9,7 +9,7 @@ function IconBadge({ icon, active = true, className }: { icon: ReactNode; active
       className={cn(
         'flex flex-shrink-0 items-center justify-center rounded-lg p-2',
         active
-          ? 'bg-brame-teal/10 text-brame-teal dark:bg-brame-teal/20 dark:text-brame-turquoise-light'
+          ? 'bg-brame-teal/10 text-brame-teal dark:bg-brame-lime/10 dark:text-brame-lime'
           : 'bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500',
         className
       )}
@@ -45,7 +45,7 @@ export function ItemCard({
           <IconBadge icon={icon} active={active} className="mt-0.5" />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-brame-dark dark:text-gray-100">{title}</span>
+              <span className="font-medium text-brame-dark dark:text-gray-100">{title}</span>
               {badges}
             </div>
             {children}

@@ -1,39 +1,163 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Tailwind v4 defaults dark: to prefers-color-scheme; this opts into a
    manually-toggled `.dark` class on <html> instead, driven by ThemeProvider. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * BRAME style guide (Figma "BRAME Style Guide"), translated to tokens.
+ *
+ *  Colours   Primary: deep teal #024A4A, lime #DFFA96, lavender #BEC6FA,
+ *            charcoal #282929, off-white #FEFFFA.
+ *            Secondary tints + neutrals: the guide's "Secondary Color Palette".
+ *  Pairings  Light UI: charcoal text on off-white, deep teal for actions.
+ *            Dark UI: off-white text on charcoal, lime for actions/accents.
+ *            Lime or lavender are backgrounds/accents, never text on a light
+ *            surface. Text on any fill needs >= 4.5:1.
+ *  Type      Onest (headings, buttons, numbers) + Rubik (body); see below.
+ *  Spacing   8pt system (4 / 8 / 16 / 24 / 32 / 64), 24-32px page gutters.
+ */
 @theme {
-  --color-brame-teal: #077070;
-  --color-brame-teal-dark: #055555;
-  --color-brame-teal-light: #0a9090;
-  --color-brame-lime: #DFFA96;
-  --color-brame-cream: #FEFFFA;
+  /* Primary */
+  --color-brame-teal: #024a4a;
+  --color-brame-teal-dark: #012323;
+  --color-brame-teal-light: #0d7373;
+  --color-brame-lime: #dffa96;
+  --color-brame-purple: #bec6fa;
+  --color-brame-purple-light: #d0d6fe;
   --color-brame-dark: #282929;
   --color-brame-dark-light: #3a3b3b;
-  --color-brame-turquoise: #40b8b8;
-  --color-brame-turquoise-light: #7dd4d4;
-  --color-brame-purple: #6b5b95;
-  --color-brame-purple-light: #8b7bb5;
+  --color-brame-cream: #fefffa;
 
-  --font-family-sans: 'Inter', system-ui, sans-serif;
+  /* Secondary */
+  --color-brame-mint: #edfafa;
+  --color-brame-sky: #e6f4fa;
+  --color-brame-haze: #f1f3fe;
+  --color-brame-lime-soft: #f2fadc;
+  --color-brame-canvas: #f7f8fa;
+  --color-brame-turquoise: #28b8b8;
+  --color-brame-turquoise-light: #73e8e8;
+
+  /* Neutrals (guide: light grey, middle grey, dark grey, lavender grey) */
+  --color-gray-50: #f7f8fa;
+  --color-gray-100: #eff1f1;
+  --color-gray-200: #e0e5e5;
+  --color-gray-300: #c9cece;
+  --color-gray-400: #898c8c;
+  --color-gray-500: #595c5c;
+  --color-gray-600: #484a4a;
+  --color-gray-700: #3a3b3b;
+  --color-gray-800: #323333;
+  --color-gray-900: #282929;
+  --color-gray-950: #1c1d1d;
+
+  /* Status colours: the guide's bittersweet red, xanthous orange and a green in
+     the same family, but with the saturation of the red and green pulled down
+     so deltas, pacing bars and badges inform without shouting. */
+  --color-red-50: #fdf4f3;
+  --color-red-100: #fae5e2;
+  --color-red-200: #f4cbc6;
+  --color-red-300: #eaa79f;
+  --color-red-400: #db8176;
+  --color-red-500: #cc5a4d;
+  --color-red-600: #b04538;
+  --color-red-700: #8e382e;
+  --color-red-800: #6c2c25;
+  --color-red-900: #4b201b;
+  --color-red-950: #2c120f;
+
+  --color-amber-50: #fffaf0;
+  --color-amber-100: #fff5e0;
+  --color-amber-200: #fde8bf;
+  --color-amber-300: #fad996;
+  --color-amber-400: #f5c566;
+  --color-amber-500: #edae30;
+  --color-amber-600: #cf9012;
+  --color-amber-700: #a06f0e;
+  --color-amber-800: #75520a;
+  --color-amber-900: #463106;
+  --color-amber-950: #211703;
+
+  --color-green-50: #f2f8f4;
+  --color-green-100: #e3f0e8;
+  --color-green-200: #c6e1d2;
+  --color-green-300: #9fcbb2;
+  --color-green-400: #75b08f;
+  --color-green-500: #4f9770;
+  --color-green-600: #3d7d59;
+  --color-green-700: #2f6347;
+  --color-green-800: #254e39;
+  --color-green-900: #1b3a2b;
+  --color-green-950: #12281d;
+
+  /* Typography — Onest for headings and UI, Rubik for body (guide: Typography).
+     Sizes follow the guide's hierarchy where it has one (H1 54 · H2 42 · H3 32 ·
+     H4 24 · H5 20 · body 16) and step up the small end, which the app leans on
+     most, so labels and table text read comfortably. */
+  --font-sans: 'Rubik', 'Arial', system-ui, sans-serif;
+  --font-heading: 'Onest', 'Arial', system-ui, sans-serif;
+
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.875rem;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 2.4rem;
+  --text-3xl: 2.625rem;
+  --text-3xl--line-height: 3rem;
+  --text-4xl: 3.375rem;
+  --text-4xl--line-height: 3.7rem;
+}
+
+/* On charcoal the grey ramp lifts a step so secondary and tertiary text keep
+   >= 4.5:1 (the light-mode values would sit at about 4:1 on a dark card). */
+.dark {
+  --color-gray-300: #c9cece;
+  --color-gray-400: #b0b5b5;
+  --color-gray-500: #9a9e9e;
+  --color-gray-600: #7b7f7f;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 1rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #FEFFFA;
-  color: #282929;
+  background-color: var(--color-brame-canvas);
+  color: var(--color-brame-dark);
   transition: background-color 150ms ease;
 }
 
 .dark body {
-  background-color: #1c1d1d;
-  color: #ececec;
+  background-color: var(--color-brame-dark);
+  color: #f1f3f3;
+}
+
+/* Headings are Onest Medium. Under 18px tracking stays at 0; from 18 to 48px
+   the guide asks for -1% to -2%. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    letter-spacing: -0.02em;
+  }
 }
 
 /* Tailwind v4 stopped giving buttons the pointer cursor (v3's preflight did),
@@ -87,7 +211,7 @@ body {
 
   input[type='checkbox']:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgb(10 144 144 / 0.28);
+    box-shadow: 0 0 0 3px rgb(13 115 115 / 0.3);
   }
 
   input[type='checkbox']:checked,
@@ -115,17 +239,26 @@ body {
   }
 
   .dark input[type='checkbox']:hover:not(:disabled) {
-    border-color: var(--color-brame-turquoise);
+    border-color: var(--color-brame-lime);
   }
 
+  /* Lime fill on charcoal, so the tick is charcoal (guide: charcoal on lime). */
   .dark input[type='checkbox']:checked,
   .dark input[type='checkbox']:indeterminate {
-    border-color: var(--color-brame-teal-light);
-    background-color: var(--color-brame-teal-light);
+    border-color: var(--color-brame-lime);
+    background-color: var(--color-brame-lime);
+  }
+
+  .dark input[type='checkbox']:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M3.5 8.5l3 3 6-7' stroke='%23282929' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+  }
+
+  .dark input[type='checkbox']:indeterminate {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M4 8h8' stroke='%23282929' stroke-width='2.2' stroke-linecap='round'/%3e%3c/svg%3e");
   }
 
   .dark input[type='checkbox']:focus-visible {
-    box-shadow: 0 0 0 3px rgb(64 184 184 / 0.35);
+    box-shadow: 0 0 0 3px rgb(223 250 150 / 0.35);
   }
 }
 
@@ -148,7 +281,7 @@ body {
    need the ::-webkit-scrollbar-* pseudo-elements. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #0a9090 transparent;
+  scrollbar-color: #0d7373 transparent;
 }
 
 .dark * {
@@ -165,14 +298,14 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: #0a9090;
+  background-color: #0d7373;
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: #055555;
+  background-color: #024a4a;
 }
 
 .dark *::-webkit-scrollbar-thumb {

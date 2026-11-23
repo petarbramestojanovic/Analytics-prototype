@@ -5,12 +5,12 @@ import { cn } from '@/lib/cn';
 
 const VARIANTS = {
   /** Teal "Manage alerts →" style link. */
-  action: 'inline-flex items-center gap-1 text-xs font-medium text-brame-teal hover:underline dark:text-brame-turquoise-light',
+  action: 'inline-flex items-center gap-1 text-xs font-medium text-brame-teal hover:underline dark:text-brame-lime',
   /** A record name inside a table row that opens its detail page. */
   record:
-    'font-medium text-brame-dark hover:text-brame-teal hover:underline dark:text-gray-100 dark:hover:text-brame-turquoise-light',
+    'font-medium text-brame-dark hover:text-brame-teal hover:underline dark:text-gray-100 dark:hover:text-brame-lime',
   /** Inline link inside running text (auth screens). */
-  inline: 'font-medium text-brame-teal hover:underline dark:text-brame-turquoise-light',
+  inline: 'font-medium text-brame-teal hover:underline dark:text-brame-lime',
 } as const;
 
 /** An in-app link in one of the app's link styles. `newTab` opens it in a new

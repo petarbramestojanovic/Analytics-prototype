@@ -3,4 +3,5 @@ export * from './FilterSheet';
 export * from './NotFoundState';
 export * from './Page';
 export * from './PeriodPicker';
+export * from './SortBar';
 export * from './Toolbar';

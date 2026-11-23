@@ -24,7 +24,7 @@ export function RecentMenu() {
         <IconButton label={t('recent.title')} icon={<History size={14} />} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <div className="px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+        <div className="px-2.5 pb-1 pt-1.5 text-xs font-medium uppercase tracking-widest text-gray-400 dark:text-gray-500">
           {t('recent.title')}
         </div>
         {entries.length === 0 ? (

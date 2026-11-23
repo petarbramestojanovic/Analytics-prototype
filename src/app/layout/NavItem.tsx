@@ -8,7 +8,7 @@ const focusRing = 'outline-none focus-visible:ring-2 focus-visible:ring-brame-li
 
 function CountBadge({ count }: { count: number }) {
   return (
-    <span className="ml-auto flex h-4 min-w-4 flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+    <span className="ml-auto flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-medium text-white">
       {count}
     </span>
   );
@@ -40,17 +40,17 @@ export function NavItem({
       className={({ isActive }) =>
         cn(
           // Inset pill; the active one gets a lime bar pinned to its left edge.
-          'relative mx-2 flex items-center gap-3 rounded-lg py-2 text-sm motion-safe:transition-colors',
+          'relative mx-3 flex items-center gap-3 rounded-lg py-2.5 text-sm motion-safe:transition-colors',
           focusRing,
           collapsed ? 'justify-center px-0' : 'px-3',
           isActive
-            ? 'bg-white/10 font-semibold text-brame-lime before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-brame-lime'
+            ? 'bg-white/10 font-medium text-brame-lime before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-brame-lime'
             : 'font-medium text-white/80 hover:bg-white/5 hover:text-white'
         )
       }
     >
       <span className="relative flex-shrink-0">
-        <Icon size={18} />
+        <Icon size={20} />
         {collapsed && hasBadge && (
           <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-brame-teal" />
         )}

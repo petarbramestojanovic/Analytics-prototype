@@ -3,10 +3,12 @@ import { cn } from '@/lib/cn';
 /** Keyboard focus ring shared by every interactive primitive on light/dark
  *  surfaces (the teal sidebar uses its own lime ring). */
 export const focusRing =
-  'outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/40 dark:focus-visible:ring-brame-turquoise/50';
+  'outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/40 dark:focus-visible:ring-brame-lime/50';
 
 const variants = {
-  primary: 'bg-brame-teal text-white hover:bg-brame-teal-dark border-brame-teal',
+  // Guide pairings: white on deep teal; charcoal on lime for dark surfaces.
+  primary:
+    'bg-brame-teal text-white hover:bg-brame-teal-dark border-brame-teal dark:bg-brame-lime dark:text-brame-dark dark:hover:bg-brame-lime/85 dark:border-brame-lime',
   secondary:
     'bg-white text-brame-dark hover:bg-gray-50 border-gray-300 dark:bg-brame-dark-light dark:text-gray-100 dark:border-white/15 dark:hover:bg-white/10',
   ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 border-transparent dark:text-gray-300 dark:hover:bg-white/10',
@@ -15,8 +17,8 @@ const variants = {
 
 const sizes = {
   // Taller on phones, where a finger is the pointer.
-  sm: 'px-2.5 py-2 text-xs sm:py-1',
-  md: 'px-3 py-2.5 text-sm sm:py-1.5',
+  sm: 'px-3 py-2 text-xs sm:py-1.5',
+  md: 'px-4 py-2.5 text-sm sm:py-2',
 } as const;
 
 export type ButtonVariant = keyof typeof variants;
@@ -26,7 +28,7 @@ export type ButtonSize = keyof typeof sizes;
  *  like a button but can't be one (Radix's AlertDialog Action/Cancel). */
 export function buttonClasses(variant: ButtonVariant = 'secondary', size: ButtonSize = 'md') {
   return cn(
-    'inline-flex items-center gap-1.5 rounded-lg border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+    'inline-flex items-center gap-2 whitespace-nowrap rounded-lg border font-heading font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50',
     focusRing,
     variants[variant],
     sizes[size]

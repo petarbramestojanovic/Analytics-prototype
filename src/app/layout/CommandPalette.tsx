@@ -152,7 +152,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
         ) : (
           groups.map((group) => (
             <div key={group.label} role="group" aria-label={group.label} className="mb-1 last:mb-0">
-              <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              <div className="px-3 pb-1 pt-2 text-xs font-medium uppercase tracking-widest text-gray-400 dark:text-gray-500">
                 {group.label}
               </div>
               {group.results.map((r) => {
@@ -191,7 +191,7 @@ function PaletteBody({ onClose }: { onClose: () => void }) {
         )}
       </div>
 
-      <div className="hidden border-t border-gray-200 px-4 py-2 text-[11px] text-gray-400 dark:border-white/10 dark:text-gray-500 sm:block">
+      <div className="hidden border-t border-gray-200 px-4 py-2 text-xs text-gray-400 dark:border-white/10 dark:text-gray-500 sm:block">
         {t('search.hint')}
       </div>
     </DialogContent>

@@ -16,10 +16,28 @@ const alignClass: Record<Align, string> = {
 
 /** A full-width table inside a horizontal-scroll wrapper — the shape of
  *  every data table in the app. */
-export function Table({ children, className, fill = false }: { children: ReactNode; className?: string; fill?: boolean }) {
+export function Table({
+  children,
+  className,
+  fill = false,
+  fixedWidth,
+}: {
+  children: ReactNode;
+  className?: string;
+  fill?: boolean;
+  /** Lock the layout to the column widths set on the header cells (`Th width`),
+   *  the total being the least the table is wide. Without it, columns size to
+   *  their content — and shift sideways whenever a sort reorders the rows. */
+  fixedWidth?: number;
+}) {
   return (
     <TableScroll className={className} fill={fill}>
-      <table className={cn('w-full', fill && 'h-full')}>{children}</table>
+      <table
+        className={cn('w-full', fill && 'h-full', fixedWidth !== undefined && 'table-fixed')}
+        style={fixedWidth !== undefined ? { minWidth: fixedWidth } : undefined}
+      >
+        {children}
+      </table>
     </TableScroll>
   );
 }
@@ -83,6 +101,7 @@ export function Th({
   className = '',
   sort,
   dense = false,
+  width,
 }: {
   children?: ReactNode;
   align?: Align;
@@ -90,14 +109,17 @@ export function Th({
   /** Set on sortable columns only, so assistive tech announces the order. */
   sort?: 'ascending' | 'descending' | 'none';
   dense?: boolean;
+  /** Column width in px, honoured by a `Table fixedWidth`. */
+  width?: number;
 }) {
   return (
     <th
       scope="col"
       aria-sort={sort}
+      style={width !== undefined ? { width } : undefined}
       className={cn(
-        'whitespace-nowrap border-b border-gray-200 py-2.5 text-xs font-semibold text-gray-500 dark:border-white/10 dark:text-gray-400',
-        dense ? 'px-2.5' : 'px-4',
+        'whitespace-nowrap border-b border-gray-200 py-3.5 text-xs font-medium text-gray-500 dark:border-white/10 dark:text-gray-400',
+        dense ? 'px-3' : 'px-4',
         alignClass[align],
         className
       )}
@@ -121,8 +143,8 @@ export function Td({
   return (
     <td
       className={cn(
-        'border-b border-gray-100 py-2 text-sm dark:border-white/5',
-        dense ? 'px-2.5' : 'px-4',
+        'border-b border-gray-100 py-3.5 text-sm dark:border-white/5',
+        dense ? 'px-3' : 'px-4',
         align === 'right' && 'tnum',
         alignClass[align],
         className
@@ -216,16 +238,18 @@ export function SortableTh<K extends string>({
   sort,
   onToggle,
   align = 'left',
+  className,
 }: {
   children: ReactNode;
   col: K;
   sort: { key: K; desc: boolean };
   onToggle: (col: K) => void;
   align?: Align;
+  className?: string;
 }) {
   const direction = sort.key === col ? (sort.desc ? 'desc' : 'asc') : false;
   return (
-    <Th align={align} sort={ariaSort(direction)}>
+    <Th align={align} sort={ariaSort(direction)} className={className}>
       <SortButton direction={direction} onClick={() => onToggle(col)}>
         {children}
       </SortButton>

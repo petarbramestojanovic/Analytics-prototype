@@ -66,7 +66,7 @@ export function FilterMultiSelect({
               onSelect={(e) => e.preventDefault()}
               className={cn(ROW, 'font-medium')}
             >
-              <span className="flex h-4 w-4 shrink-0 items-center justify-center text-brame-teal dark:text-brame-turquoise-light">
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center text-brame-teal dark:text-brame-lime">
                 <DropdownPrimitive.ItemIndicator>
                   <Check size={13} strokeWidth={3} />
                 </DropdownPrimitive.ItemIndicator>

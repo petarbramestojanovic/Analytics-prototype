@@ -12,18 +12,6 @@ export const paths = {
 
   overview: '/overview',
   campaigns: '/campaigns',
-  /** The campaigns list narrowed to one setup gap (see campaigns' lib/setup). */
-  campaignsBySetup: (
-    setup: 'awaiting' | 'noConnector',
-    /** Entity filters to carry over (the Campaigns list's own keys), so the list
-     *  shows exactly the campaigns a filtered tile counted. */
-    carry: { company?: string; account?: string; country?: string } = {},
-  ) => {
-    const params = new URLSearchParams({ setup });
-    for (const [key, value] of Object.entries(carry))
-      if (value && value !== 'all') params.set(key, value);
-    return `/campaigns?${params}`;
-  },
   campaign: (id: string) => `/campaigns/${id}`,
   reports: '/reports',
   inbox: '/inbox',

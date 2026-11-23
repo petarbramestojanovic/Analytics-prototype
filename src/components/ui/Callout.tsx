@@ -4,8 +4,8 @@ import { cn } from '@/lib/cn';
 
 const TONES = {
   info: {
-    box: 'border-brame-teal/20 bg-brame-teal/5 text-sm text-brame-dark dark:border-brame-turquoise/25 dark:bg-brame-teal/15 dark:text-gray-200',
-    icon: <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-brame-teal dark:text-brame-turquoise-light" />,
+    box: 'border-brame-teal/20 bg-brame-teal/5 text-sm text-brame-dark dark:border-brame-lime/25 dark:bg-brame-lime/10 dark:text-gray-200',
+    icon: <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-brame-teal dark:text-brame-lime" />,
   },
   warning: {
     box: 'border-amber-200 bg-amber-50 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',

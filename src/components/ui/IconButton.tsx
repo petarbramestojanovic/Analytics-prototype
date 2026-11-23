@@ -6,7 +6,7 @@ import { composeBind, useLabelTip, type LabelTipOptions } from './LabelTip';
 const variants = {
   /** Round, bordered — the top bar's refresh / theme controls. */
   outline:
-    'h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-500 hover:text-brame-dark dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:text-white sm:h-8 sm:w-8',
+    'h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-500 hover:text-brame-dark dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:text-white sm:h-10 sm:w-10',
   /** Borderless — row actions, dismiss buttons. */
   ghost:
     'rounded-lg p-2.5 text-gray-400 hover:bg-gray-100 hover:text-brame-dark dark:hover:bg-white/10 dark:hover:text-gray-100 sm:p-1.5',

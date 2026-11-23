@@ -20,12 +20,12 @@ import { SortButton, Table, TableEmptyRow, Td, Th } from './Table';
  * `group`) rather than to the row itself. One solid color on each cell, no
  * transition: the whole row switches at the same instant, and the pinned cells
  * (which must be opaque) land on exactly the same shade as the rest. Light is
- * a 10% brand-teal tint over white (a plain gray is lost against the white
+ * an 8% deep-teal tint over white (a plain gray is lost against the white
  * card); dark is a 5% white tint over the card (#3a3b3b). Both are written as
  * solid colors.
  */
 const ROW_HOVER =
-  'group-hover:bg-[color-mix(in_srgb,#077070_10%,white)] dark:group-hover:bg-[color-mix(in_srgb,white_5%,#3a3b3b)]';
+  'group-hover:bg-[color-mix(in_srgb,#024a4a_8%,white)] dark:group-hover:bg-[color-mix(in_srgb,white_5%,#3a3b3b)]';
 
 /**
  * Renders a TanStack Table instance in the app's table style: sortable
@@ -69,7 +69,12 @@ export function DataTable<T>({
 
   return (
     <>
-      <Table fill={fill}>
+      {/* Fixed layout: each column keeps its `size`, so a sort never makes
+          the columns slide sideways. */}
+      <Table
+        fill={fill}
+        fixedWidth={table.getVisibleLeafColumns().reduce((sum, c) => sum + c.getSize(), 0)}
+      >
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
@@ -83,6 +88,7 @@ export function DataTable<T>({
                     key={header.id}
                     align={align(header.column.id)}
                     dense={dense}
+                    width={header.getSize()}
                     sort={
                       header.column.getCanSort() ? ariaSort(header.column.getIsSorted()) : undefined
                     }

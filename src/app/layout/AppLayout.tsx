@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useI18n } from '@/i18n';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/cn';
 import { Drawer, DrawerContent } from '@/components/ui';
 import { LoadingState } from '@/components/feedback';
@@ -24,7 +24,7 @@ function focusActiveNavItem(e: Event) {
 }
 
 export function AppLayout() {
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isDesktop = useIsDesktop();
   const sidebar = useResizableSidebar(isDesktop);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useI18n();
@@ -56,7 +56,7 @@ export function AppLayout() {
   }, []);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-brame-cream dark:bg-brame-dark">
+    <div className="flex h-dvh overflow-hidden bg-brame-canvas dark:bg-brame-dark">
       <RecentPagesTracker />
       {isDesktop ? (
         <aside

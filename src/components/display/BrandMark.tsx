@@ -33,13 +33,13 @@ export function BrandMark({
         )}
       />
       {compact ? (
-        <span className={cn('font-bold', onDark ? 'text-white' : 'text-brame-dark dark:text-white')}>
+        <span className={cn('font-heading font-medium', onDark ? 'text-white' : 'text-brame-dark dark:text-white')}>
           {t('common.appName')}
         </span>
       ) : (
         <div className="truncate leading-tight">
-          <div className={cn('font-bold', SIZES[size].title)}>{t('common.appName')}</div>
-          <div className="text-[10px] uppercase tracking-widest text-brame-lime/80">{t('common.appSubtitle')}</div>
+          <div className={cn('font-heading font-medium', SIZES[size].title)}>{t('common.appName')}</div>
+          <div className="text-xs uppercase tracking-widest text-brame-lime/80">{t('common.appSubtitle')}</div>
         </div>
       )}
     </div>

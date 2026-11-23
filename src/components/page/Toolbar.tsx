@@ -172,13 +172,13 @@ export function FilterToggleButton({
       className={cn(
         toolbarButtonClasses,
         TOOLBAR_BUTTON_SIZE.md,
-        (open || count > 0) && 'border-brame-teal text-brame-teal dark:border-brame-turquoise-light dark:text-brame-turquoise-light'
+        (open || count > 0) && 'border-brame-teal text-brame-teal dark:border-brame-lime dark:text-brame-lime'
       )}
     >
       <ListFilter size={13} />
       {label}
       {count > 0 && (
-        <span className="tnum inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brame-teal px-1 text-[10px] font-semibold text-white">
+        <span className="tnum inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brame-teal px-1 text-xs font-medium text-white">
           {count}
         </span>
       )}
@@ -190,7 +190,7 @@ export function FilterToggleButton({
 export function FilterField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">{label}</div>
+      <div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">{label}</div>
       {children}
     </div>
   );

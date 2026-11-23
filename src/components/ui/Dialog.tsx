@@ -58,7 +58,7 @@ export function DialogHeader({ children }: { children: ReactNode }) {
 
 export function DialogTitle({ children }: { children: ReactNode }) {
   return (
-    <DialogPrimitive.Title className="text-lg font-bold text-brame-dark dark:text-white">
+    <DialogPrimitive.Title className="text-lg font-medium text-brame-dark dark:text-white">
       {children}
     </DialogPrimitive.Title>
   );

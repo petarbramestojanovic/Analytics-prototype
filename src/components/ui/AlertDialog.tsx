@@ -17,7 +17,7 @@ export function AlertDialogContent({ children }: { children: ReactNode }) {
 
 export function AlertDialogTitle({ children }: { children: ReactNode }) {
   return (
-    <AlertDialogPrimitive.Title className="text-base font-bold text-brame-dark dark:text-white">
+    <AlertDialogPrimitive.Title className="text-base font-medium text-brame-dark dark:text-white">
       {children}
     </AlertDialogPrimitive.Title>
   );

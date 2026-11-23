@@ -92,7 +92,7 @@ export function Calendar({
 
       <div className="grid grid-cols-7 gap-y-0.5 text-center">
         {weekdays.map((w, i) => (
-          <div key={i} className="pb-1 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+          <div key={i} className="pb-1 text-xs font-medium text-gray-400 dark:text-gray-500">
             {w}
           </div>
         ))}
@@ -114,11 +114,11 @@ export function Calendar({
                 selected
                   ? 'bg-brame-teal font-medium text-white'
                   : inRange
-                    ? 'bg-brame-teal/10 text-brame-dark dark:bg-brame-teal/30 dark:text-gray-100'
+                    ? 'bg-brame-teal/10 text-brame-dark dark:bg-brame-lime/15 dark:text-gray-100'
                     : 'text-brame-dark hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-white/10',
                 date === today &&
                   !selected &&
-                  'ring-1 ring-brame-teal/60 dark:ring-brame-turquoise/60',
+                  'ring-1 ring-brame-teal/60 dark:ring-brame-lime/60',
                 disabled &&
                   'cursor-not-allowed opacity-30 hover:bg-transparent dark:hover:bg-transparent',
               )}

@@ -27,7 +27,7 @@ export function DateButton({
       className={cn(
         'tnum inline-flex h-9 flex-1 items-center justify-between gap-2 rounded-lg border bg-white px-3 text-sm text-brame-dark dark:bg-brame-dark-light dark:text-gray-100',
         active
-          ? 'border-brame-teal dark:border-brame-turquoise'
+          ? 'border-brame-teal dark:border-brame-lime'
           : 'border-gray-300 dark:border-white/15',
       )}
     >

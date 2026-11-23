@@ -1,74 +1,90 @@
-import type { ReactNode } from 'react';
+import { Children, createContext, isValidElement, useContext, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
-import { Card, Tooltip } from '@/components/ui';
+import { CARD_SURFACE, Tooltip } from '@/components/ui';
+
+/** The first tile of a `StatGrid` is the row's lead: filled deep teal, lime label. */
+const LeadTileContext = createContext(false);
+
+/** What every tile shares: a card surface, or — as the lead — deep teal with
+ *  white text (guide: white on deep teal). */
+const SHELL = 'flex h-full flex-col rounded-2xl p-5';
+const LEAD = 'border border-brame-teal bg-brame-teal text-white dark:border-brame-teal-light';
 
 /**
- * The visual shell shared by every KPI-style tile — the compact
- * count/percentage callout (SummaryTile) and the larger
- * metric-with-tooltip card (campaigns' MetricTile) are the same shape at two
- * sizes.
+ * The visual shell shared by every KPI-style tile: label top left, an optional
+ * bare `icon` top right, the value, and a small `footnote` under it. The value
+ * sits at the bottom, so tiles of different label length line up in a row.
+ * `tone="emphasis"` — or being the first tile in a StatGrid — fills it deep teal.
  */
 export function StatTile({
   label,
   value,
   tone = 'default',
-  compact = false,
+  icon,
   footnote,
   className = '',
 }: {
   label: ReactNode;
   value: ReactNode;
   tone?: 'default' | 'emphasis';
-  compact?: boolean;
+  icon?: ReactNode;
   footnote?: ReactNode;
   className?: string;
 }) {
-  if (compact) {
-    return (
-      <Card padded={false} className={cn('p-3', className)}>
-        <div className="truncate text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+  const lead = useContext(LeadTileContext);
+  const filled = tone === 'emphasis' || lead;
+
+  return (
+    <div data-primary={filled || undefined} className={cn(SHELL, filled ? LEAD : CARD_SURFACE, className)}>
+      <div className="flex items-start justify-between gap-3">
+        <div className={cn('min-w-0 text-sm font-medium', filled ? 'text-brame-lime' : 'text-gray-500 dark:text-gray-400')}>
           {label}
         </div>
-        <div className="tnum mt-0.5 text-xl font-bold text-brame-dark dark:text-white">{value}</div>
-      </Card>
-    );
-  }
-  return (
-    <div
-      className={cn(
-        'rounded-xl border p-4',
-        tone === 'emphasis'
-          ? 'border-brame-teal/30 bg-brame-teal/5 dark:border-brame-teal/40 dark:bg-brame-teal/10'
-          : 'border-gray-200 bg-white dark:border-white/10 dark:bg-brame-dark-light',
-        className
+        {icon && (
+          <span aria-hidden className={cn('shrink-0', filled ? 'text-brame-lime' : 'text-brame-teal dark:text-brame-lime')}>
+            {icon}
+          </span>
+        )}
+      </div>
+      <div
+        className={cn(
+          'tnum mt-auto pt-3 font-heading text-2xl font-medium tracking-tight',
+          filled ? 'text-white' : 'text-brame-dark dark:text-white',
+        )}
+      >
+        {value}
+      </div>
+      {footnote && (
+        <div className={cn('mt-0.5 text-xs', filled ? 'text-white/75' : 'text-gray-500 dark:text-gray-400')}>
+          {footnote}
+        </div>
       )}
-    >
-      <div className="flex min-h-8 items-start gap-1.5">{label}</div>
-      <div className="tnum mt-1.5 text-2xl font-bold text-brame-dark dark:text-white">{value}</div>
-      {footnote && <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{footnote}</div>}
     </div>
   );
 }
 
-/** The compact count/percentage callout used in every page's summary row,
- *  with an optional help tooltip next to the label. */
+/** A tile with an optional help tooltip next to the label. */
 export function SummaryTile({
   label,
   value,
   hint,
+  icon,
+  footnote,
   className,
 }: {
   label: string;
   value: ReactNode;
   hint?: string;
+  icon?: ReactNode;
+  footnote?: ReactNode;
   className?: string;
 }) {
   return (
     <StatTile
       label={
         hint ? (
-          <span className="flex items-center gap-1 truncate">
-            <span className="truncate">{label}</span>
+          <span className="flex items-center gap-1">
+            {label}
             <Tooltip text={hint} />
           </span>
         ) : (
@@ -76,20 +92,38 @@ export function SummaryTile({
         )
       }
       value={value}
-      compact
+      icon={icon}
+      footnote={footnote}
       className={className}
     />
   );
 }
 
+/** Columns per tile count. A last tile that would sit alone (or short of a
+ *  full row) stretches across the gap, so a row never ends half empty. */
 const GRID_COLUMNS = {
   4: 'grid-cols-2 lg:grid-cols-4',
-  5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
-  6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6',
-  7: 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-7',
+  5: 'grid-cols-2 md:grid-cols-3 xl:grid-cols-5 md:max-xl:[&>*:last-child:nth-child(3n+2)]:col-span-2',
+  6: 'grid-cols-2 md:grid-cols-3 xl:grid-cols-6',
+  7: 'grid-cols-2 md:grid-cols-4 2xl:grid-cols-7 md:max-2xl:[&>*:last-child:nth-child(4n+3)]:col-span-2',
 } as const;
 
-/** The responsive row summary tiles sit in at the top of a page. */
+/** The responsive row summary tiles sit in at the top of a page. Its first
+ *  tile is the lead: the one filled with deep teal. */
 export function StatGrid({ columns = 4, children, className }: { columns?: keyof typeof GRID_COLUMNS; children: ReactNode; className?: string }) {
-  return <div className={cn('mb-4 grid gap-3', GRID_COLUMNS[columns], className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        'mb-6 grid gap-4 max-md:[&>*:last-child:nth-child(odd)]:col-span-2',
+        GRID_COLUMNS[columns],
+        className
+      )}
+    >
+      {Children.toArray(children).map((child, i) => (
+        <LeadTileContext.Provider key={isValidElement(child) ? child.key : i} value={i === 0}>
+          {child}
+        </LeadTileContext.Provider>
+      ))}
+    </div>
+  );
 }

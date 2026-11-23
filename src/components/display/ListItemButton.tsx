@@ -24,7 +24,7 @@ export function ListItemButton({
       onClick={onClick}
       className={cn(
         'flex w-full items-center gap-3 border-b border-gray-100 px-4 py-2 text-left transition-colors last:border-0 dark:border-white/5',
-        active ? 'bg-brame-teal/5 dark:bg-brame-teal/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'
+        active ? 'bg-brame-teal/5 dark:bg-brame-lime/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'
       )}
     >
       {icon && (
@@ -41,7 +41,7 @@ export function ListItemButton({
         <div
           className={cn(
             'truncate text-sm font-medium',
-            active ? 'text-brame-teal dark:text-brame-turquoise-light' : 'text-brame-dark dark:text-gray-100'
+            active ? 'text-brame-teal dark:text-brame-lime' : 'text-brame-dark dark:text-gray-100'
           )}
         >
           {title}

@@ -154,7 +154,7 @@ function SearchSelect({
         onClick={() => (open ? close() : setOpen(true))}
         className={cn(
           'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 text-base text-brame-dark outline-none focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100',
-          open && 'border-brame-teal dark:border-brame-turquoise',
+          open && 'border-brame-teal dark:border-brame-lime',
           focusRing,
         )}
       >
@@ -196,7 +196,7 @@ function SearchSelect({
                 setActive(0);
               }}
               onKeyDown={onInputKeyDown}
-              className="h-9 w-full rounded-lg border border-gray-300 bg-white pl-8 pr-3 text-base text-brame-dark outline-none placeholder:text-gray-400 focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brame-turquoise"
+              className="h-9 w-full rounded-lg border border-gray-300 bg-white pl-8 pr-3 text-base text-brame-dark outline-none placeholder:text-gray-400 focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-white/5 dark:text-gray-100 dark:focus:border-brame-lime"
             />
           </div>
 
@@ -225,7 +225,7 @@ function SearchSelect({
                     )}
                   </span>
                   {checked && (
-                    <Check size={14} className="shrink-0 text-brame-teal dark:text-brame-turquoise-light" />
+                    <Check size={14} className="shrink-0 text-brame-teal dark:text-brame-lime" />
                   )}
                 </li>
               );

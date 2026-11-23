@@ -6,7 +6,7 @@ export function Eyebrow({ icon, children, className }: { icon?: ReactNode; child
   return (
     <div
       className={cn(
-        'mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400',
+        'mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400',
         className
       )}
     >

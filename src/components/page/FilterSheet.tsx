@@ -73,7 +73,7 @@ export function FilterSheet({
       )}
     >
       <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-white/10">
-        <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">{title}</h2>
+        <h2 className="text-base font-medium text-brame-dark dark:text-gray-100">{title}</h2>
         <button
           type="button"
           onClick={onClose}

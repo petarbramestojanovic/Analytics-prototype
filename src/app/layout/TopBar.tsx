@@ -33,7 +33,7 @@ export function TopBar({ onOpenMobileMenu, onOpenSearch }: { onOpenMobileMenu: (
   }, []);
 
   return (
-    <div ref={ref} className="sticky top-0 z-20 flex-shrink-0 border-b border-gray-200 bg-white/70 px-4 py-2.5 backdrop-blur dark:border-white/10 dark:bg-brame-dark/70 sm:px-6 lg:px-8">
+    <div ref={ref} className="sticky top-0 z-20 flex-shrink-0 border-b border-gray-200 bg-white/70 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-brame-dark/70 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <IconButton
@@ -109,13 +109,13 @@ function SearchButton({ onClick }: { onClick: () => void }) {
         onClick={onClick}
         aria-keyshortcuts="Meta+K Control+K"
         className={cn(
-          'hidden h-8 w-52 items-center gap-2 rounded-full border border-gray-200 bg-white pl-3 pr-1.5 text-xs text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-500 dark:hover:border-white/20 md:flex',
+          'hidden h-10 w-64 items-center gap-2 rounded-full border border-gray-200 bg-white pl-3 pr-1.5 text-xs text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-500 dark:hover:border-white/20 md:flex',
           focusRing
         )}
       >
         <Search size={13} />
         <span className="flex-1 text-left">{t('search.trigger')}</span>
-        <kbd className="rounded-full border border-gray-200 px-1.5 py-0.5 font-sans text-[10px] font-medium text-gray-400 dark:border-white/10">
+        <kbd className="rounded-full border border-gray-200 px-1.5 py-0.5 font-sans text-xs font-medium text-gray-400 dark:border-white/10">
           {SHORTCUT_LABEL}
         </kbd>
       </button>
