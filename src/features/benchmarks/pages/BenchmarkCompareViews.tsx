@@ -74,7 +74,7 @@ function MechanicsPage() {
       <PageHeader
         title={t('benchmarks.title')}
         subtitle={t('benchmarks.subtitle.mechanics')}
-        actions={<PeriodPicker align="end" showYoy={false} filters={filters} range={range} onChange={setFilter} />}
+        actions={<PeriodPicker allowAll align="end" showYoy={false} filters={filters} range={range} onChange={setFilter} />}
       />
       <BenchmarkViewTabs view="mechanics" />
       <MechanicsBody scope={scope} range={range} />
@@ -188,47 +188,56 @@ function CompareBody() {
       .sort((a, b) => a.label.localeCompare(b.label));
   };
 
-  return (
-    <div>
-      {/* Sticky, pinned just under the top bar: scrolling down through the matrix, charts and the cross-market
-          view, the campaign they are all about stays in reach. */}
-      <div className="sticky top-[var(--topbar-h,3.5rem)] z-10 -mx-4 mb-5 flex flex-wrap items-center gap-3 border-b border-gray-200 bg-brame-cream/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 dark:border-white/10 dark:bg-brame-dark/95">
-        <Tabs
-          onPage
-          value={kind}
-          onChange={switchKind}
-          groupLabel={t('cmp.subject.label')}
-          options={SUBJECT_KINDS.map((value) => ({ value, label: t(`cmp.subject.${value}`) }))}
+  // What the matrix is about. It lives in the matrix's own header and feeds
+  // only the matrix — the charts and the cross-market view below stand alone.
+  const subjectPicker = (
+    <>
+      <Tabs
+        value={kind}
+        onChange={switchKind}
+        groupLabel={t('cmp.subject.label')}
+        options={SUBJECT_KINDS.map((value) => ({ value, label: t(`cmp.subject.${value}`) }))}
+      />
+      {kind === 'campaign' ? (
+        <CampaignAutocomplete
+          value={subject?.id ?? null}
+          onChange={pickCampaign}
+          options={campaignOptions}
+          label={t('cmp.subject.campaign')}
+          placeholder={t('cmp.subject.placeholder.campaign')}
+          noneLabel={t('cmp.subject.none.campaign')}
         />
-        {kind === 'campaign' ? (
-          <CampaignAutocomplete
-            value={subject?.id ?? null}
-            onChange={pickCampaign}
-            options={campaignOptions}
-            label={t('cmp.subject.campaign')}
-            placeholder={t('cmp.subject.placeholder.campaign')}
-            noneLabel={t('cmp.subject.none.campaign')}
-          />
-        ) : (
-          <>
-            {SLICE_DIMS.map((dim) => (
-              <FilterMultiSelect
-                key={dim}
-                className="w-48"
-                values={parseSelection(filters[dim])}
-                onChange={(v) => setCut(dim, v)}
-                allLabel={t(`cmp.segment.any.${dim}`)}
-                options={cutOptions(dim)}
-              />
-            ))}
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {subject
-                ? t('cmp.matrix.sampleValue', { n: subject.campaigns.length })
-                : t('cmp.segment.none')}
-            </span>
-          </>
-        )}
-        <div className="ml-auto">
+      ) : (
+        <>
+          {SLICE_DIMS.map((dim) => (
+            <FilterMultiSelect
+              key={dim}
+              className="w-48"
+              values={parseSelection(filters[dim])}
+              onChange={(v) => setCut(dim, v)}
+              allLabel={t(`cmp.segment.any.${dim}`)}
+              options={cutOptions(dim)}
+            />
+          ))}
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {subject
+              ? t('cmp.matrix.sampleValue', { n: subject.campaigns.length })
+              : t('cmp.segment.none')}
+          </span>
+        </>
+      )}
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      <CompareMatrix
+        pool={pool}
+        subject={subject}
+        columns={state.columns}
+        onChange={(columns) => setState((s) => ({ ...s, columns }))}
+        toolbar={subjectPicker}
+        actions={
           <ViewsMenu
             views={state.views}
             onLoad={(v) => {
@@ -259,23 +268,15 @@ function CompareBody() {
               setFilter(DEFAULT_SUBJECT);
             }}
           />
-        </div>
-      </div>
-      <div className="space-y-5">
-        <CompareMatrix
-          pool={pool}
-          subject={subject}
-          columns={state.columns}
-          onChange={(columns) => setState((s) => ({ ...s, columns }))}
-        />
-        <CompareCharts
-          pool={pool}
-          subject={subject}
-          charts={state.charts}
-          onChange={(charts) => setState((s) => ({ ...s, charts }))}
-        />
-        <CrossMarket pool={pool} />
-      </div>
+        }
+      />
+      <CompareCharts
+        pool={pool}
+        charts={state.charts}
+        expandable
+        onChange={(charts) => setState((s) => ({ ...s, charts }))}
+      />
+      <CrossMarket pool={pool} />
     </div>
   );
 }

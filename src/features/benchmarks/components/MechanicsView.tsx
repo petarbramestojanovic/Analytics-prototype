@@ -82,7 +82,7 @@ export function MechanicsView({
         </span>
       );
     }
-    return <span className="tnum font-semibold">{fmtMetric(m, stats.avg)}</span>;
+    return <span className="tnum font-medium">{fmtMetric(m, stats.avg)}</span>;
   };
 
   const exportRows = () =>

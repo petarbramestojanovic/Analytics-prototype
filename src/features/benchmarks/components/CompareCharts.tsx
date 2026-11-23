@@ -2,7 +2,6 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { TODAY } from '@/lib/clock';
-import { cn } from '@/lib/cn';
 import { fmtMetric } from '@/lib/format';
 import {
   Card,
@@ -27,11 +26,10 @@ import {
   type SliceDim,
 } from '../lib/benchmarks';
 import { bucketName, dimLabel } from '../lib/compareLabels';
-import type { CompareSubject } from '../lib/compareSubject';
 import { MAX_COMPARE_CHARTS, type CompareChart } from '../lib/compareViews';
 
-/** Buckets on the card itself; the rest open in a modal. */
-const SHOWN = 10;
+/** Buckets on the card itself (the top ones); the rest open in a modal. */
+const SHOWN = 8;
 
 /** The dropdown is narrow, so a long metric name gets a short form there. */
 const SHORT_METRIC_LABEL: Partial<Record<BenchmarkMetric, string>> = {
@@ -42,13 +40,11 @@ const SHORT_METRIC_LABEL: Partial<Record<BenchmarkMetric, string>> = {
  *  a dashed tick on the track. */
 function BucketRow({
   rank,
-  own,
   metric,
   brame,
   max,
 }: {
   rank: BucketRank;
-  own: boolean;
   metric: BenchmarkMetric;
   brame: number | null;
   max: number;
@@ -57,34 +53,21 @@ function BucketRow({
   return (
     <li>
       <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
-        <span
-          className={cn(
-            'truncate',
-            own
-              ? 'font-semibold text-brame-dark dark:text-white'
-              : 'text-gray-600 dark:text-gray-300',
-          )}
-          title={bucketName(t, rank.label)}
-        >
+        <span className="truncate text-gray-600 dark:text-gray-300" title={bucketName(t, rank.label)}>
           {bucketName(t, rank.label)}
         </span>
         <span className="tnum shrink-0 font-medium text-brame-dark dark:text-gray-100">
           {fmtMetric(metric, rank.avg)}
         </span>
       </div>
-      <div className="relative h-2 rounded-full bg-gray-100 dark:bg-white/10">
+      <div className="relative h-1 rounded-full bg-gray-100 dark:bg-white/10">
         <div
-          className={cn(
-            'h-full rounded-full',
-            own
-              ? 'bg-brame-teal dark:bg-brame-turquoise'
-              : 'bg-brame-teal/30 dark:bg-brame-turquoise/30',
-          )}
+          className="h-full rounded-full bg-brame-teal/60 dark:bg-brame-lime/60"
           style={{ width: `${(rank.avg / max) * 100}%` }}
         />
         {brame !== null && (
           <span
-            className="absolute -top-0.5 h-3 border-l border-dashed border-gray-500 dark:border-gray-400"
+            className="absolute -top-1 h-3 border-l border-dashed border-gray-500 dark:border-gray-400"
             style={{ left: `${(brame / max) * 100}%` }}
           />
         )}
@@ -95,16 +78,17 @@ function BucketRow({
 
 function BucketChart({
   pool,
-  subject,
   scope,
   chart,
+  expandable,
   onChange,
   onRemove,
 }: {
   pool: BenchmarkCampaign[];
-  subject: CompareSubject | null;
   scope?: BenchmarkScope;
   chart: CompareChart;
+  /** Offer the rest of the ranking in a modal ("+N more"). */
+  expandable: boolean;
   onChange: (next: CompareChart) => void;
   onRemove: () => void;
 }) {
@@ -120,14 +104,7 @@ function BucketChart({
     [pool, metric, scope],
   );
 
-  // The bucket the subject sits in for this grouping (its own, for a client
-  // or industry grouped by itself); none where it spans several.
-  const ownKey = subject?.keys[by] ?? null;
-  // Top of the ranking, but the subject's own bucket is always on screen even
-  // when it ranks below the cut.
-  const ownIdx = ranked.findIndex((r) => r.key === ownKey);
   const rows = ranked.slice(0, SHOWN);
-  if (ownIdx >= SHOWN) rows[SHOWN - 1] = ranked[ownIdx];
   const hidden = ranked.length - rows.length;
   const max = Math.max(brame ?? 0, ...rows.map((r) => r.avg)) || 1;
   const maxAll = Math.max(brame ?? 0, ...ranked.map((r) => r.avg)) || 1;
@@ -165,7 +142,6 @@ function BucketChart({
             <BucketRow
               key={r.key}
               rank={r}
-              own={r.key === ownKey}
               metric={metric}
               brame={brame}
               max={max}
@@ -174,13 +150,13 @@ function BucketChart({
         </ul>
       )}
 
-      <div className="mt-auto pt-3 text-[11px] text-gray-500 dark:text-gray-400">
-        {hidden > 0 && (
+      <div className="mt-auto pt-3 text-xs text-gray-500 dark:text-gray-400">
+        {expandable && hidden > 0 && (
           <button
             type="button"
             onClick={() => setShowAll(true)}
             aria-label={t('cmp.charts.moreOpen', { count: ranked.length })}
-            className="rounded font-medium text-brame-teal hover:underline dark:text-brame-turquoise"
+            className="rounded font-medium text-brame-teal hover:underline dark:text-brame-lime"
           >
             {t('cmp.charts.more', { count: hidden })}
           </button>
@@ -190,6 +166,7 @@ function BucketChart({
         )}
       </div>
 
+      {expandable && (
       <Dialog open={showAll} onOpenChange={setShowAll}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -208,7 +185,6 @@ function BucketChart({
               <BucketRow
                 key={r.key}
                 rank={r}
-                own={r.key === ownKey}
                 metric={metric}
                 brame={brame}
                 max={maxAll}
@@ -216,12 +192,13 @@ function BucketChart({
             ))}
           </ul>
           {brame !== null && (
-            <p className="mt-4 text-[11px] text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
               {t('cmp.charts.average', { value: fmtMetric(metric, brame) })}
             </p>
           )}
         </DialogContent>
       </Dialog>
+      )}
     </div>
   );
 }
@@ -234,7 +211,7 @@ function AddChartSlot({ onAdd }: { onAdd: () => void }) {
     <button
       type="button"
       onClick={onAdd}
-      className="group flex min-h-48 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 transition-colors hover:border-brame-teal/50 hover:bg-brame-teal/5 hover:text-brame-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50 dark:border-white/15 dark:text-gray-400 dark:hover:border-brame-turquoise/50 dark:hover:bg-brame-turquoise/10 dark:hover:text-brame-turquoise"
+      className="group flex min-h-48 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500 transition-colors hover:border-brame-teal/50 hover:bg-brame-teal/5 hover:text-brame-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50 dark:border-white/15 dark:text-gray-400 dark:hover:border-brame-lime/50 dark:hover:bg-brame-lime/10 dark:hover:text-brame-lime"
     >
       <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-current">
         <Plus size={16} />
@@ -245,27 +222,27 @@ function AddChartSlot({ onAdd }: { onAdd: () => void }) {
 }
 
 /**
- * Up to MAX_COMPARE_CHARTS ranked-bucket charts in one row. Each picks its own
- * metric and grouping; the picked campaign's, client's or industry's bucket (if
- * any) is highlighted in each. With a `scope`, the ranking covers that period and those markets
- * instead of the rolling 12 months. While there is room, an empty "Add chart"
+ * Up to MAX_COMPARE_CHARTS ranked-bucket charts in one row, each showing its top
+ * SHOWN buckets. Each picks its own metric and grouping. With a `scope`, the
+ * ranking covers that period and those markets instead of the rolling 12 months. While there is room, an empty "Add chart"
  * slot sits after the last chart. `actions` sits in the header — the Overview
  * puts its saved-views menu there.
  */
 export function CompareCharts({
   pool,
-  subject,
   charts,
   onChange,
   scope,
   actions,
+  expandable = false,
 }: {
   pool: BenchmarkCampaign[];
-  subject: CompareSubject | null;
   charts: CompareChart[];
   onChange: (charts: CompareChart[]) => void;
   scope?: BenchmarkScope;
   actions?: ReactNode;
+  /** Each chart offers its full ranking in a modal; without it, only the top. */
+  expandable?: boolean;
 }) {
   const { t } = useI18n();
   const full = charts.length >= MAX_COMPARE_CHARTS;
@@ -278,8 +255,9 @@ export function CompareCharts({
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 max-w-3xl">
           <SectionTitle
-            hint={t(subject ? 'cmp.charts.hint' : 'cmp.charts.hintPortfolio', {
+            hint={t(scope ? 'cmp.charts.hintPortfolio' : 'cmp.charts.hintRolling', {
               max: MAX_COMPARE_CHARTS,
+              top: SHOWN,
             })}
           >
             {t('cmp.charts.title')}
@@ -292,16 +270,16 @@ export function CompareCharts({
           <BucketChart
             key={chart.id}
             pool={pool}
-            subject={subject}
             scope={scope}
             chart={chart}
+            expandable={expandable}
             onChange={(next) => onChange(charts.map((c) => (c.id === chart.id ? next : c)))}
             onRemove={() => onChange(charts.filter((c) => c.id !== chart.id))}
           />
         ))}
         {!full && <AddChartSlot onAdd={add} />}
       </div>
-      <div className="mt-4 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
         <span
           aria-hidden
           className="h-3 border-l border-dashed border-gray-500 dark:border-gray-400"

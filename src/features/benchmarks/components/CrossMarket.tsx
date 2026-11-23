@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n';
 import { TODAY } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { EMPTY_VALUE, fmtCompact, fmtMetric } from '@/lib/format';
+import { useIsTablet } from '@/hooks/useMediaQuery';
 import { Card } from '@/components/ui';
 import { FilterSelect, SectionTitle } from '@/components/page';
 import type { BenchmarkCampaign } from '@/types';
@@ -93,7 +94,7 @@ function Delta({ diff, isCount }: { diff: number; isCount: boolean }) {
 function BaseBadge() {
   const { t } = useI18n();
   return (
-    <span className="rounded bg-brame-teal/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brame-teal dark:bg-brame-turquoise/15 dark:text-brame-turquoise">
+    <span className="rounded bg-brame-teal/15 px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide text-brame-teal dark:bg-brame-lime/15 dark:text-brame-lime">
       {t('cmp.cross.base')}
     </span>
   );
@@ -134,7 +135,6 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
     setPicked((p) => (p.includes(m) ? (p.length > 1 ? p.filter((x) => x !== m) : p) : [...p, m]));
 
   const metric = METRICS.find((m) => m.key === metricKey) ?? METRICS[0];
-  const isCount = metric.key === 'clicks';
 
   // The base is the first country picked until another is made the base; it
   // always leads the columns.
@@ -145,6 +145,8 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
     row: split.rows.find((r) => r.market === m) ?? null,
   }));
   const baseRow = rows[0]?.row ?? null;
+  // The base only means something once there is a second country to read against it.
+  const comparing = rows.length >= 2;
 
   /** How a market differs from the base for one metric — none for the base
    *  itself, or when either side is under the sample floor. */
@@ -155,7 +157,30 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
     return meetsSample(own) && meetsSample(ref) ? own.avg - ref.avg : null;
   };
 
+  /** One metric's value for one market, with its difference from the base —
+   *  a note instead when too few campaigns stand behind it, a dash when none. */
+  const valueOf = (m: MetricDef, market: string, row: MarketSplitRow | null) => {
+    const s = row ? m.stats(row) : null;
+    if (!s) return <span className="text-gray-300 dark:text-gray-600">{EMPTY_VALUE}</span>;
+    if (s.n < MIN_COMPARE_SAMPLE) {
+      return (
+        <span className="text-xs font-normal text-gray-400">
+          {t('cmp.matrix.thin', { n: s.n, min: MIN_COMPARE_SAMPLE })}
+        </span>
+      );
+    }
+    const diff = diffFor(m, market, row);
+    return (
+      <>
+        {m.format(s.avg)}
+        {diff !== null && <Delta diff={diff} isCount={m.key === 'clicks'} />}
+      </>
+    );
+  };
+
   const max = Math.max(0, ...rows.map((r) => (r.row ? (metric.stats(r.row)?.avg ?? 0) : 0))) || 1;
+  // On a phone the bars and the table give way to one card per country.
+  const wide = useIsTablet();
 
   return (
     <Card>
@@ -164,12 +189,12 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
           {t('cmp.cross.title')}
         </SectionTitle>
       </div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         {/* Every country is a chip you can switch on and off. */}
         <div
           role="group"
           aria-label={t('cmp.cross.markets')}
-          className="flex min-w-0 flex-1 flex-wrap gap-1.5"
+          className="flex min-w-0 flex-wrap gap-1.5 sm:flex-1"
         >
           {markets.map((m) => {
             const on = picked.includes(m);
@@ -182,8 +207,8 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
                 className={cn(
                   'tnum rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50',
                   on
-                    ? 'border-brame-teal bg-brame-teal text-white dark:border-brame-turquoise dark:bg-brame-turquoise dark:text-brame-dark'
-                    : 'border-gray-200 text-gray-600 hover:border-brame-teal/50 hover:bg-brame-teal/5 dark:border-white/15 dark:text-gray-300 dark:hover:border-brame-turquoise/50 dark:hover:bg-brame-turquoise/10',
+                    ? 'border-brame-teal bg-brame-teal text-white dark:border-brame-lime dark:bg-brame-lime dark:text-brame-dark'
+                    : 'border-gray-200 text-gray-600 hover:border-brame-teal/50 hover:bg-brame-teal/5 dark:border-white/15 dark:text-gray-300 dark:hover:border-brame-lime/50 dark:hover:bg-brame-lime/10',
                 )}
               >
                 {countryName(m)}
@@ -191,24 +216,26 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
             );
           })}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="order-first grid grid-cols-1 gap-2 sm:order-none sm:flex sm:flex-wrap">
           <FilterSelect
-            className="w-44"
+            className="w-full sm:w-44"
             value={industry}
             onChange={setIndustry}
             options={industries.map((i) => ({ value: i, label: i }))}
           />
-          <FilterSelect
-            className="w-40"
-            value={metricKey}
-            onChange={(k) => setMetricKey(k as MetricKey)}
-            options={METRICS.map((m) => ({ value: m.key, label: t(metricLabelKey(m.key)) }))}
-          />
+          {wide && (
+            <FilterSelect
+              className="w-full sm:w-40"
+              value={metricKey}
+              onChange={(k) => setMetricKey(k as MetricKey)}
+              options={METRICS.map((m) => ({ value: m.key, label: t(metricLabelKey(m.key)) }))}
+            />
+          )}
         </div>
       </div>
 
       <div className="mb-5 rounded-lg bg-gray-50 px-4 py-3 dark:bg-white/5">
-        {rows.length >= 2 ? (
+        {comparing ? (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <BaseBadge />
             <span className="font-medium text-brame-dark dark:text-gray-100">
@@ -223,17 +250,21 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
         )}
       </div>
 
+      {wide ? (
+      <>
       <ul className="mb-6 space-y-2.5">
         {rows.map(({ market, row }) => {
           const s = row ? metric.stats(row) : null;
           return (
             <li
               key={market}
-              className="grid grid-cols-[9rem_minmax(0,1fr)_9rem] items-center gap-3 text-sm"
+              className="grid grid-cols-[9rem_minmax(0,1fr)_9rem] items-center gap-x-3 gap-y-1 text-sm"
             >
               <span className="flex min-w-0 items-center gap-1.5 font-medium text-brame-dark dark:text-gray-100">
                 <span className="truncate">{countryName(market)}</span>
-                {rows.length >= 2 && market === base && <BaseBadge />}
+                {comparing && market === base && (
+                  <BaseBadge />
+                )}
               </span>
               {!row ? (
                 <span className="col-span-2 text-xs text-gray-500 dark:text-gray-400">
@@ -251,11 +282,8 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
                       style={{ width: `${(s.avg / max) * 100}%` }}
                     />
                   </div>
-                  <span className="tnum text-right font-semibold text-brame-dark dark:text-gray-100">
-                    {metric.format(s.avg)}
-                    {diffFor(metric, market, row) !== null && (
-                      <Delta diff={diffFor(metric, market, row)!} isCount={isCount} />
-                    )}
+                  <span className="tnum min-w-[4.5rem] text-right font-medium text-brame-dark dark:text-gray-100">
+                    {valueOf(metric, market, row)}
                   </span>
                 </>
               )}
@@ -268,18 +296,18 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
         <table className="w-full min-w-max text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-xs text-gray-500 dark:border-white/10 dark:text-gray-400">
-              <th className="py-2 pr-4 text-left font-semibold">{industry}</th>
+              <th className="py-2 pr-4 text-left font-medium">{industry}</th>
               {rows.map((r) => (
                 <th key={r.market} className="px-4 py-2 text-right font-medium">
                   <div className="flex items-center justify-end gap-1.5">
                     {r.market}
-                    {rows.length >= 2 && r.market === base && <BaseBadge />}
+                    {comparing && r.market === base && <BaseBadge />}
                   </div>
-                  {rows.length >= 2 && r.market !== base && (
+                  {comparing && r.market !== base && (
                     <button
                       type="button"
                       onClick={() => setBase(r.market)}
-                      className="mt-0.5 text-[11px] font-normal text-brame-teal hover:underline dark:text-brame-turquoise"
+                      className="mt-0.5 text-xs font-normal text-brame-teal hover:underline dark:text-brame-lime"
                     >
                       {t('cmp.cross.makeBase')}
                     </button>
@@ -297,30 +325,11 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
                 >
                   {t(metricLabelKey(m.key))}
                 </th>
-                {rows.map(({ market, row }) => {
-                  const s = row ? m.stats(row) : null;
-                  return (
-                    <td
-                      key={market}
-                      className="tnum px-4 py-2.5 text-right text-brame-dark dark:text-gray-100"
-                    >
-                      {s && s.n >= MIN_COMPARE_SAMPLE ? (
-                        <>
-                          {m.format(s.avg)}
-                          {diffFor(m, market, row) !== null && (
-                            <Delta diff={diffFor(m, market, row)!} isCount={m.key === 'clicks'} />
-                          )}
-                        </>
-                      ) : s ? (
-                        <span className="text-xs text-gray-400">
-                          {t('cmp.matrix.thin', { n: s.n, min: MIN_COMPARE_SAMPLE })}
-                        </span>
-                      ) : (
-                        <span className="text-gray-300 dark:text-gray-600">{EMPTY_VALUE}</span>
-                      )}
-                    </td>
-                  );
-                })}
+                {rows.map(({ market, row }) => (
+                  <td key={market} className="tnum px-4 py-2.5 text-right text-brame-dark dark:text-gray-100">
+                    {valueOf(m, market, row)}
+                  </td>
+                ))}
               </tr>
             ))}
             <tr className="text-xs text-gray-500 dark:text-gray-400">
@@ -336,6 +345,56 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
           </tbody>
         </table>
       </div>
+      </>
+      ) : (
+        <ul className="grid grid-cols-1 gap-4">
+          {rows.map(({ market, row }) => (
+            <li
+              key={market}
+              className="rounded-2xl border border-gray-200 p-4 dark:border-white/10"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 font-medium text-brame-dark dark:text-gray-100">
+                  {countryName(market)}
+                  {comparing && market === base && <BaseBadge />}
+                </span>
+                {comparing && market !== base && (
+                  <button
+                    type="button"
+                    onClick={() => setBase(market)}
+                    className="text-sm font-medium text-brame-teal hover:underline dark:text-brame-lime"
+                  >
+                    {t('cmp.cross.makeBase')}
+                  </button>
+                )}
+              </div>
+              {!row ? (
+                <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                  {t('cmp.cross.noCampaigns', { industry })}
+                </p>
+              ) : (
+                <dl className="mt-3">
+                  {METRICS.map((m) => (
+                    <div
+                      key={m.key}
+                      className="flex items-baseline justify-between gap-3 border-t border-gray-100 py-2.5 dark:border-white/5"
+                    >
+                      <dt className="text-sm text-gray-500 dark:text-gray-400">{t(metricLabelKey(m.key))}</dt>
+                      <dd className="tnum text-right font-medium text-brame-dark dark:text-gray-100">
+                        {valueOf(m, market, row)}
+                      </dd>
+                    </div>
+                  ))}
+                  <div className="flex items-baseline justify-between gap-3 border-t border-gray-100 pt-2.5 text-xs text-gray-500 dark:border-white/5 dark:text-gray-400">
+                    <dt>{t('cmp.cross.inSample')}</dt>
+                    <dd className="tnum">{row.campaigns}</dd>
+                  </div>
+                </dl>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </Card>
   );
 }

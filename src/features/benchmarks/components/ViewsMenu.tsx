@@ -35,7 +35,7 @@ export function ViewsMenu<V extends { id: string; name: string }>({
     >
       {(close) => (
         <div className="space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <div className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
             {t('cmp.views.saved')}
           </div>
           {views.length === 0 ? (

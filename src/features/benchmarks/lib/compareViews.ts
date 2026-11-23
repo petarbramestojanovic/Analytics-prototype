@@ -1,7 +1,7 @@
 import type { BenchmarkMetric, SliceDim } from './benchmarks';
 import { BENCHMARK_METRICS, SLICE_DIMS } from './benchmarks';
 
-export const MAX_MATRIX_COLUMNS = 10;
+export const MAX_MATRIX_COLUMNS = 8;
 export const MAX_COMPARE_CHARTS = 4;
 
 /** One cut of a mixed column: a specific bucket, or — `value` null — whatever

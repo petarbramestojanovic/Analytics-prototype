@@ -138,7 +138,7 @@ function ContextMetricCard({
 
   return (
     <Card>
-      <div className="text-sm font-semibold text-brame-dark dark:text-gray-100">
+      <div className="text-sm font-medium text-brame-dark dark:text-gray-100">
         {t(`metric.${metric}.label`)}
       </div>
       {reference != null && subject.value != null && subject.key !== 'industry' && (
@@ -160,7 +160,7 @@ function ContextMetricCard({
           <div key={b.key}>
             <div className="flex items-baseline justify-between gap-2 text-xs">
               <span className="truncate text-gray-500 dark:text-gray-400">{b.label}</span>
-              <span className="tnum flex-shrink-0 font-semibold text-brame-dark dark:text-gray-100">
+              <span className="tnum flex-shrink-0 font-medium text-brame-dark dark:text-gray-100">
                 {b.value != null ? (
                   fmtMetric(metric, b.value)
                 ) : (
@@ -179,7 +179,7 @@ function ContextMetricCard({
               )}
             </div>
             {b.n != null && b.value != null && (
-              <div className="mt-0.5 text-[10px] text-gray-400 dark:text-gray-500">
+              <div className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
                 {t('benchmarkContext.basedOn', { n: b.n })}
               </div>
             )}

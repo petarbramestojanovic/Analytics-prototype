@@ -1,7 +1,9 @@
+import { BarChart3 } from 'lucide-react';
+import { paths } from '@/config/paths';
 import { STORAGE_KEYS } from '@/config/storageKeys';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useI18n } from '@/i18n';
-import { Card } from '@/components/ui';
+import { ButtonLink, Card } from '@/components/ui';
 import { EmptyText, ErrorState, TableSkeleton } from '@/components/feedback';
 import { useBenchmarkPool } from '@/api/hooks/useBenchmarks';
 import type { BenchmarkScope } from '../lib/benchmarks';
@@ -43,11 +45,14 @@ export function PortfolioBenchmarkCharts({ scope }: { scope: BenchmarkScope }) {
   return (
     <CompareCharts
       pool={pool}
-      subject={null}
       scope={scope}
       charts={state.charts}
       onChange={(charts) => setState((s) => ({ ...s, charts }))}
       actions={
+        <>
+        <ButtonLink to={paths.benchmarks()} icon={<BarChart3 size={14} />}>
+          {t('overview.benchmarksCta.action')}
+        </ButtonLink>
         <ViewsMenu
           views={state.views}
           onLoad={(v) => setState((s) => ({ ...s, charts: v.charts }))}
@@ -60,6 +65,7 @@ export function PortfolioBenchmarkCharts({ scope }: { scope: BenchmarkScope }) {
           onDelete={(id) => setState((s) => ({ ...s, views: s.views.filter((v) => v.id !== id) }))}
           onReset={() => setState((s) => ({ ...s, charts: defaultChartsState().charts }))}
         />
+        </>
       }
     />
   );

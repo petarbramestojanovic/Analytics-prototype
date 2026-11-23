@@ -5,11 +5,16 @@ import { TODAY_ISO } from '@/lib/clock';
 import { RANGE_PRESETS, resolveRange, type RangePreset } from '@/lib/dateRange';
 import type { BenchmarkScope } from '../lib/benchmarks';
 
+/** "All time" as a range: the pool is filtered by overlap with it, and it has to
+ *  reach back past the oldest flight. */
+const ALL_TIME_START = '2000-01-01';
+
 /** Starts on the last 12 months — the window benchmarks used before there was a
- *  picker. No "all time" or year-over-year: a benchmark is a per-flight average,
- *  not a delivery total. */
+ *  picker. Like every period picker in the app it also offers "All time"; there
+ *  is no year-over-year, since a benchmark is a per-flight average, not a
+ *  delivery total. */
 const PERIOD_DEFAULTS = { range: 'last12m' as string, from: '', to: '', year: 0, yoy: false };
-const PERIOD_ALLOWED = { range: RANGE_PRESETS as readonly string[] };
+const PERIOD_ALLOWED = { range: ['all', ...RANGE_PRESETS] as readonly string[] };
 
 /**
  * The period filter shared by the Benchmarks views that read it (Rankings and
@@ -24,10 +29,12 @@ export function useBenchmarkPeriod() {
   );
   const range = useMemo(
     () =>
-      resolveRange(
-        { preset: filters.range as RangePreset, from: filters.from, to: filters.to, seasonYear: filters.year },
-        TODAY_ISO,
-      ),
+      filters.range === 'all'
+        ? { start: ALL_TIME_START, end: TODAY_ISO }
+        : resolveRange(
+            { preset: filters.range as RangePreset, from: filters.from, to: filters.to, seasonYear: filters.year },
+            TODAY_ISO,
+          ),
     [filters.range, filters.from, filters.to, filters.year],
   );
   const scope = useMemo<BenchmarkScope>(() => ({ range }), [range]);

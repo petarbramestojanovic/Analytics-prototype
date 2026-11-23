@@ -87,7 +87,7 @@ export function BenchmarkDetailPage() {
       <StatGrid>
         <MetricTile metric="impressions" value={group.impressions} />
         {(['ctr', 'viewability', 'engagementRate'] as const).map((m) => (
-          <MetricTile key={m} metric={m} value={group.stats[m]?.avg} emphasis={metric === m} />
+          <MetricTile key={m} metric={m} value={group.stats[m]?.avg} />
         ))}
       </StatGrid>
 

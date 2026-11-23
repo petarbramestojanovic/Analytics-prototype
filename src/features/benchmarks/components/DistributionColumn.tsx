@@ -41,10 +41,10 @@ export function DistributionColumn({
                 <ProgressBar
                   size="lg"
                   value={stats.p90 > 0 ? stats[p] / stats.p90 : 0}
-                  barClassName="bg-brame-teal dark:bg-brame-turquoise"
+                  barClassName="bg-brame-teal dark:bg-brame-lime"
                   className="flex-1"
                 />
-                <span className="tnum w-16 text-right text-sm font-medium text-brame-teal dark:text-brame-turquoise-light">
+                <span className="tnum w-16 text-right text-sm font-medium text-brame-teal dark:text-brame-lime">
                   {fmtMetric(metric, stats[p])}
                 </span>
               </div>

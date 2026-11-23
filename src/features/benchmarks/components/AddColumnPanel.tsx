@@ -52,7 +52,7 @@ export function AddColumnPanel({
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-semibold text-brame-dark dark:text-gray-100">
+      <div className="text-sm font-medium text-brame-dark dark:text-gray-100">
         {t('cmp.add.title')}
       </div>
       <FilterSelect

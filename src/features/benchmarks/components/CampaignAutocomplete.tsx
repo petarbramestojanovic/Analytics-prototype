@@ -104,7 +104,7 @@ export function CampaignAutocomplete({
         }}
         onKeyDown={onKeyDown}
         className={cn(
-          'h-10 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-9 text-base font-medium text-brame-dark outline-none placeholder:font-normal placeholder:text-gray-400 focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:focus:border-brame-turquoise',
+          'h-10 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-9 text-base font-medium text-brame-dark outline-none placeholder:font-normal placeholder:text-gray-400 focus:border-brame-teal sm:text-sm dark:border-white/15 dark:bg-brame-dark-light dark:text-gray-100 dark:focus:border-brame-lime',
         )}
       />
       {open && query && (
@@ -154,7 +154,7 @@ export function CampaignAutocomplete({
                 )}
               </span>
               {o.value === value && (
-                <Check size={14} className="shrink-0 text-brame-teal dark:text-brame-turquoise" />
+                <Check size={14} className="shrink-0 text-brame-teal dark:text-brame-lime" />
               )}
             </li>
           ))}
