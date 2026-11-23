@@ -23,12 +23,12 @@ export function ReportKpiTiles({
           key={m}
           className="min-w-[7rem] flex-1 basis-[calc(25%-0.75rem)] rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5"
         >
-          <div className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+          <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
             {reportMetricLabel(t, m)}
           </div>
           <div
             className={cn(
-              'tnum mt-0.5 font-bold text-gray-900',
+              'tnum mt-0.5 font-medium text-gray-900',
               large ? 'text-xl' : 'text-lg',
             )}
           >

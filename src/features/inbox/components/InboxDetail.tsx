@@ -27,7 +27,7 @@ export function InboxDetail({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brame-teal dark:text-gray-400 dark:hover:text-brame-turquoise-light"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brame-teal dark:text-gray-400 dark:hover:text-brame-lime"
           >
             <ArrowLeft size={14} />
             {t('inbox.back')}
@@ -55,7 +55,7 @@ export function InboxDetail({
         <div className="flex items-start gap-3">
           <InboxKindIcon kind={entry.kind} tone={entry.tone} size={40} />
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-brame-dark dark:text-white">{entry.title}</h2>
+            <h2 className="text-lg font-medium text-brame-dark dark:text-white">{entry.title}</h2>
             <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{entry.summary}</p>
             <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
               {fmtDateLong(entry.createdAt)} · {fmtTime(entry.createdAt)}

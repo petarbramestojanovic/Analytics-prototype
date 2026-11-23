@@ -70,7 +70,7 @@ export function AlertDetailPage() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <SectionTitle hint={row.detail}>{t('alerts.detail.chartTitle', { metric: t(`metric.${row.metric}.label`) })}</SectionTitle>
           {campaign ? <AlertMetricChart campaign={campaign} row={row} rule={rule} /> : null}
@@ -93,7 +93,7 @@ export function AlertDetailPage() {
         </Card>
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-5 grid gap-6 lg:grid-cols-2">
         <Card>
           <SectionTitle>{t('alerts.detail.ruleTitle')}</SectionTitle>
           {rule ? (

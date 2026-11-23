@@ -126,12 +126,12 @@ export function ClientsPage() {
                   <SortableTh col="live" align="right" sort={sort} onToggle={onSort}>
                     {t('overview.tile.live')}
                   </SortableTh>
-                  <Th align="right">{t('campaigns.col.impressions')}</Th>
-                  <Th align="right">{t('metric.engagementRate.label')}</Th>
-                  <SortableTh col="ctr" align="right" sort={sort} onToggle={onSort}>
+                  <Th align="right" className="max-md:hidden">{t('campaigns.col.impressions')}</Th>
+                  <Th align="right" className="max-md:hidden">{t('metric.engagementRate.label')}</Th>
+                  <SortableTh col="ctr" align="right" sort={sort} onToggle={onSort} className="max-md:hidden">
                     {t('metric.ctr.label')}
                   </SortableTh>
-                  <Th align="right">{t('metric.viewability.label')}</Th>
+                  <Th align="right" className="max-md:hidden">{t('metric.viewability.label')}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -171,10 +171,10 @@ function ClientRow({ company, stats }: { company: Company; stats?: ClientStats }
       </Td>
       <Td align="right">{stats?.campaignCount ?? 0}</Td>
       <Td align="right">{stats?.liveCount ?? 0}</Td>
-      <Td align="right">{stats ? fmtCompact(stats.totalImpressions) : EMPTY_VALUE}</Td>
-      <Td align="right">{fmtMetric('engagementRate', stats?.avgEngagementRate)}</Td>
-      <Td align="right">{fmtMetric('ctr', stats?.avgCtr)}</Td>
-      <Td align="right">{fmtMetric('viewability', stats?.avgViewability)}</Td>
+      <Td align="right" className="max-md:hidden">{stats ? fmtCompact(stats.totalImpressions) : EMPTY_VALUE}</Td>
+      <Td align="right" className="max-md:hidden">{fmtMetric('engagementRate', stats?.avgEngagementRate)}</Td>
+      <Td align="right" className="max-md:hidden">{fmtMetric('ctr', stats?.avgCtr)}</Td>
+      <Td align="right" className="max-md:hidden">{fmtMetric('viewability', stats?.avgViewability)}</Td>
     </Tr>
   );
 }

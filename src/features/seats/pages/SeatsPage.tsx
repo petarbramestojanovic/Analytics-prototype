@@ -101,7 +101,7 @@ export function SeatsPage() {
         }
       />
 
-      <div className={cn('grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]', paged.length >= DEFAULT_PAGE_SIZE ? 'flex-1' : 'lg:items-start')}>
+      <div className={cn('grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]', paged.length >= DEFAULT_PAGE_SIZE ? 'flex-1' : 'lg:items-start')}>
         <Card padded={false} className="flex flex-col">
           <div className="space-y-3 border-b border-gray-200 p-3 dark:border-white/10">
             <Tabs

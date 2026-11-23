@@ -40,7 +40,7 @@ export function InboxList({
     <div role="listbox" aria-label={t('inbox.title')}>
       {groups.map(({ group, items }) => (
         <section key={group}>
-          <h3 className="sticky top-0 z-10 bg-white/95 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 backdrop-blur dark:bg-brame-dark-light/95 dark:text-gray-500">
+          <h3 className="sticky top-0 z-10 bg-white/95 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-gray-400 backdrop-blur dark:bg-brame-dark-light/95 dark:text-gray-500">
             {t(`inbox.group.${group}`)}
           </h3>
           {items.map((entry) => {
@@ -55,7 +55,7 @@ export function InboxList({
                 className={cn(
                   'flex w-full items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors outline-none focus-visible:bg-gray-50 dark:focus-visible:bg-white/5',
                   selected
-                    ? 'border-brame-teal bg-brame-teal/5 dark:border-brame-turquoise dark:bg-white/[0.07]'
+                    ? 'border-brame-teal bg-brame-teal/5 dark:border-brame-lime dark:bg-white/[0.07]'
                     : 'border-transparent hover:bg-gray-50 dark:hover:bg-white/5'
                 )}
               >
@@ -64,7 +64,7 @@ export function InboxList({
                   {!entry.read && (
                     <span
                       aria-label={t('inbox.unread')}
-                      className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-brame-teal ring-2 ring-white dark:bg-brame-turquoise dark:ring-brame-dark-light"
+                      className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-brame-teal ring-2 ring-white dark:bg-brame-lime dark:ring-brame-dark-light"
                     />
                   )}
                 </span>
@@ -75,7 +75,7 @@ export function InboxList({
                         'truncate text-sm',
                         entry.read
                           ? 'font-medium text-gray-600 dark:text-gray-300'
-                          : 'font-semibold text-brame-dark dark:text-white'
+                          : 'font-medium text-brame-dark dark:text-white'
                       )}
                     >
                       {entry.title}

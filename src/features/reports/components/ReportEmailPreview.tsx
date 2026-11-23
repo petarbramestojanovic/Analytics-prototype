@@ -44,7 +44,7 @@ export function ReportEmailPreview({
           {recipients.length ? recipients.join(', ') : t('reports.preview.sampleRecipient')}
         </Envelope>
         <Envelope label={t('reports.preview.subject')}>
-          <span className="font-semibold text-gray-900">{subject}</span>
+          <span className="font-medium text-gray-900">{subject}</span>
         </Envelope>
         {attachment && (
           <Envelope label={t('reports.preview.attachment')}>
@@ -76,7 +76,7 @@ export function ReportEmailPreview({
             .filter((s) => s.id !== 'summary')
             .map((s) => (
               <section key={s.id}>
-                <h4 className="text-sm font-semibold text-gray-900">{s.title}</h4>
+                <h4 className="text-sm font-medium text-gray-900">{s.title}</h4>
                 <p className="mb-2 text-xs text-gray-500">
                   {s.id === 'creatives' ? t('reports.preview.creativesHint') : ' '}
                 </p>

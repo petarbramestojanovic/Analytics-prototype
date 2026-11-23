@@ -45,7 +45,7 @@ export function ViewingAsSwitcher() {
 
   return (
     <div className="border-t border-brame-teal-light p-4">
-      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-brame-lime/60">
+      <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-brame-lime/60">
         <ShieldCheck size={11} />
         {t('viewingAs.title')}
       </div>
@@ -72,7 +72,7 @@ export function ViewingAsSwitcher() {
             </SelectContent>
           </Select>
         ) : (
-          <div className="text-[11px] leading-snug text-white/60">
+          <div className="text-xs leading-snug text-white/60">
             {seatCategory === 'brame' ? t('viewingAs.hintSales') : t('viewingAs.hintAdmin')}
           </div>
         )}
@@ -83,12 +83,12 @@ export function ViewingAsSwitcher() {
             always an admin, so there is nothing to preview there. */}
         {seatCategory !== 'admin' && (
           <div className="flex items-center justify-between gap-2 pt-1">
-            <span className="text-[10px] uppercase tracking-wide text-white/50">{t('viewingAs.seatRole')}</span>
+            <span className="text-xs uppercase tracking-wide text-white/50">{t('viewingAs.seatRole')}</span>
             <SegmentedControl
               value={seatRole}
               onChange={setSeatRole}
               className={TRACK}
-              itemClassName="truncate px-2 py-0.5 text-[11px] font-medium transition-colors"
+              itemClassName="truncate px-2 py-0.5 text-xs font-medium transition-colors"
               options={roles}
               {...SIDEBAR_SEGMENT}
             />

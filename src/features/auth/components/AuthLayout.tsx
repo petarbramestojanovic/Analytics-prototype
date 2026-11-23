@@ -14,7 +14,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   const points = [t('auth.brandPoint1'), t('auth.brandPoint2'), t('auth.brandPoint3')];
 
   return (
-    <div className="flex min-h-dvh bg-brame-cream dark:bg-brame-dark">
+    <div className="flex min-h-dvh bg-brame-canvas dark:bg-brame-dark">
       <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-gradient-to-br from-brame-teal-dark via-brame-teal to-brame-teal-light p-12 text-white lg:flex">
         {/* Decoration only: a faint grid and two soft glows, so the panel isn't a flat slab. */}
         <div
@@ -33,7 +33,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             <span className="h-1.5 w-1.5 rounded-full bg-brame-lime" />
             {t('auth.brandEyebrow')}
           </span>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight">{t('auth.brandHeadline')}</h1>
+          <h1 className="mt-5 text-4xl font-medium leading-tight tracking-tight">{t('auth.brandHeadline')}</h1>
           <p className="mt-4 text-base leading-relaxed text-white/80">{t('auth.brandBody')}</p>
           <ul className="mt-10 space-y-4">
             {points.map((point, i) => {

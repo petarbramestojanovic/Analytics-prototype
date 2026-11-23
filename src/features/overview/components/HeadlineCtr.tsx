@@ -13,7 +13,7 @@ export function HeadlineCtr({
   return (
     <>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="tnum text-2xl font-bold text-brame-teal dark:text-brame-turquoise-light">
+        <span className="tnum text-2xl font-medium text-brame-teal dark:text-brame-lime">
           {fmtMetric('ctr', value)}
         </span>
         <span className="text-xs text-gray-400 dark:text-gray-500">{t('metric.ctr.label')}</span>

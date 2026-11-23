@@ -3,12 +3,12 @@ import { cn } from '@/lib/cn';
 import type { ReportSheet } from '../lib/reportSheets';
 
 const head =
-  'border-b border-gray-200 px-3 py-1.5 text-right text-xs font-semibold text-gray-500';
+  'border-b border-gray-200 px-3 py-1.5 text-right text-xs font-medium text-gray-500';
 const cellCls = 'border-b border-gray-100 px-3 py-1.5 text-right tnum';
 // A table with many metric columns tightens up instead of scrolling sideways.
 const denseHead =
-  'border-b border-gray-200 px-1 py-1.5 text-right text-[10px] font-semibold text-gray-500';
-const denseCell = 'border-b border-gray-100 px-1 py-1.5 text-right text-[11px] tnum';
+  'border-b border-gray-200 px-1 py-1.5 text-right text-xs font-medium text-gray-500';
+const denseCell = 'border-b border-gray-100 px-1 py-1.5 text-right text-xs tnum';
 const DENSE_FROM = 7;
 
 /**
@@ -78,7 +78,7 @@ export function ReportTable({
         </tbody>
       </table>
       {hidden > 0 && (
-        <p className="px-3 pt-1.5 text-[11px] text-gray-400">
+        <p className="px-3 pt-1.5 text-xs text-gray-400">
           {t('reports.preview.moreRows', { count: hidden })}
         </p>
       )}

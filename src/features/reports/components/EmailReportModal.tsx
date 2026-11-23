@@ -481,8 +481,8 @@ export function EmailReportModal({
           />
 
           <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
-            <div className="flex items-center gap-2 text-sm font-semibold text-brame-dark dark:text-gray-100">
-              <FlaskConical size={14} className="text-brame-teal dark:text-brame-turquoise-light" />
+            <div className="flex items-center gap-2 text-sm font-medium text-brame-dark dark:text-gray-100">
+              <FlaskConical size={14} className="text-brame-teal dark:text-brame-lime" />
               {t('reports.sample.title')}
             </div>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

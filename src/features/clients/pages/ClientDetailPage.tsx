@@ -101,14 +101,14 @@ export function ClientDetailPage() {
             <SummaryTile
               label={t('companyDetail.usersTitle')}
               value={String(users.length)}
-              className="transition-colors hover:border-brame-teal/40 dark:hover:border-brame-turquoise/40"
+              className="transition-colors hover:border-brame-teal/40 dark:hover:border-brame-lime/40"
             />
           </Link>
         }
       />
 
       {/* The client against its industry and against KLEA. */}
-      <ContextComparison companyId={company.id} isInternal className="mb-4" />
+      <ContextComparison companyId={company.id} isInternal className="mb-6" />
 
       <ClientCampaignsCard campaigns={campaigns} />
       <ClientAlertsCard alerts={alerts} campaigns={campaigns} />

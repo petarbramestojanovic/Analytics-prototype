@@ -114,7 +114,7 @@ export function InboxPage() {
       <Card padded={false} className="overflow-hidden lg:h-[calc(100dvh-12rem)] lg:min-h-[26rem]">
         <div className="grid h-full grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)]">
           <div className={`flex min-h-0 flex-col border-gray-200 dark:border-white/10 lg:border-r ${selected ? 'hidden lg:flex' : 'flex'}`}>
-            <div className="flex items-center gap-2 border-b border-gray-200 p-3 dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 p-3 dark:border-white/10">
               <Tabs
                 size="sm"
                 className="shrink-0"
@@ -128,7 +128,7 @@ export function InboxPage() {
                 ]}
               />
               <FilterSelect
-                className="min-w-0 flex-1"
+                className="min-w-36 flex-1"
                 triggerClassName="h-9"
                 value={typeFilter}
                 onChange={setTypeFilter}
@@ -146,7 +146,7 @@ export function InboxPage() {
                 <InboxList entries={visible} selectedId={selectedId || null} onSelect={select} />
               )}
             </div>
-            <p className="hidden border-t border-gray-200 px-4 py-2 text-[11px] text-gray-400 dark:border-white/10 dark:text-gray-500 lg:block">
+            <p className="hidden border-t border-gray-200 px-4 py-2 text-xs text-gray-400 dark:border-white/10 dark:text-gray-500 lg:block">
               {t('inbox.shortcuts')}
             </p>
           </div>

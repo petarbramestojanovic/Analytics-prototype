@@ -37,7 +37,7 @@ export function ReportExcelPreview({
   const titleRows = [`${name} — ${sheet.title}`, `${scopeLabel} · ${period}`, ''];
   const grid = 'border border-gray-200 px-2 py-1';
   const rowNumber =
-    'w-9 border border-gray-300 bg-gray-100 px-1 py-1 text-center text-[11px] font-normal text-gray-500';
+    'w-9 border border-gray-300 bg-gray-100 px-1 py-1 text-center text-xs font-normal text-gray-500';
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-300 bg-white text-gray-800 shadow-sm">
@@ -54,7 +54,7 @@ export function ReportExcelPreview({
               {sheet.headers.map((_, i) => (
                 <th
                   key={i}
-                  className="min-w-[7.5rem] border border-gray-300 bg-gray-100 px-2 py-1 text-center text-[11px] font-normal text-gray-500"
+                  className="min-w-[7.5rem] border border-gray-300 bg-gray-100 px-2 py-1 text-center text-xs font-normal text-gray-500"
                 >
                   {letter(i)}
                 </th>
@@ -69,7 +69,7 @@ export function ReportExcelPreview({
                   colSpan={columns}
                   className={cn(
                     'whitespace-nowrap border border-gray-100 px-2 py-1',
-                    r === 0 && 'text-sm font-bold text-gray-900',
+                    r === 0 && 'text-sm font-medium text-gray-900',
                     r === 1 && 'text-gray-500',
                   )}
                 >
@@ -83,7 +83,7 @@ export function ReportExcelPreview({
                 <td
                   key={i}
                   className={cn(
-                    'border border-brame-teal-dark bg-brame-teal px-2 py-1 font-semibold text-white',
+                    'border border-brame-teal-dark bg-brame-teal px-2 py-1 font-medium text-white',
                     i >= sheet.labelColumns && 'text-right',
                   )}
                 >
@@ -124,7 +124,7 @@ export function ReportExcelPreview({
             className={cn(
               'rounded-t-md border border-b-0 px-3 py-1 text-xs',
               s.id === active
-                ? 'border-gray-300 border-b-2 border-b-[#1d6f42] bg-white font-semibold text-[#1d6f42]'
+                ? 'border-gray-300 border-b-2 border-b-[#1d6f42] bg-white font-medium text-[#1d6f42]'
                 : 'border-transparent text-gray-600 hover:bg-gray-200',
             )}
           >

@@ -1,7 +1,7 @@
 import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts';
 import { useFormatters, useI18n } from '@/i18n';
 import { fmtCompact, fmtMetric, fmtPct } from '@/lib/format';
-import { CHART_COLORS, useAxisStyle } from '@/components/charts';
+import { useAxisStyle } from '@/components/charts';
 import { EmptyText } from '@/components/feedback';
 import { deviceSplit, sourceMeta } from '@/features/campaigns';
 import type { Campaign, MetricKey } from '@/types';
@@ -20,7 +20,7 @@ const RATES: readonly MetricKey[] = ['viewability', 'engagementRate', 'ctr'];
 export function AlertMetricChart({ campaign, row, rule }: { campaign: Campaign; row: AlertLogRow; rule?: AlertRule }) {
   const { t } = useI18n();
   const { fmtDate, fmtDateLong } = useFormatters();
-  const { axis, grid, tooltipStyle, animate } = useAxisStyle();
+  const { axis, grid, tooltipStyle, animate, colors } = useAxisStyle();
 
   if (row.sources) return <SourceComparison campaign={campaign} row={row} />;
   if (rule?.type === 'deviceShare') return <DeviceShareComparison campaign={campaign} rule={rule} />;
@@ -50,26 +50,26 @@ export function AlertMetricChart({ campaign, row, rule }: { campaign: Campaign; 
           {rule?.type === 'valueThreshold' && (
             <ReferenceLine
               y={rule.limit}
-              stroke={CHART_COLORS.amber}
+              stroke={colors.amber}
               strokeDasharray="5 4"
-              label={{ value: fmtValue(rule.limit), position: 'insideTopRight', fill: CHART_COLORS.amber, fontSize: 11 }}
+              label={{ value: fmtValue(rule.limit), position: 'insideTopRight', fill: colors.amber, fontSize: 11 }}
             />
           )}
           {rule?.type === 'startDecline' && data.length >= 14 && (
             <>
-              <ReferenceArea x1={data[0].date} x2={data[6].date} fill={CHART_COLORS.teal} fillOpacity={0.12} />
-              <ReferenceArea x1={data[data.length - 7].date} x2={data[data.length - 1].date} fill={CHART_COLORS.amber} fillOpacity={0.14} />
+              <ReferenceArea x1={data[0].date} x2={data[6].date} fill={colors.teal} fillOpacity={0.12} />
+              <ReferenceArea x1={data[data.length - 7].date} x2={data[data.length - 1].date} fill={colors.amber} fillOpacity={0.14} />
             </>
           )}
           {rule?.type === 'consecutiveDrop' && data.length > rule.days && (
-            <ReferenceArea x1={data[data.length - 1 - rule.days].date} x2={data[data.length - 1].date} fill={CHART_COLORS.amber} fillOpacity={0.14} />
+            <ReferenceArea x1={data[data.length - 1 - rule.days].date} x2={data[data.length - 1].date} fill={colors.amber} fillOpacity={0.14} />
           )}
           <Line
             isAnimationActive={animate}
             type="monotone"
             dataKey="value"
             name={t(`metric.${row.metric}.label`)}
-            stroke={CHART_COLORS.turquoise}
+            stroke={colors.turquoise}
             strokeWidth={2}
             dot={false}
           />
@@ -79,7 +79,7 @@ export function AlertMetricChart({ campaign, row, rule }: { campaign: Campaign; 
               type="monotone"
               dataKey="other"
               name={t(`metric.${other}.label`)}
-              stroke={CHART_COLORS.purple}
+              stroke={colors.purple}
               strokeWidth={2}
               dot={false}
               connectNulls={false}
@@ -105,7 +105,7 @@ function DeviceShareComparison({ campaign, rule }: { campaign: Campaign; rule: D
               {t(`detail.deviceTab.${device}`)}
               {device === rule.device && ` · ${t('alerts.detail.watched', { limit: fmtPct(rule.limitPct, 0) })}`}
             </div>
-            <div className="tnum mt-1 text-2xl font-bold text-brame-dark dark:text-white">{fmtPct(split[device], 1)}</div>
+            <div className="tnum mt-1 text-2xl font-medium text-brame-dark dark:text-white">{fmtPct(split[device], 1)}</div>
           </div>
         ))}
       </div>
@@ -126,7 +126,7 @@ function SourceComparison({ campaign, row }: { campaign: Campaign; row: AlertLog
             <div className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
               {sourceMeta(campaign, key).label} · {t(i === 0 ? 'alerts.detail.primary' : 'alerts.detail.check')}
             </div>
-            <div className="tnum mt-1 text-2xl font-bold text-brame-dark dark:text-white">{value(key)}</div>
+            <div className="tnum mt-1 text-2xl font-medium text-brame-dark dark:text-white">{value(key)}</div>
           </div>
         ))}
       </div>

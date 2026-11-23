@@ -17,13 +17,13 @@ export function ThresholdSettings({ className }: { className?: string }) {
     <Card padded={false} className={cn('px-4 py-2.5', className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-brame-dark dark:text-gray-100">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-brame-dark dark:text-gray-100">
             <TriangleAlert size={13} className="shrink-0 text-amber-500" />
             {t('alerts.settingsTitle')}
           </div>
           <p
             title={t('alerts.settingsHint')}
-            className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400 sm:line-clamp-2"
+            className="mt-0.5 text-xs text-gray-500 dark:text-gray-400 sm:line-clamp-2"
           >
             {t('alerts.settingsHint')}
           </p>

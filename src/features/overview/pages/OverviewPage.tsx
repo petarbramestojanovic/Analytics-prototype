@@ -1,21 +1,17 @@
 import { useMemo } from 'react';
-import { BarChart3, LayoutDashboard } from 'lucide-react';
-import { paths } from '@/config/paths';
+import { LayoutDashboard } from 'lucide-react';
 import { STORAGE_KEYS } from '@/config/storageKeys';
-import { useFormatters, useI18n } from '@/i18n';
+import { useFormatters, useI18n, type TranslationKey } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useListFilters } from '@/hooks/useListFilters';
 import { TODAY, TODAY_ISO } from '@/lib/clock';
 import { previousYear, resolveRange, type RangePreset } from '@/lib/dateRange';
-import { ButtonLink, Card } from '@/components/ui';
 import { EmptyState, ErrorState, PageSkeleton } from '@/components/feedback';
 import { Page, PageHeader, PeriodPicker } from '@/components/page';
 import { useSession } from '@/features/session';
 import {
   buildPortfolioSummary,
   ChartCard,
-  isAwaitingSetup,
-  missingConnectors,
   PortfolioSummaryTiles,
   useScopedCampaigns,
 } from '@/features/campaigns';
@@ -78,14 +74,6 @@ export function OverviewPage() {
         : undefined,
     [filters.yoy, allTime, campaigns, range],
   );
-  // Setup gaps are campaign-management info — shown to Klea seats only. They
-  // describe the campaigns themselves, not the period, and each tile links to
-  // the Campaigns list, so the number and the list behind it agree.
-  const awaitingSetup = useMemo(() => campaigns.filter(isAwaitingSetup).length, [campaigns]);
-  const noConnector = useMemo(
-    () => campaigns.reduce((sum, c) => sum + missingConnectors(c), 0),
-    [campaigns],
-  );
   const companyIds = useMemo(() => [...new Set(campaigns.map((c) => c.companyId))], [campaigns]);
   const singleCompanyId = companyIds.length === 1 ? companyIds[0] : undefined;
 
@@ -140,15 +128,13 @@ export function OverviewPage() {
             showLive={false}
             showImpressions
             allImpressions
-            awaitingSetup={isInternal ? awaitingSetup : undefined}
-            awaitingSetupTo={paths.campaignsBySetup('awaiting')}
-            noConnector={isInternal ? noConnector : undefined}
-            noConnectorTo={paths.campaignsBySetup('noConnector')}
             showEngagement
+            periodLabel={allTime ? t('overview.range.all') : t(`overview.range.${filters.range}` as TranslationKey)}
+            rateNote={t(isInternal ? 'overview.tile.acrossIndustries' : 'overview.tile.acrossCampaigns')}
           />
 
           {previous && previous.campaignCount === 0 && (
-            <p className="-mt-2 mb-4 text-xs text-gray-500 dark:text-gray-400">
+            <p className="-mt-2 mb-6 text-xs text-gray-500 dark:text-gray-400">
               {t('overview.range.yoyEmpty')}
             </p>
           )}
@@ -157,15 +143,15 @@ export function OverviewPage() {
               KLEA, never another client. (An account seat spans several
               clients, so it gets this per campaign instead.) */}
           {!isInternal && singleCompanyId && (
-            <ContextComparison companyId={singleCompanyId} isInternal={false} className="mb-4" />
+            <ContextComparison companyId={singleCompanyId} isInternal={false} className="mb-6" />
           )}
 
           {isInternal ? (
-            <div className="mb-4">
+            <div className="mb-6">
               <PortfolioBenchmarkCharts scope={benchmarkScope} />
             </div>
           ) : (
-            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
               <BestCampaignCard campaigns={campaigns} avgCtr={summary.avgCtr} />
               <LiveCampaignsCard campaigns={campaigns} />
             </div>
@@ -177,24 +163,9 @@ export function OverviewPage() {
             title={t('overview.trendTitle')}
             hint={t('overview.trendHint')}
             frameBenchmark={frameBenchmark}
-            className="mb-4 flex flex-1 flex-col"
+            className="mb-6 flex flex-1 flex-col"
           />
 
-          {isInternal && (
-            <Card className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <div className="font-semibold text-brame-dark dark:text-white">
-                  {t('overview.benchmarksCta.title')}
-                </div>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {t('overview.benchmarksCta.body')}
-                </p>
-              </div>
-              <ButtonLink to={paths.benchmarks()} variant="primary" icon={<BarChart3 size={14} />}>
-                {t('overview.benchmarksCta.action')}
-              </ButtonLink>
-            </Card>
-          )}
         </>
       )}
     </Page>

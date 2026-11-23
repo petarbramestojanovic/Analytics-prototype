@@ -54,14 +54,14 @@ export function AlertRulesBody({ creating, onCreatingChange }: { creating: boole
   return (
     <>
       <div className="space-y-8">
-        <section className="space-y-5">
+        <section className="space-y-6">
           <SectionTitle className="mb-0" hint={t('alerts.rules.builtInHintPage')}>
             {t('alerts.rules.builtInTitle')}
           </SectionTitle>
           <div className="space-y-3">{builtIn.map(card)}</div>
         </section>
 
-        <section className="space-y-5">
+        <section className="space-y-6">
           <SectionTitle className="mb-0" hint={t('alerts.rules.customHint')}>
             {t('alerts.rules.customTitle')}
           </SectionTitle>

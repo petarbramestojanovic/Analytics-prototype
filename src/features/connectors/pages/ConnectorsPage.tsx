@@ -51,7 +51,7 @@ export function ConnectorsPage() {
     <Page fill>
       <PageHeader title={t('connectors.title')} subtitle={t('connectors.subtitle')} />
 
-      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-4">
         <ConnectorCard name={sourceLabel('salesforce')} description={t('connectors.salesforceHint')} badge={periodic}>
           {salesforceRun && (
             <div className="mt-3 flex items-baseline justify-between text-xs">
@@ -119,10 +119,10 @@ export function ConnectorsPage() {
               <Th>{t('connectors.col.source')}</Th>
               <Th>{t('connectors.col.started')}</Th>
               <Th>{t('connectors.col.status')}</Th>
-              <Th align="right">{t('connectors.col.rowsWritten')}</Th>
-              <Th align="right">{t('connectors.col.campaigns')}</Th>
-              <Th align="right">{t('connectors.col.duration')}</Th>
-              <Th>{t('connectors.col.note')}</Th>
+              <Th align="right" className="max-md:hidden">{t('connectors.col.rowsWritten')}</Th>
+              <Th align="right" className="max-md:hidden">{t('connectors.col.campaigns')}</Th>
+              <Th align="right" className="max-md:hidden">{t('connectors.col.duration')}</Th>
+              <Th className="max-md:hidden">{t('connectors.col.note')}</Th>
             </tr>
           </thead>
           <tbody>
@@ -138,10 +138,10 @@ export function ConnectorsPage() {
                 <Td>
                   <SyncStatusPill status={r.status} />
                 </Td>
-                <Td align="right">{fmtInt(r.rowsWritten)}</Td>
-                <Td align="right">{r.campaignsTouched}</Td>
-                <Td align="right">{fmtDuration(r.durationMs)}</Td>
-                <Td className="text-xs text-gray-500 dark:text-gray-400">{r.note ?? EMPTY_VALUE}</Td>
+                <Td align="right" className="max-md:hidden">{fmtInt(r.rowsWritten)}</Td>
+                <Td align="right" className="max-md:hidden">{r.campaignsTouched}</Td>
+                <Td align="right" className="max-md:hidden">{fmtDuration(r.durationMs)}</Td>
+                <Td className="text-xs text-gray-500 max-md:hidden dark:text-gray-400">{r.note ?? EMPTY_VALUE}</Td>
               </tr>
             ))}
           </tbody>

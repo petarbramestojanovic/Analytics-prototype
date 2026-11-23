@@ -9,7 +9,7 @@ const TONES: Record<InboxTone, string> = {
   red: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300',
   amber: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   green: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
-  teal: 'bg-brame-teal/10 text-brame-teal dark:bg-brame-teal/25 dark:text-brame-turquoise-light',
+  teal: 'bg-brame-teal/10 text-brame-teal dark:bg-brame-lime/10 dark:text-brame-lime',
 };
 
 /** The round, tinted icon that tells an inbox item's kind at a glance. */

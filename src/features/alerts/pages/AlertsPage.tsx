@@ -21,7 +21,7 @@ import type { AlertLogRow } from '../lib/alertLog';
 export function AlertsHeader() {
   const { t } = useI18n();
   return (
-    <div className="mb-6 grid grid-cols-1 items-center gap-4 lg:grid-cols-12">
+    <div className="mb-6 grid grid-cols-1 items-center gap-6 lg:grid-cols-12">
       <PageHeader title={t('alerts.title')} subtitle={t('alerts.subtitle')} className="mb-0 lg:col-span-6" />
       <ThresholdSettings className="lg:col-span-6" />
     </div>

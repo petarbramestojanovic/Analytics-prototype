@@ -18,7 +18,7 @@ export function ConnectorCard({
     <Card className="p-4">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-sm font-semibold text-brame-dark dark:text-gray-100">{name}</div>
+          <div className="text-sm font-medium text-brame-dark dark:text-gray-100">{name}</div>
           <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{description}</div>
         </div>
         {badge}

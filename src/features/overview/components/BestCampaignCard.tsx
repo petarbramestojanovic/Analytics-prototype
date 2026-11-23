@@ -38,7 +38,7 @@ export function BestCampaignCard({
         <p className="text-sm text-gray-500 dark:text-gray-400">{t('overview.topNone')}</p>
       ) : (
         <Link to={paths.campaign(top.campaign.id)} className="block">
-          <div className="text-lg font-bold text-brame-dark hover:text-brame-teal dark:text-white dark:hover:text-brame-turquoise-light">
+          <div className="text-lg font-medium text-brame-dark hover:text-brame-teal dark:text-white dark:hover:text-brame-lime">
             {top.campaign.name}
           </div>
           <HeadlineCtr

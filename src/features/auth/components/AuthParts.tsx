@@ -9,14 +9,14 @@ import { cn } from '@/lib/cn';
 export function AuthHeader({ title, subtitle, centered = false }: { title: string; subtitle: string; centered?: boolean }) {
   return (
     <div className={cn(centered && 'text-center')}>
-      <h1 className="text-2xl font-semibold tracking-tight text-brame-dark dark:text-white">{title}</h1>
+      <h1 className="text-2xl font-medium tracking-tight text-brame-dark dark:text-white">{title}</h1>
       <p className="mt-1.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{subtitle}</p>
     </div>
   );
 }
 
 const RESULT_TONE = {
-  teal: 'bg-brame-teal/10 text-brame-teal dark:bg-brame-teal/20 dark:text-brame-turquoise-light',
+  teal: 'bg-brame-teal/10 text-brame-teal dark:bg-brame-lime/10 dark:text-brame-lime',
   green: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
 } as const;
 
@@ -66,7 +66,7 @@ export function AuthSwitchPrompt({ prompt, linkLabel, to }: { prompt: string; li
   return (
     <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
       {prompt}{' '}
-      <Link to={to} className="font-medium text-brame-teal hover:underline dark:text-brame-turquoise-light">
+      <Link to={to} className="font-medium text-brame-teal hover:underline dark:text-brame-lime">
         {linkLabel}
       </Link>
     </p>

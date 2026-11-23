@@ -78,7 +78,7 @@ export function ReportPdfPreview({
       node: (
         <div className="space-y-5">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">{name}</h3>
+            <h3 className="text-lg font-medium text-gray-900">{name}</h3>
             <p className="text-xs text-gray-500">
               {scopeLabel} · {period}
             </p>
@@ -99,7 +99,7 @@ export function ReportPdfPreview({
       height: SECTION_TITLE + TABLE_HEAD + creatives.rows.length * ROW,
       node: (
         <section>
-          <h4 className="text-sm font-semibold text-gray-900">{creatives.title}</h4>
+          <h4 className="text-sm font-medium text-gray-900">{creatives.title}</h4>
           <p className="mb-2 text-xs text-gray-500">{t('reports.preview.creativesHint')}</p>
           <ReportTable
             sheet={creatives}
@@ -117,7 +117,7 @@ export function ReportPdfPreview({
         SECTION_TITLE + 112 + TABLE_HEAD + rows * ROW + moreNote(daily.rows.length, MAX_DAILY_ROWS),
       node: (
         <section>
-          <h4 className="text-sm font-semibold text-gray-900">{daily.title}</h4>
+          <h4 className="text-sm font-medium text-gray-900">{daily.title}</h4>
           <p className="mb-2 text-xs text-gray-500">{t('reports.preview.dailyChart')}</p>
           <DailyBars daily={content.daily} />
           <div className="mt-3">
@@ -138,7 +138,7 @@ export function ReportPdfPreview({
         moreNote(campaigns.rows.length, MAX_CAMPAIGN_ROWS),
       node: (
         <section>
-          <h4 className="text-sm font-semibold text-gray-900">{campaigns.title}</h4>
+          <h4 className="text-sm font-medium text-gray-900">{campaigns.title}</h4>
           <div className="mt-2">
             <ReportTable sheet={campaigns} maxRows={MAX_CAMPAIGN_ROWS} />
           </div>
@@ -185,13 +185,13 @@ function Sheet({
       style={{ width: PAGE_WIDTH, minHeight: PAGE_HEIGHT }}
     >
       <div className="flex items-center justify-between bg-brame-teal px-6 py-3 text-white">
-        <span className="text-sm font-bold tracking-wide">Klea Analytics</span>
-        <span className="text-[11px] uppercase tracking-widest text-white/80">
+        <span className="text-sm font-medium tracking-wide">Klea Analytics</span>
+        <span className="text-xs uppercase tracking-widest text-white/80">
           {t('reports.preview.pdfTitle')}
         </span>
       </div>
       <div className="flex-1">{children}</div>
-      <div className="mx-6 flex items-center justify-between border-t border-gray-200 py-2.5 text-[10px] text-gray-400">
+      <div className="mx-6 flex items-center justify-between border-t border-gray-200 py-2.5 text-xs text-gray-400">
         <span className="truncate">{name}</span>
         <span className="flex-shrink-0">{t('reports.preview.page', { n: page, total: pages })}</span>
       </div>
