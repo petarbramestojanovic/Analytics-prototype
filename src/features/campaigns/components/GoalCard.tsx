@@ -57,7 +57,7 @@ export function GoalCard({
               {t(`metric.${goal.metric}.label`)}
             </div>
             <div className="mt-0.5 flex flex-wrap items-end gap-x-4 gap-y-1">
-              <span className="tnum text-4xl font-bold leading-none text-brame-dark dark:text-white">
+              <span className="tnum text-4xl font-medium leading-none text-brame-dark dark:text-white">
                 {fmtMetric(goal.metric, goal.value)}
               </span>
               {goal.target != null && (
@@ -85,7 +85,7 @@ export function GoalCard({
 
         {hasInternal && (
           <dl className="mt-auto space-y-2 border-t border-gray-100 pt-3 text-sm dark:border-white/10">
-            <div className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+            <div className="flex items-center gap-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
               <Lock size={10} />
               {t('goal.internalNote')}
             </div>

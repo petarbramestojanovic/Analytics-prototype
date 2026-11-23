@@ -97,7 +97,7 @@ export function CampaignDetailPage() {
       <CampaignHeader campaign={campaign} />
       {/* By priority: how delivery is going and the goal, then anything that is
           wrong, then the numbers. */}
-      <div className="mb-5 grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
+      <div className="mb-5 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-3">
         <DeliveryPacingCard campaign={campaign} className="lg:col-span-2" />
         <GoalCard campaign={campaign} isInternal={session.isInternal} />
       </div>

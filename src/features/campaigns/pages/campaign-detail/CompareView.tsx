@@ -3,7 +3,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip as
 import { Unplug } from 'lucide-react';
 import { useFormatters, useI18n } from '@/i18n';
 import { fmtCompact, fmtMetric } from '@/lib/format';
-import { CHART_COLORS, tooltipInt, useAxisStyle } from '@/components/charts';
+import { tooltipInt, useAxisStyle } from '@/components/charts';
 import { Callout, Card, Pill } from '@/components/ui';
 import { EmptyState, EmptyText } from '@/components/feedback';
 import { FieldLabel } from '@/components/form';
@@ -47,9 +47,9 @@ export function CompareView({ campaign }: { campaign: Campaign }) {
   const pickerOptions = available.map((s) => ({ value: s, label: t(`connectors.source.${s}`) }));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <Card>
-        <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="mb-6 flex flex-wrap items-end gap-3">
           <div>
             <FieldLabel variant="caps">{t('detail.baseline')}</FieldLabel>
             <FilterSelect value={left} onChange={(v) => setLeft(v as SourceKey)} options={pickerOptions} />
@@ -66,7 +66,7 @@ export function CompareView({ campaign }: { campaign: Campaign }) {
         ) : (
           <>
             {lMeta.cadence !== rMeta.cadence && (
-              <Callout tone="warning" className="mb-4">
+              <Callout tone="warning" className="mb-6">
                 {t('detail.cadenceGapWarning', {
                   a: lMeta.cadence === 'live' ? lMeta.label : rMeta.label,
                   b: lMeta.cadence === 'nightly' ? lMeta.label : rMeta.label,
@@ -120,7 +120,7 @@ export function CompareView({ campaign }: { campaign: Campaign }) {
 function DailyOverlayCard({ campaign, left, right }: { campaign: Campaign; left: SourceKey; right: SourceKey }) {
   const { t } = useI18n();
   const { fmtDate, fmtDateLong } = useFormatters();
-  const { axis, grid, tooltipStyle, animate } = useAxisStyle();
+  const { axis, grid, tooltipStyle, animate, colors } = useAxisStyle();
   const lSeries = campaign.sources[left];
   const rSeries = campaign.sources[right];
 
@@ -142,13 +142,13 @@ function DailyOverlayCard({ campaign, left, right }: { campaign: Campaign; left:
             <YAxis tickFormatter={fmtCompact} tick={axis} tickLine={false} axisLine={false} />
             <RTooltip formatter={tooltipInt} labelFormatter={(l) => fmtDateLong(String(l))} contentStyle={tooltipStyle} />
             <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-            <Line isAnimationActive={animate} type="monotone" dataKey="left" name={sourceMeta(campaign, left).label} stroke={CHART_COLORS.teal} strokeWidth={2} dot={false} />
+            <Line isAnimationActive={animate} type="monotone" dataKey="left" name={sourceMeta(campaign, left).label} stroke={colors.teal} strokeWidth={2} dot={false} />
             <Line
               isAnimationActive={animate}
               type="monotone"
               dataKey="right"
               name={sourceMeta(campaign, right).label}
-              stroke={CHART_COLORS.purple}
+              stroke={colors.purple}
               strokeWidth={2}
               strokeDasharray="5 4"
               dot={false}

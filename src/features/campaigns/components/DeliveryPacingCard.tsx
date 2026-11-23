@@ -63,7 +63,7 @@ export function DeliveryPacingCard({
     <Card className={cn('flex flex-col justify-between gap-5', className)}>
       <div>
         <div className="flex items-center justify-between gap-3">
-          <div className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+          <div className="text-xs font-medium uppercase tracking-widest text-gray-400 dark:text-gray-500">
             {t('detail.pacing.title')}
           </div>
           {health && (
@@ -84,7 +84,7 @@ export function DeliveryPacingCard({
                 expectedPacing={expectedPacing}
                 side="bottom"
               >
-                <span className="tnum text-5xl font-bold leading-none text-brame-dark dark:text-white">
+                <span className="tnum text-5xl font-medium leading-none text-brame-dark dark:text-white">
                   {fmtPct(pacing, 0)}
                 </span>
               </DeliveryTip>
@@ -132,14 +132,14 @@ export function DeliveryPacingCard({
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-gray-100 pt-4 sm:grid-cols-4 dark:border-white/10">
           {stats.map((st) => (
             <div key={st.label}>
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+              <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
                 {st.label}
               </dt>
-              <dd className="tnum mt-0.5 text-lg font-semibold text-brame-dark dark:text-white">
+              <dd className="tnum mt-0.5 text-lg font-medium text-brame-dark dark:text-white">
                 {st.value}
               </dd>
               {st.sub && (
-                <div className="tnum text-[11px] text-gray-400 dark:text-gray-500">{st.sub}</div>
+                <div className="tnum text-xs text-gray-400 dark:text-gray-500">{st.sub}</div>
               )}
             </div>
           ))}
@@ -151,7 +151,7 @@ export function DeliveryPacingCard({
         <div className="space-y-2 border-t border-gray-100 pt-4 dark:border-white/10">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 text-sm">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <CalendarDays size={15} className="text-brame-teal dark:text-brame-turquoise-light" />
+              <CalendarDays size={15} className="text-brame-teal dark:text-brame-lime" />
               <span className="font-medium text-brame-dark dark:text-gray-100">
                 {fmtDateLong(campaign.flightStart)}
               </span>

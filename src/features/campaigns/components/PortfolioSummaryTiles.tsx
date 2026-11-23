@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { FolderKanban, Radio } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/cn';
 import { fmtMetric, fmtSignedPp } from '@/lib/format';
 import { StatGrid, SummaryTile } from '@/components/display';
 import type { PortfolioSummary } from '../lib/portfolio';
+import { MetricIcon } from './MetricIcon';
 
-/** A tile that leads somewhere: the same shell, with a hover cue. */
-const LINK_TILE =
-  'h-full transition-colors hover:border-brame-teal/40 dark:hover:border-brame-turquoise/40';
+const ICON = { size: 20, strokeWidth: 1.75 } as const;
 
 type RateKey = 'avgEngagementRate' | 'avgCtr' | 'avgViewability';
 
@@ -30,7 +29,7 @@ function RateValue({
       {hasDelta && (
         <span
           className={cn(
-            'tnum ml-1.5 text-xs font-medium',
+            'tnum ml-2 font-sans text-sm font-medium tracking-normal',
             value - previous < 0 ? 'text-amber-700 dark:text-amber-300' : 'text-gray-500 dark:text-gray-400',
           )}
         >
@@ -42,15 +41,15 @@ function RateValue({
 }
 
 /**
- * The [campaigns] / [live] / [impressions] / [awaiting setup] / [engagement] /
- * CTR / viewability tiles every portfolio view opens with (Overview, a
- * client's detail page). `extra` renders one more tile at the end of the
- * row. `showCampaigns` (default on) is the campaign-count tile; `showLive`
- * (default on) the live-campaign count; `showImpressions` adds an impressions
- * tile — live campaigns' by default, every campaign's with `allImpressions`; `awaitingSetup`, when
- * given, adds the count of campaigns with no data source yet; `showEngagement`
- * adds the average engagement rate. `previous` is a comparison period (the same window last year); each
- * rate tile then shows its change against it.
+ * The summary tiles every portfolio view opens with (Overview, a client's detail
+ * page): campaigns, live, impressions, engagement, CTR and viewability, with
+ * `extra` as one more tile at the end of the row. `showCampaigns` and `showLive`
+ * (both default on) are the two campaign-count tiles; `showImpressions` adds an
+ * impressions tile — live campaigns' by default, every campaign's with
+ * `allImpressions`; `showEngagement` adds the average engagement rate.
+ * `periodLabel` and `rateNote` are the small lines under the impressions and
+ * the rate tiles. `previous` is a comparison period (the same window last
+ * year); each rate tile then shows its change against it.
  */
 export function PortfolioSummaryTiles({
   summary,
@@ -59,11 +58,9 @@ export function PortfolioSummaryTiles({
   showLive = true,
   showImpressions = false,
   allImpressions = false,
-  awaitingSetup,
-  awaitingSetupTo,
-  noConnector,
-  noConnectorTo,
   showEngagement = false,
+  periodLabel,
+  rateNote,
   extra,
 }: {
   summary: PortfolioSummary;
@@ -72,13 +69,11 @@ export function PortfolioSummaryTiles({
   showLive?: boolean;
   showImpressions?: boolean;
   allImpressions?: boolean;
-  awaitingSetup?: number;
-  /** Where the awaiting-setup tile leads, when it is a link. */
-  awaitingSetupTo?: string;
-  /** Sources with no connector, across the campaigns; the tile shows when given. */
-  noConnector?: number;
-  noConnectorTo?: string;
   showEngagement?: boolean;
+  /** The small line under the impressions tile: which period it covers. */
+  periodLabel?: string;
+  /** The small line under the three rate tiles: what the averages span. */
+  rateNote?: string;
   extra?: ReactNode;
 }) {
   const { t } = useI18n();
@@ -86,58 +81,49 @@ export function PortfolioSummaryTiles({
   const prev = (key: RateKey) => (previous && previous.campaignCount > 0 ? previous[key] : undefined);
   // CTR + viewability always show; the rest are optional.
   const tileCount =
-    2 + Number(showLive) + Number(showCampaigns) + Number(showImpressions) + Number(awaitingSetup !== undefined) + Number(noConnector !== undefined) + Number(showEngagement);
+    2 + Number(showLive) + Number(showCampaigns) + Number(showImpressions) + Number(showEngagement);
   const columns = tileCount >= 7 ? 7 : tileCount >= 6 ? 6 : 5;
-  /** A tile that, when given a destination, is a link to it. */
-  const linked = (to: string | undefined, tile: ReactNode) =>
-    to ? (
-      <Link to={to} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brame-teal/50">
-        {tile}
-      </Link>
-    ) : (
-      tile
-    );
   return (
     <StatGrid columns={columns}>
-      {showCampaigns && <SummaryTile label={t('overview.tile.campaigns')} value={String(summary.campaignCount)} />}
-      {showLive && <SummaryTile label={t('overview.tile.live')} value={String(summary.liveCount)} />}
+      {showCampaigns && (
+        <SummaryTile
+          label={t('overview.tile.campaigns')}
+          value={String(summary.campaignCount)}
+          // The live count is its own tile where `showLive` is on.
+          footnote={showLive ? undefined : t('overview.tile.campaignsLive', { count: summary.liveCount })}
+          icon={<FolderKanban {...ICON} />}
+        />
+      )}
+      {showLive && (
+        <SummaryTile label={t('overview.tile.live')} value={String(summary.liveCount)} icon={<Radio {...ICON} />} />
+      )}
       {showImpressions && (
         <SummaryTile
           label={t(allImpressions ? 'overview.tile.allImpressions' : 'overview.tile.impressions')}
           value={fmtMetric('impressions', allImpressions ? summary.totalImpressions : summary.liveImpressions)}
+          footnote={periodLabel}
+          icon={<MetricIcon metric="impressions" />}
         />
       )}
-      {awaitingSetup !== undefined &&
-        linked(
-          awaitingSetupTo,
-          <SummaryTile
-            label={t('overview.tile.awaitingSetup')}
-            value={String(awaitingSetup)}
-            className={awaitingSetupTo ? LINK_TILE : undefined}
-          />,
-        )}
-      {noConnector !== undefined &&
-        linked(
-          noConnectorTo,
-          <SummaryTile
-            label={t('overview.tile.noConnector')}
-            value={String(noConnector)}
-            className={noConnectorTo ? LINK_TILE : undefined}
-          />,
-        )}
       {showEngagement && (
         <SummaryTile
           label={t('overview.tile.avgEngagement')}
           value={<RateValue metric="engagementRate" value={summary.avgEngagementRate} previous={prev('avgEngagementRate')} />}
+          footnote={rateNote}
+          icon={<MetricIcon metric="engagementRate" />}
         />
       )}
       <SummaryTile
         label={t('overview.tile.avgCtr')}
         value={<RateValue metric="ctr" value={summary.avgCtr} previous={prev('avgCtr')} />}
+        footnote={rateNote}
+        icon={<MetricIcon metric="ctr" />}
       />
       <SummaryTile
         label={t('overview.tile.avgViewability')}
         value={<RateValue metric="viewability" value={summary.avgViewability} previous={prev('avgViewability')} />}
+        footnote={rateNote}
+        icon={<MetricIcon metric="viewability" />}
       />
       {extra}
     </StatGrid>

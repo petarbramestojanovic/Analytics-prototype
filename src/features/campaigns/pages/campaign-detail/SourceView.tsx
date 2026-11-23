@@ -11,6 +11,7 @@ import { useSession } from '@/features/session';
 import { BenchmarkValue, ContextComparison, useIndustryBenchmark } from '@/features/benchmarks';
 import type { Campaign, MetricKey, SourceKey } from '@/types';
 import { KpiWidget } from '../../components/KpiWidget';
+import { MetricIcon } from '../../components/MetricIcon';
 import { TrendChart } from '../../components/TrendChart';
 import { deviceSplit, scaleSeriesForDevice, type DeviceTab } from '../../lib/devices';
 import { METRIC_KEYS, seriesEngagements, sourceMeta } from '../../lib/sources';
@@ -124,7 +125,7 @@ export function SourceView({
   // (On a Mobile/Desktop tab engagement is not measured — see scaleSeriesForDevice.)
   const rateWidget = (metric: 'engagementRate' | 'ctr' | 'viewability') =>
     valueOf(metric) !== undefined
-      ? [{ key: metric, label: label(metric), help: help(metric), value: rate(metric) }]
+      ? [{ key: metric, label: label(metric), help: help(metric), value: rate(metric), icon: <MetricIcon metric={metric} /> }]
       : [];
   const clicks = seriesFor('ctaClicks')?.totals.ctaClicks;
   const widgets: (ComponentProps<typeof KpiWidget> & { key: string })[] = [
@@ -133,6 +134,7 @@ export function SourceView({
       label: label('impressions'),
       help: help('impressions'),
       value: fmtMetric('impressions', totals.impressions),
+      icon: <MetricIcon metric="impressions" />,
       emphasis: true,
     },
     ...rateWidget('engagementRate'),
@@ -143,6 +145,7 @@ export function SourceView({
             label: label('engagements'),
             help: help('engagements'),
             value: fmtCompact(engagements),
+            icon: <MetricIcon metric="engagements" />,
           },
         ]
       : []),
@@ -153,6 +156,7 @@ export function SourceView({
             label: label('ctaClicks'),
             help: help('ctaClicks'),
             value: fmtMetric('ctaClicks', clicks),
+            icon: <MetricIcon metric="ctaClicks" />,
           },
         ]
       : []),
@@ -167,17 +171,18 @@ export function SourceView({
             label: label('conversions'),
             help: help('conversions'),
             value: fmtMetric('conversions', totals.conversions),
+            icon: <MetricIcon metric="conversions" />,
           },
         ]
       : []),
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <section>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <div>
-            <h2 className="text-base font-semibold text-brame-dark dark:text-gray-100">
+            <h2 className="text-base font-medium text-brame-dark dark:text-gray-100">
               {t('detail.keyMetrics')}
             </h2>
             {isInternal && (
@@ -271,13 +276,13 @@ export function SourceView({
       </Card>
 
       {measuresEngagement && SHOW_IN_UNIT_CARDS && (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <PageFlowCard campaign={campaign} />
           <CtaCard campaign={campaign} />
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DevicesCard campaign={campaign} />
         <CreativesCard
           campaign={campaign}

@@ -79,7 +79,7 @@ export function SourceSwitcher({
         active={active === 'compare'}
         onClick={() => onChange('compare')}
         ariaLabel={t('source.compare')}
-        icon={<Rows3 size={14} className={active === 'compare' ? 'text-white' : 'text-brame-purple'} />}
+        icon={<Rows3 size={14} className={active === 'compare' ? 'text-brame-dark' : 'text-brame-teal dark:text-brame-purple'} />}
         title={t('source.compare')}
         subtitle={t('source.compareSub')}
       />
@@ -111,7 +111,7 @@ function SwitcherTab({
       aria-pressed={active}
       aria-label={ariaLabel}
       className={cn(
-        'relative z-10 flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition-colors',
+        'relative z-10 flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-left transition-colors',
         active
           ? 'border-transparent'
           : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-white/10 dark:bg-brame-dark-light dark:hover:border-white/20 dark:hover:bg-white/5'
@@ -121,13 +121,18 @@ function SwitcherTab({
       <div>
         <div
           className={cn(
-            'flex items-center gap-1.5 text-sm font-semibold',
-            active ? 'text-white' : 'text-brame-dark dark:text-gray-100'
+            'flex items-center gap-1.5 text-sm font-medium',
+            active ? (tab === 'compare' ? 'text-brame-dark' : 'text-white') : 'text-brame-dark dark:text-gray-100'
           )}
         >
           {title}
         </div>
-        <div className={cn('mt-0.5 text-[11px]', active ? 'text-white/75' : 'text-gray-500 dark:text-gray-400')}>
+        <div
+          className={cn(
+            'mt-0.5 text-xs',
+            active ? (tab === 'compare' ? 'text-brame-dark/70' : 'text-white/80') : 'text-gray-500 dark:text-gray-400'
+          )}
+        >
           {subtitle}
         </div>
       </div>

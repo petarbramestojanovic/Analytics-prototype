@@ -96,7 +96,7 @@ export function DailyMetricsTable({
   // Sticky cells need an opaque background or rows scroll visibly through them.
   const stickyHead = 'sticky top-0 z-10 bg-white dark:bg-brame-dark-light';
   const stickyFoot =
-    'sticky bottom-0 z-10 border-t border-gray-200 bg-gray-50 font-semibold dark:border-white/10 dark:bg-[#323333]';
+    'sticky bottom-0 z-10 border-t border-gray-200 bg-gray-50 font-medium dark:border-white/10 dark:bg-[#323333]';
 
   return (
     <div>

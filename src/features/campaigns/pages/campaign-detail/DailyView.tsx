@@ -29,7 +29,7 @@ export function DailyView({ campaign, source }: { campaign: Campaign; source: So
   const sourceLabel = t(`connectors.source.${meta.key}`);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <DailyTrendCard rows={rows} />
       <Card>
         <DailyMetricsTable

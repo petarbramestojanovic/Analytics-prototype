@@ -23,7 +23,9 @@ import { ALL, matchesSelection, parseSelection, serializeSelection } from '@/lib
 import { exportToXlsx } from '@/lib/exportXlsx';
 import { codecs } from '@/lib/storage';
 import { matchesQuery } from '@/lib/text';
-import { Avatar, Button, Card, Collapse, Tabs } from '@/components/ui';
+import { Avatar, Button, Card, CardFooter, Collapse, Tabs } from '@/components/ui';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { ErrorState, TableSkeleton } from '@/components/feedback';
 import {
   ActiveFilterChips,
@@ -62,6 +64,7 @@ import {
   useCampaignHeaderHints,
 } from './campaignColumns';
 import { SORT_ONLY_COLUMNS } from './sortOnlyColumns';
+import { CampaignCards, CampaignSortBar } from './CampaignCards';
 
 const STATUS_FILTERS = ['all', 'live', 'ended'] as const satisfies readonly (
   'all' | Campaign['status']
@@ -79,8 +82,7 @@ const DEFAULT_FILTERS = {
   categoryFilter: 'all',
   salesFilter: 'all',
   managerFilter: 'all',
-  // A setup gap (internal only): 'all', 'awaiting' or 'noConnector' — what the
-  // Overview's setup tiles link to.
+  // A setup gap (internal only): 'all', 'awaiting' or 'noConnector'.
   setupFilter: 'all' as SetupFilter,
   // The period works as on the Overview: 'all' (no period) or a preset, with
   // custom bounds in `from`/`to` (YYYY-MM-DD) and a calendar year for the
@@ -94,6 +96,8 @@ const DEFAULT_FILTERS = {
 };
 
 const RANGE_ALLOWED = ['all', ...RANGE_PRESETS] as readonly string[];
+/** Rows per desktop page — and the size at which a card list counts as full. */
+const PAGE_SIZE = 10;
 
 const encodeSort = (s: SortingState) => (s[0] ? `${s[0].desc ? '-' : ''}${s[0].id}` : '');
 const decodeSort = (raw: string): SortingState =>
@@ -333,10 +337,16 @@ export function CampaignsPage() {
       ),
     [filters.sort, columns],
   );
+  // A desktop table pages (Previous / Next); on a phone or tablet the cards load
+  // as the list is scrolled, and a new filter or sort starts again from the top.
+  const wide = useIsDesktop();
+  const { visible, sentinelRef } = useInfiniteScroll(filters);
+  const scrollPagination = useMemo(() => ({ pageIndex: 0, pageSize: visible }), [visible]);
   const table = useReactTable({
     data: rows,
     columns,
     state: {
+      ...(wide ? {} : { pagination: scrollPagination }),
       sorting,
       globalFilter: q,
       columnVisibility: { ...columnVisibility, ...HIDDEN_SORT_COLUMNS },
@@ -355,13 +365,16 @@ export function CampaignsPage() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 10 } },
+    initialState: { pagination: { pageSize: PAGE_SIZE } },
   });
+  const filteredCount = table.getFilteredRowModel().rows.length;
 
   // Only stretch the card to the viewport when the page is full — a short
   // result set (few campaigns, a narrow filter, the last page) stays compact
   // instead of ballooning its rows.
-  const fillsPage = table.getRowModel().rows.length >= table.getState().pagination.pageSize;
+  const shownRows = table.getRowModel().rows;
+  const fillsPage = shownRows.length >= PAGE_SIZE;
+  const hasMore = shownRows.length < filteredCount;
 
   const exportRows = () =>
     exportToXlsx(
@@ -421,6 +434,8 @@ export function CampaignsPage() {
               onClick={() => setFiltersOpen((o) => !o)}
             />
 
+            {/* Cards have no columns to pick. */}
+            {wide && (
             <ColumnVisibilityMenu
               table={table}
               // Device split's header is an icon pair, not text.
@@ -431,6 +446,7 @@ export function CampaignsPage() {
                 </ToolbarButton>
               }
             />
+            )}
 
             <ToolbarResetButton
               active={filtersActive}
@@ -468,6 +484,8 @@ export function CampaignsPage() {
           ) : isError ? (
             <ErrorState onRetry={() => refetch()} />
           ) : (
+            <>
+            {wide ? (
             <DataTable
               table={table}
               emptyMessage={t('campaigns.noMatches')}
@@ -482,6 +500,27 @@ export function CampaignsPage() {
                   : navigate(paths.campaign(c.id))
               }
             />
+            ) : (
+              <>
+                <CampaignSortBar table={table} />
+                {shownRows.length === 0 ? (
+                  <p className="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+                    {t('campaigns.noMatches')}
+                  </p>
+                ) : (
+                  <CampaignCards campaigns={shownRows.map((r) => r.original)} isInternal={isInternal} />
+                )}
+              </>
+            )}
+            {!wide && filteredCount > 0 && (
+              <CardFooter className="flex items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <span className="tnum">
+                  {t('campaigns.showing', { shown: shownRows.length, total: filteredCount })}
+                </span>
+                {hasMore && <span ref={sentinelRef}>{t('campaigns.loadingMore')}</span>}
+              </CardFooter>
+            )}
+            </>
           )}
         </Card>
 

@@ -24,13 +24,3 @@ export function DeviceSplitCell({ campaign }: { campaign: Campaign }) {
     </span>
   );
 }
-
-/** One-line text that ellipsises instead of wrapping to a tall row; the full
- *  value is the tooltip. */
-export function TruncatedText({ text }: { text: string }) {
-  return (
-    <span className="mx-auto block max-w-36 truncate" title={text}>
-      {text}
-    </span>
-  );
-}

@@ -46,7 +46,7 @@ export function CampaignSetupPage() {
     <Page className="pb-3">
       <PageHeader title={t('setup.title')} subtitle={t('setup.subtitle')} className="mb-5" />
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
         <Card padded={false}>
           <div className="space-y-2 border-b border-gray-200 p-3 dark:border-white/10">
             <SearchInput value={q} onChange={setQ} placeholder={t('campaigns.search')} />
@@ -85,7 +85,7 @@ export function CampaignSetupPage() {
         {/* Keyed by campaign id so switching the selected campaign remounts
             these panels — otherwise their local form state (tag, language,
             primarySource…) would carry the previous campaign's edits over. */}
-        <div key={campaign.id} className="space-y-5">
+        <div key={campaign.id} className="space-y-6">
           <SalesforcePanel campaign={campaign} />
           <AppOwnedPanel campaign={campaign} />
         </div>

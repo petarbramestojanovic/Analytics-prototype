@@ -42,7 +42,7 @@ export function FreshnessBar({
       <button
         onClick={onSyncNow}
         disabled={syncing}
-        className="inline-flex items-center gap-1 font-medium text-brame-teal hover:underline disabled:opacity-50 dark:text-brame-turquoise-light"
+        className="inline-flex items-center gap-1 font-medium text-brame-teal hover:underline disabled:opacity-50 dark:text-brame-lime"
       >
         <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
         {syncing ? t('source.syncing') : t('source.syncNow')}

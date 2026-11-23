@@ -31,7 +31,7 @@ export function FlightTimeline({
   return (
     <div className={cn('flex min-w-60 flex-1 items-center gap-3 text-xs', className)}>
       <span className="inline-flex flex-shrink-0 items-center gap-1.5 font-medium text-gray-600 dark:text-gray-300">
-        <CalendarDays size={13} className="text-brame-teal dark:text-brame-turquoise-light" />
+        <CalendarDays size={13} className="text-brame-teal dark:text-brame-lime" />
         {fmtDateRange(campaign.flightStart, campaign.flightEnd)}
       </span>
       <span

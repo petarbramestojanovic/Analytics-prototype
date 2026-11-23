@@ -31,7 +31,7 @@ export function MeasurementSourcePanel({
   return (
     <section className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-brame-dark-light dark:shadow-none">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 pt-4">
-        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+        <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-gray-400 dark:text-gray-500">
           {t('detail.measurementSourceTitle')}
           <Tooltip text={t('detail.measurementSourceBody')} />
         </div>

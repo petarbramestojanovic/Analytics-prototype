@@ -2,7 +2,7 @@ import { paths } from '@/config/paths';
 import { cn } from '@/lib/cn';
 import { useFormatters } from '@/i18n';
 import { Pill } from '@/components/ui';
-import { TextLink } from '@/components/display';
+import { TextLink, TruncatedText } from '@/components/display';
 import type { Campaign } from '@/types';
 import { CampaignStatusPill } from './CampaignStatusPill';
 
@@ -15,6 +15,7 @@ export function CampaignNameCell({
   quietLink = false,
   showStatus = true,
   showCategory = false,
+  truncate = false,
 }: {
   campaign: Campaign;
   newTab?: boolean;
@@ -27,21 +28,26 @@ export function CampaignNameCell({
   showStatus?: boolean;
   /** The campaign's category, next to the status. */
   showCategory?: boolean;
+  /** Ellipsise a long name to the column; the full name is the tooltip. */
+  truncate?: boolean;
 }) {
   const { fmtDateRange } = useFormatters();
+  const name = (
+    <TextLink
+      to={paths.campaign(campaign.id)}
+      variant="record"
+      newTab={newTab}
+      className={cn(
+        !truncate && 'sm:whitespace-nowrap',
+        quietLink && 'hover:text-brame-dark hover:no-underline dark:hover:text-gray-100',
+      )}
+    >
+      {campaign.name}
+    </TextLink>
+  );
   return (
-    <div className="max-w-[10.5rem] sm:max-w-none">
-      <TextLink
-        to={paths.campaign(campaign.id)}
-        variant="record"
-        newTab={newTab}
-        className={cn(
-          'sm:whitespace-nowrap',
-          quietLink && 'hover:text-brame-dark hover:no-underline dark:hover:text-gray-100',
-        )}
-      >
-        {campaign.name}
-      </TextLink>
+    <div className={truncate ? 'min-w-0' : 'max-w-[10.5rem] sm:max-w-none'}>
+      {truncate ? <TruncatedText text={campaign.name}>{name}</TruncatedText> : name}
       {(showStatus || showCategory || showFlight) && (
         <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
           {showStatus && <CampaignStatusPill status={campaign.status} />}

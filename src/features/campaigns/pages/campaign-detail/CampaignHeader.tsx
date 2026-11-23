@@ -35,7 +35,7 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
     <header className="mb-6">
       <Link
         to={paths.campaigns}
-        className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brame-teal dark:text-gray-400 dark:hover:text-brame-turquoise-light"
+        className="mb-3 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brame-teal dark:text-gray-400 dark:hover:text-brame-lime"
       >
         <ArrowLeft size={14} />
         {t('detail.back')}
@@ -43,7 +43,7 @@ export function CampaignHeader({ campaign }: { campaign: Campaign }) {
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <div className="flex min-w-0 items-center gap-3">
-          <h1 className="text-2xl font-bold text-brame-dark dark:text-white">{campaign.name}</h1>
+          <h1 className="text-2xl font-medium text-brame-dark dark:text-white">{campaign.name}</h1>
           <CampaignStatusPill status={campaign.status} />
           {campaign.status === 'archived' && <Pill tone="amber">{t('detail.archivedBadge')}</Pill>}
         </div>

@@ -16,7 +16,6 @@ export {
 export { deliveryPacing } from './lib/delivery';
 export { deviceSplit } from './lib/devices';
 export { buildPortfolioSummary, type PortfolioSummary } from './lib/portfolio';
-export { isAwaitingSetup, missingConnectors } from './lib/setup';
 export { companyOptions } from './lib/filterOptions';
 
 export { CampaignNameCell } from './components/CampaignNameCell';

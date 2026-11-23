@@ -29,7 +29,7 @@ import {
 import {
   ALL_TREND_METRICS,
   TREND_METRICS,
-  TREND_METRIC_COLORS,
+  trendMetricColors,
   type BenchmarkableTrendMetric,
   type TrendMetric,
   type TrendPoint,
@@ -90,7 +90,8 @@ export function TrendChart({
 }) {
   const { t } = useI18n();
   const { fmtDate, fmtDateLong } = useFormatters();
-  const { axis, grid, tooltipStyle, animate } = useAxisStyle();
+  const { axis, grid, tooltipStyle, animate, colors } = useAxisStyle();
+  const metricColors = trendMetricColors(colors);
   // One shared pick for every trend chart, so the choice sticks as you move
   // between Overview, a client and a campaign; `defaultMetrics` only applies
   // until the user first changes it.
@@ -137,7 +138,7 @@ export function TrendChart({
                   checked={selected.includes(metric)}
                   onCheckedChange={(checked) => toggleMetric(metric, checked)}
                 >
-                  <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: TREND_METRIC_COLORS[metric] }} />
+                  <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: metricColors[metric] }} />
                   {metricLabel(metric)}
                 </DropdownMenuCheckboxItem>
               ))}
@@ -207,7 +208,7 @@ export function TrendChart({
                     type="monotone"
                     dataKey={m}
                     name={metricLabel(m)}
-                    stroke={TREND_METRIC_COLORS[m]}
+                    stroke={metricColors[m]}
                     strokeWidth={2}
                     dot={false}
                     connectNulls={false}
@@ -224,10 +225,10 @@ export function TrendChart({
                             key={`${line.key}-${m}`}
                             yAxisId="pct"
                             y={line.values![m]}
-                            stroke={TREND_METRIC_COLORS[m]}
+                            stroke={metricColors[m]}
                             strokeDasharray={line.dash}
                             strokeWidth={1.5}
-                            label={{ value: line.label, position: line.position, fill: TREND_METRIC_COLORS[m], fontSize: 10 }}
+                            label={{ value: line.label, position: line.position, fill: metricColors[m], fontSize: 10 }}
                           />
                         ))
                     : []

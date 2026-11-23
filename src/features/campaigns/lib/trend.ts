@@ -1,5 +1,5 @@
 import type { SourceSeries } from '@/types';
-import { CHART_COLORS } from '@/components/charts';
+import type { ChartPalette } from '@/components/charts';
 
 /**
  * The four metrics the one shared trend chart (components/TrendChart.tsx)
@@ -17,13 +17,14 @@ export const TREND_METRICS: TrendMetric[] = ['delivery', 'impressions', 'engagem
 /** Every metric the chart can plot, for decoding a remembered pick. */
 export const ALL_TREND_METRICS: TrendMetric[] = [...TREND_METRICS, 'viewability'];
 
-export const TREND_METRIC_COLORS: Record<TrendMetric, string> = {
-  delivery: CHART_COLORS.purple,
-  impressions: CHART_COLORS.teal,
-  engagementRate: CHART_COLORS.turquoise,
-  ctr: CHART_COLORS.amber,
-  viewability: CHART_COLORS.blue,
-};
+/** The colour of each metric's line, drawn from the current theme's chart palette. */
+export const trendMetricColors = (c: ChartPalette): Record<TrendMetric, string> => ({
+  delivery: c.purple,
+  impressions: c.teal,
+  engagementRate: c.turquoise,
+  ctr: c.amber,
+  viewability: c.green,
+});
 
 /** Only these two are ever benchmarked (lib/benchmarks.ts BENCHMARK_METRICS
  *  also includes viewability, which isn't one of the four trend metrics). */

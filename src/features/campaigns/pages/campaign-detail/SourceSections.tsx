@@ -10,7 +10,7 @@ import {
 import { Monitor, MousePointerClick, Timer } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { EMPTY_VALUE, fmtCompact, fmtInt, fmtPct } from '@/lib/format';
-import { CHART_COLORS, tooltipIntOnly, useAxisStyle } from '@/components/charts';
+import { tooltipIntOnly, useAxisStyle } from '@/components/charts';
 import { Card, ProgressBar } from '@/components/ui';
 import { SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
@@ -97,7 +97,7 @@ export function CtaCard({ campaign }: { campaign: Campaign }) {
 
 export function DevicesCard({ campaign }: { campaign: Campaign }) {
   const { t } = useI18n();
-  const { axis, grid, cursorFill, tooltipStyle, animate } = useAxisStyle();
+  const { axis, grid, cursorFill, tooltipStyle, animate, colors } = useAxisStyle();
   // Two buckets, same as the Total/Mobile/Desktop tabs above: Tablet is part
   // of Mobile, and isn't reported separately.
   const buckets = deviceBuckets(campaign);
@@ -132,7 +132,7 @@ export function DevicesCard({ campaign }: { campaign: Campaign }) {
               isAnimationActive={animate}
               dataKey="impressions"
               name={t('detail.legendImpressions')}
-              fill={CHART_COLORS.teal}
+              fill={colors.teal}
               radius={[0, 4, 4, 0]}
             />
           </BarChart>
@@ -193,7 +193,7 @@ export function CreativesCard({
                 <button
                   type="button"
                   onClick={() => onOpenCreative(cr.id)}
-                  className="text-left font-medium text-brame-teal hover:underline dark:text-brame-turquoise-light"
+                  className="text-left font-medium text-brame-teal hover:underline dark:text-brame-lime"
                 >
                   {cr.format}
                 </button>

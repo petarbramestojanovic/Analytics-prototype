@@ -52,7 +52,7 @@ export function CampaignSortHeader({ table }: { table: Table<Campaign> }) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <div className="px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+        <div className="px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
           {t('campaigns.sort.by')}
         </div>
         {SORT_ONLY_COLUMNS.map((id) => (

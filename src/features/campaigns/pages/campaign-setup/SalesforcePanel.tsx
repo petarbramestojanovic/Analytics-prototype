@@ -50,7 +50,7 @@ export function SalesforcePanel({ campaign }: { campaign: Campaign }) {
         }
       >
         <span className="flex items-center gap-2">
-          <Cloud size={16} className="text-brame-purple" />
+          <Cloud size={16} className="text-brame-teal dark:text-brame-purple" />
           {t('setup.sf.title')}
           <Pill tone="purple" icon={<Lock size={10} />}>
             {t('setup.sf.readOnlyBadge')}

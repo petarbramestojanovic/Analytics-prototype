@@ -5,6 +5,7 @@ import { useI18n, type TranslateFn } from '@/i18n';
 import { EMPTY_VALUE, fmtMetric } from '@/lib/format';
 import type { ExportColumn } from '@/lib/exportXlsx';
 import { Pill, TipText, TipTitle } from '@/components/ui';
+import { TruncatedText } from '@/components/display';
 import type { Campaign, CampaignStatus, MetricKey } from '@/types';
 import { CampaignSortHeader } from './CampaignSortHeader';
 import { CampaignNameCell } from '../../components/CampaignNameCell';
@@ -13,17 +14,19 @@ import { MetricValueCell, type CellMetric } from '../../components/MetricValueCe
 import { deliveryPacing } from '../../lib/delivery';
 import { deviceSplit } from '../../lib/devices';
 import { engagementCount, primarySeries } from '../../lib/sources';
-import { DateCell, DeviceSplitCell, TruncatedText } from './cells';
+import { DateCell, DeviceSplitCell } from './cells';
 
-/** Metric columns, in table order. Each renders through MetricValueCell, so
- *  a metric the primary source can't measure reads "n/a", never 0. */
-const METRIC_COLUMNS: { id: string; metric: CellMetric }[] = [
-  { id: 'impressions', metric: 'impressions' },
-  { id: 'engagements', metric: 'engagements' },
-  { id: 'engagement', metric: 'engagementRate' },
-  { id: 'clicks', metric: 'ctaClicks' },
-  { id: 'ctr', metric: 'ctr' },
-  { id: 'viewability', metric: 'viewability' },
+/** Metric columns, in table order, with their widths (px). Each renders through
+ *  MetricValueCell, so a metric the primary source can't measure reads "n/a",
+ *  never 0. The table is fixed-layout, so the widths — not the cell contents —
+ *  decide where every column sits, however the rows are sorted. */
+const METRIC_COLUMNS: { id: string; metric: CellMetric; size: number }[] = [
+  { id: 'impressions', metric: 'impressions', size: 120 },
+  { id: 'engagements', metric: 'engagements', size: 130 },
+  { id: 'engagement', metric: 'engagementRate', size: 105 },
+  { id: 'clicks', metric: 'ctaClicks', size: 85 },
+  { id: 'ctr', metric: 'ctr', size: 80 },
+  { id: 'viewability', metric: 'viewability', size: 115 },
 ];
 
 /** The value a column sorts on; missing (not measured) sorts last. */
@@ -56,10 +59,11 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
     const cols: ColumnDef<Campaign>[] = [
       {
         id: 'campaign',
+        size: 240,
         accessorFn: (c) => c.name,
         header: ({ table }) => <CampaignSortHeader table={table} />,
         cell: ({ row }) => (
-          <CampaignNameCell campaign={row.original} showFlight={false} showCategory quietLink />
+          <CampaignNameCell campaign={row.original} showFlight={false} showCategory quietLink truncate />
         ),
         enableHiding: false,
         // Sorting is driven by the header's menu, not a click on the label.
@@ -82,44 +86,55 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
       },
       {
         id: 'account',
+        size: 120,
         accessorFn: (c) => accountLabel(c, t),
         header: t('campaigns.col.account'),
         cell: ({ getValue }) => <TruncatedText text={String(getValue())} />,
       },
       {
         id: 'company',
+        size: 130,
         accessorFn: (c) => c.companyName,
         header: t('campaigns.col.company'),
         cell: ({ getValue }) => <TruncatedText text={String(getValue())} />,
       },
       {
         id: 'country',
+        size: 80,
         accessorFn: (c) => c.salesforce.market,
         header: t('campaigns.col.country'),
+        enableSorting: false,
         cell: ({ row }) => <Pill tone="teal">{row.original.salesforce.market}</Pill>,
       },
       {
         id: 'startDate',
+        size: 90,
         accessorFn: (c) => c.flightStart,
         header: t('campaigns.col.startDate'),
         cell: ({ row }) => <DateCell date={row.original.flightStart} />,
       },
       {
         id: 'endDate',
+        size: 90,
         accessorFn: (c) => c.flightEnd,
         header: t('campaigns.col.endDate'),
         cell: ({ row }) => <DateCell date={row.original.flightEnd} />,
       },
-      ...METRIC_COLUMNS.map(({ id, metric }): ColumnDef<Campaign> => ({
+      ...METRIC_COLUMNS.map(({ id, metric, size }): ColumnDef<Campaign> => ({
         id,
+        size,
+        // Only the columns that identify a campaign sort; the numbers don't.
+        enableSorting: false,
         accessorFn: (c) => sortValue(c, metric),
         header: t(HEADER_KEY[id] ?? `metric.${metric}.label`),
         cell: ({ row }) => <MetricValueCell campaign={row.original} metric={metric} />,
       })),
       {
         id: 'delivery',
+        size: 130,
         accessorFn: (c) => deliveryPacing(c) ?? -1,
         header: t('campaigns.col.delivery'),
+        enableSorting: false,
         cell: ({ row }) => (
           <DeliveryBar
             pacing={deliveryPacing(row.original)}
@@ -131,7 +146,9 @@ export function useCampaignColumns(showInternal: boolean): ColumnDef<Campaign>[]
       },
       {
         id: 'deviceSplit',
+        size: 80,
         accessorFn: (c) => deviceSplit(c)?.desktop ?? -1,
+        enableSorting: false,
         header: () => (
           <span className="inline-flex items-center gap-1" title={t('campaigns.col.deviceSplit')}>
             <Monitor size={13} />

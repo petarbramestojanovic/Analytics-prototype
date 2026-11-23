@@ -25,7 +25,7 @@ export function CampaignAlertsBox({ campaignId }: { campaignId: string }) {
       role="alert"
       className="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100"
     >
-      <div className="flex items-center gap-2 text-sm font-semibold">
+      <div className="flex items-center gap-2 text-sm font-medium">
         <AlertTriangle size={16} className="flex-shrink-0" />
         {t('detail.alerts.title', { count: mine.length })}
       </div>

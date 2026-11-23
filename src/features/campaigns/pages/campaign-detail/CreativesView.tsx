@@ -8,10 +8,11 @@ import { EmptyState } from '@/components/feedback';
 import { SectionTitle } from '@/components/page';
 import { Table, Td, Th } from '@/components/table';
 import { isRowClick } from '@/components/table/isRowClick';
-import { StatTile } from '@/components/display';
+import { StatGrid, StatTile } from '@/components/display';
 import { useSession } from '@/features/session';
 import type { Campaign, CreativeRow, SourceKey } from '@/types';
 import { DailyTrendCard } from '../../components/DailyTrendCard';
+import { MetricIcon } from '../../components/MetricIcon';
 import { DailyMetricsTable } from '../../components/DailyMetricsTable';
 import { buildDailyRows, totalDailyRow, type DailyRow } from '../../lib/dailyMetrics';
 import { sourceMeta } from '../../lib/sources';
@@ -67,7 +68,7 @@ export function CreativesView({
   const selected = campaign.creatives.find((c) => c.id === tab);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <Tabs
         onPage
         value={tab}
@@ -162,7 +163,7 @@ function CreativesOverview({
                   <button
                     type="button"
                     onClick={() => onOpen(c.id)}
-                    className="text-left font-medium text-brame-teal hover:underline dark:text-brame-turquoise-light"
+                    className="text-left font-medium text-brame-teal hover:underline dark:text-brame-lime"
                   >
                     {c.format}
                   </button>
@@ -222,24 +223,36 @@ function CreativeDetail({
   const sourceLabel = t(`connectors.source.${meta.key}`);
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile compact label={t('daily.col.impressions')} value={fmtInt(creative.impressions)} />
+    <div className="space-y-6">
+      <StatGrid columns={total?.conversions != null ? 5 : 4} className="mb-0">
         <StatTile
-          compact
+          label={t('daily.col.impressions')}
+          value={fmtInt(creative.impressions)}
+          icon={<MetricIcon metric="impressions" />}
+        />
+        <StatTile
           label={t('daily.col.engagementRate')}
           value={pct(total?.engagementRate ?? null)}
+          icon={<MetricIcon metric="engagementRate" />}
         />
-        <StatTile compact label={t('daily.col.ctr')} value={pct(total?.ctr ?? null, 2)} />
         <StatTile
-          compact
+          label={t('daily.col.ctr')}
+          value={pct(total?.ctr ?? null, 2)}
+          icon={<MetricIcon metric="ctr" />}
+        />
+        <StatTile
           label={t('daily.col.viewability')}
           value={pct(total?.viewability ?? null)}
+          icon={<MetricIcon metric="viewability" />}
         />
         {total?.conversions != null && (
-          <StatTile compact label={t('daily.col.conversions')} value={fmtInt(total.conversions)} />
+          <StatTile
+            label={t('daily.col.conversions')}
+            value={fmtInt(total.conversions)}
+            icon={<MetricIcon metric="conversions" />}
+          />
         )}
-      </div>
+      </StatGrid>
 
       <DailyTrendCard rows={rows} title={t('creatives.chartTitle', { name: creative.format })} />
 
