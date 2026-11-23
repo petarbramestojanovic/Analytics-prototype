@@ -14,9 +14,11 @@ npm install
 npm run dev
 ```
 
-Visual language (teal/lime/cream, Inter, Recharts, lucide) is carried over from
-the existing `brame-kpi-dashboard-mvp` dashboard so the prototype reads as
-Klea rather than as a generic template.
+The visual language follows the BRAME Style Guide (Figma): deep teal, lime,
+lavender and charcoal on off-white, Onest for headings and UI, Rubik for body
+text, an 8pt spacing grid. The tokens live at the top of `src/index.css`
+(`@theme`); chart colours are in `src/components/charts/theme.ts`. Light UI pairs
+charcoal text with deep teal actions; dark UI pairs off-white text with lime.
 
 ## A five-minute demo path
 
@@ -100,7 +102,7 @@ own state and TanStack Query already cover.
 | Build tool | Vite + React + TypeScript | Matches the RFC directly |
 | Routing | React Router v7 | Auth pages outside the shell, admin routes inside it |
 | Server state | TanStack Query | Wraps the mock store's async functions (`src/features/*/api`) — cache, invalidation-on-mutate, loading states, and the topbar's manual "Refresh data" button all come from this, not hand-rolled state |
-| Tables | TanStack Table | Campaigns list: sortable columns, global search, column visibility, pagination |
+| Tables | TanStack Table | Campaigns list: sortable columns, global search, column visibility, pagination (infinite scroll on small screens) |
 | Charts | Recharts | Unchanged from the original build |
 | Styling | Tailwind CSS | Unchanged |
 | Component primitives | Radix UI, shadcn-style (`src/components/ui/`) | Dialog, DropdownMenu, Select, AlertDialog — copied into the repo and Tailwind-styled rather than pulled from a component library, same as shadcn/ui itself works |
@@ -166,7 +168,9 @@ rather than hidden entirely.
   for Klea seats, sales, campaign manager, client, account, country,
   category). Every dropdown takes several picks (checkboxes appear on hover);
   with the panel closed, each active filter is one chip ("4 sales people").
-  Rows open their campaign on click.
+  Rows open their campaign on click. Only Campaign, Account, Client and the
+  start/end dates sort. Desktop pages the table; below 1024px the rows become
+  cards with a "More details" toggle and load more as you scroll.
 - Multi-select values travel as one comma-separated string (`lib/selection.ts`),
   so a link from before multi-select still works.
 
@@ -187,9 +191,11 @@ Klea seats get a **Benchmarks** page with three views; every seat gets a light
 "How it compares" read on its own campaigns.
 
 - **Rankings** — industry / client / market over a chosen period (the same
-  picker as the Overview, last 12 months by default; Mechanics shares it), with a
-  "vs. KLEA" column and the industries furthest above the KLEA average.
-- **Compare** — pick a campaign (sticky autocomplete) and read it against a
+  picker as the Overview, last 12 months by default, "All time" included;
+  Compare and Mechanics share it): a top‑10 of cards ranked by the chosen
+  metric, the groups furthest above the KLEA average, and a full table (cards
+  on a phone).
+- **Compare** — pick a campaign or segment (the picker sits in the matrix card) and read it against a
   matrix of benchmark columns (client, market, industry, account, KLEA, or any
   specific bucket; up to 10, removable) and up to 4 ranked charts. Layouts can
   be saved as named views (kept in this browser). Below, a cross-market card

@@ -38,14 +38,16 @@ src/
 │   │                       ListToolbar, SearchInput, FilterSelect, FilterMultiSelect,
 │   │                       FilterSheet (slide-in tray), Toolbar buttons
 │   ├── display/            StatTile/SummaryTile/StatGrid, ItemCard, ListItemButton,
-│   │                       ReadOnlyRow/SettingRow/ListRow, DeltaValue, TextLink, …
+│   │                       ReadOnlyRow/SettingRow/ListRow, DeltaValue, RingProgress, TextLink,
+│   │                       TruncatedText (ellipsis + tooltip when clipped), …
 │   ├── feedback/           LoadingState, ErrorState, EmptyState/EmptyText, ConfirmDialog
 │   ├── charts/             Recharts theme (colours, axis/tooltip styles)
 │   └── theme/              Light/dark ThemeProvider + useTheme
 │
 ├── features/             One folder per product area (see below)
 ├── hooks/                Generic hooks: usePagination, useListFilters,
-│                         usePersistentState, useSimulatedAction, useMediaQuery, …
+│                         usePersistentState, useSimulatedAction, useMediaQuery,
+│                         useInfiniteScroll, …
 ├── i18n/                 I18nProvider, useI18n, useFormatters, locales/{en,de}.ts
 ├── lib/                  Pure utilities: format, clock, storage, text, sort, cn,
 │                         exportXlsx, createStrictContext
