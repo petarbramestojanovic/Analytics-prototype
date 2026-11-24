@@ -14,7 +14,7 @@ const SIZES = {
 export function ProgressBar({
   value,
   size = 'md',
-  barClassName = 'bg-brame-teal',
+  barClassName = 'bg-brame-teal dark:bg-brame-lime',
   title,
   className,
 }: {

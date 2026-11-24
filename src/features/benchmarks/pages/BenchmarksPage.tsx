@@ -15,7 +15,7 @@ import { EmptyState, EmptyText, ErrorState, PageSkeleton } from '@/components/fe
 import { FilterSelect, Page, PageHeader, PeriodPicker, SectionTitle, SortBar } from '@/components/page';
 import { Pagination, SortableTh, Table, Td, Th, Tr } from '@/components/table';
 import { CardStat, RingProgress, StatGrid, SummaryTile, TextLink } from '@/components/display';
-import { relativeChange } from '@/features/campaigns';
+import { MetricIcon, relativeChange } from '@/features/campaigns';
 import { useBenchmarks } from '@/api/hooks/useBenchmarks';
 import { useBenchmarkPeriod } from '../hooks/useBenchmarkPeriod';
 import { BenchmarkViewTabs } from '../components/BenchmarkViewTabs';
@@ -182,20 +182,28 @@ function RankingsView() {
           label={t('benchmarks.tile.impressions')}
           value={fmtCompact(data.totals.impressions)}
           hint={t('benchmarks.tile.impressionsHint')}
+          icon={<MetricIcon metric="impressions" />}
         />
         <SummaryTile
           label={t('benchmarks.tile.engagements')}
           value={fmtCompact(data.totals.engagements)}
           hint={t('benchmarks.tile.engagementsHint')}
+          icon={<MetricIcon metric="engagements" />}
         />
         <SummaryTile
           label={t('benchmarks.tile.avgEngagement')}
           value={fmtMetric('engagementRate', data.overall.engagementRate?.avg)}
+          icon={<MetricIcon metric="engagementRate" />}
         />
-        <SummaryTile label={t('benchmarks.tile.avgCtr')} value={fmtMetric('ctr', data.overall.ctr?.avg)} />
+        <SummaryTile
+          label={t('benchmarks.tile.avgCtr')}
+          value={fmtMetric('ctr', data.overall.ctr?.avg)}
+          icon={<MetricIcon metric="ctr" />}
+        />
         <SummaryTile
           label={t('benchmarks.tile.avgViewability')}
           value={fmtMetric('viewability', data.overall.viewability?.avg)}
+          icon={<MetricIcon metric="viewability" />}
         />
       </StatGrid>
 

@@ -276,9 +276,9 @@ export function CrossMarket({ pool }: { pool: BenchmarkCampaign[] }) {
                 </span>
               ) : (
                 <>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
                     <div
-                      className="h-full rounded-full bg-brame-teal"
+                      className="h-full rounded-full bg-brame-teal dark:bg-brame-lime"
                       style={{ width: `${(s.avg / max) * 100}%` }}
                     />
                   </div>

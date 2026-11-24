@@ -102,7 +102,7 @@ function ContextMetricCard({
             key: 'campaign' as const,
             label: ownLabel ?? t('benchmarkContext.thisCampaign'),
             value: ownValue,
-            className: 'bg-brame-teal',
+            className: 'bg-brame-teal dark:bg-brame-lime',
           },
         ]
       : []),
@@ -111,7 +111,7 @@ function ContextMetricCard({
       label: t('benchmarkContext.client'),
       value: meetsSample(client) ? client.avg : null,
       n: client?.n,
-      className: 'bg-brame-turquoise',
+      className: 'bg-brame-turquoise dark:bg-brame-lime/55',
     },
     {
       key: 'industry',

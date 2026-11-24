@@ -101,11 +101,11 @@ export function DeliveryPacingCard({
 
             {/* The bar: fill = delivered share, tick = where it should be by now. */}
             <div className="relative mt-4">
-              <div className="h-4 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+              <div className="h-3 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
                 <div
                   className={cn(
                     'h-full rounded-full transition-all',
-                    health ? DELIVERY_HEALTH_BAR_CLASS[health] : 'bg-brame-teal',
+                    health ? DELIVERY_HEALTH_BAR_CLASS[health] : 'bg-brame-teal dark:bg-brame-lime',
                   )}
                   style={{ width: `${Math.min(Math.max(pacing, 0), 1) * 100}%` }}
                 />
@@ -164,7 +164,7 @@ export function DeliveryPacingCard({
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
             <div
-              className="h-full rounded-full bg-brame-teal/70"
+              className="h-full rounded-full bg-brame-teal/70 dark:bg-brame-lime/70"
               style={{ width: `${flight.pct * 100}%` }}
             />
           </div>

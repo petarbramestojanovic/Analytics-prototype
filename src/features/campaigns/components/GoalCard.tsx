@@ -11,8 +11,8 @@ const BAR_CLASS = {
   met: 'bg-green-500',
   close: 'bg-amber-400',
   behind: 'bg-red-500',
-  'no-target': 'bg-brame-teal',
-  'no-data': 'bg-brame-teal',
+  'no-target': 'bg-brame-teal dark:bg-brame-lime',
+  'no-data': 'bg-brame-teal dark:bg-brame-lime',
 } as const;
 
 /**
@@ -69,7 +69,7 @@ export function GoalCard({
             </div>
             {goal.attainment != null && (
               <div className="mt-3">
-                <ProgressBar value={goal.attainment} barClassName={BAR_CLASS[goal.status]} />
+                <ProgressBar value={goal.attainment} size="lg" barClassName={BAR_CLASS[goal.status]} />
                 <div className="tnum mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                   {t('goal.attainment', { pct: Math.round(goal.attainment * 100) })}
                 </div>

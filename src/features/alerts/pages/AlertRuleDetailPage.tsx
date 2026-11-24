@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Bell, Crosshair, Flag, FolderKanban, Pencil, Trash2 } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -17,6 +17,8 @@ import { useAlertLog } from '../hooks/useAlertLog';
 import { notifyLabel } from '../lib/notify';
 import { matchesScope } from '../lib/ruleEngine';
 import { ruleCondition, ruleDisplayName } from '../lib/ruleText';
+
+const TILE_ICON = { size: 20, strokeWidth: 1.75 } as const;
 
 /**
  * One rule: what it checks and where, its on/off state, and the campaigns it is
@@ -91,10 +93,18 @@ export function AlertRuleDetailPage() {
       />
 
       <StatGrid>
-        <SummaryTile label={t('alerts.ruleDetail.scope')} value={scope} />
-        <SummaryTile label={t('alerts.ruleDetail.inScope')} value={String(inScope)} />
-        <SummaryTile label={t('alerts.ruleDetail.flagging')} value={rule.enabled ? String(flagged.length) : '—'} />
-        <SummaryTile label={t('alerts.ruleDetail.notifies')} value={notifyLabel(rule, seats, members, t)} />
+        <SummaryTile label={t('alerts.ruleDetail.scope')} value={scope} icon={<Crosshair {...TILE_ICON} />} />
+        <SummaryTile label={t('alerts.ruleDetail.inScope')} value={String(inScope)} icon={<FolderKanban {...TILE_ICON} />} />
+        <SummaryTile
+          label={t('alerts.ruleDetail.flagging')}
+          value={rule.enabled ? String(flagged.length) : '—'}
+          icon={<Flag {...TILE_ICON} />}
+        />
+        <SummaryTile
+          label={t('alerts.ruleDetail.notifies')}
+          value={notifyLabel(rule, seats, members, t)}
+          icon={<Bell {...TILE_ICON} />}
+        />
       </StatGrid>
 
       <Card padded={false}>

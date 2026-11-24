@@ -39,7 +39,7 @@ export function FlightTimeline({
         title={status}
       >
         <span
-          className="block h-full rounded-full bg-brame-teal"
+          className="block h-full rounded-full bg-brame-teal dark:bg-brame-lime"
           style={{ width: `${flight.pct * 100}%` }}
         />
       </span>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -101,6 +101,7 @@ export function ClientDetailPage() {
             <SummaryTile
               label={t('companyDetail.usersTitle')}
               value={String(users.length)}
+              icon={<Users size={20} strokeWidth={1.75} />}
               className="transition-colors hover:border-brame-teal/40 dark:hover:border-brame-lime/40"
             />
           </Link>

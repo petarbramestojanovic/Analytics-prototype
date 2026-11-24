@@ -23,6 +23,7 @@ export { CampaignStatusPill } from './components/CampaignStatusPill';
 export { ChartCard } from './components/ChartCard';
 export { DeliveryBar } from './components/DeliveryBar';
 export { LivePill } from './components/FreshnessBar';
+export { MetricIcon } from './components/MetricIcon';
 export { MetricTile } from './components/MetricTile';
 export { MetricValueCell } from './components/MetricValueCell';
 export { PortfolioSummaryTiles } from './components/PortfolioSummaryTiles';

@@ -854,7 +854,7 @@ export const de: Record<TranslationKey, string> = {
   'cmp.matrix.hidden': '{{count}} {{count|Spalte passt|Spalten passen}} nicht zu dieser Auswahl und {{count|ist|sind}} ausgeblendet.',
   'cmp.add.title': 'Vergleichen mit',
   'cmp.add.sameAsSubject': 'Wie die Auswahl',
-  'cmp.views': 'Ansichten',
+  'cmp.views': 'Gespeicherte Ansichten',
   'cmp.views.saved': 'Gespeicherte Ansichten',
   'cmp.views.empty': 'Noch keine gespeicherten Ansichten',
   'cmp.views.name': 'Ansicht benennen',

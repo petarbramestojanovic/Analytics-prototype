@@ -856,7 +856,7 @@ export const en = {
   'cmp.matrix.hidden': '{{count}} {{count|column doesn’t|columns don’t}} apply to this pick and {{count|is|are}} hidden.',
   'cmp.add.title': 'Compare against',
   'cmp.add.sameAsSubject': 'Same as the pick',
-  'cmp.views': 'Views',
+  'cmp.views': 'Saved views',
   'cmp.views.saved': 'Saved views',
   'cmp.views.empty': 'No saved views yet',
   'cmp.views.name': 'Name this view',

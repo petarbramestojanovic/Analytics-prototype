@@ -224,7 +224,7 @@ function CreativeDetail({
 
   return (
     <div className="space-y-6">
-      <StatGrid columns={total?.conversions != null ? 5 : 4} className="mb-0">
+      <StatGrid columns={total?.conversions != null ? 5 : 4}>
         <StatTile
           label={t('daily.col.impressions')}
           value={fmtInt(creative.impressions)}

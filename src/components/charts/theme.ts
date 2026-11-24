@@ -21,7 +21,7 @@ const LIGHT_CHART_COLORS = {
 
 const DARK_CHART_COLORS = {
   teal: '#dffa96',
-  turquoise: '#73e8e8',
+  turquoise: '#9ccf12',
   turquoiseLight: '#4f6a2f',
   lime: '#dffa96',
   purple: '#bec6fa',
