@@ -79,8 +79,9 @@ features/<name>/
 | `overview` | The landing page: the period filter (`lib/overviewFilters.ts`; the shared period logic is `lib/dateRange.ts` and `PeriodPicker` in `components/page`, also used by the Campaigns list), KPI tiles and benchmark cards |
 | `clients` | Company/account queries; Clients directory and client detail |
 | `benchmarks` | The benchmark engine (`lib/benchmarks.ts`: window, active-day floor, 3-campaign minimum, slice stats, bucket ranking, market split, mechanics over creatives, per-client context; `lib/compareViews.ts` holds the Compare workspace's columns, charts and saved views); the Context card every seat sees; Benchmarks pages (Rankings / Compare / Mechanics, Klea-only) |
-| `alerts` | Thresholds + custom rules (state), the rule engine, the alert log (`useAlertLog`, also drives the sidebar badge); Alerts page |
-| `reports` | Email reports: queries, scoping, the create/edit modal; Reports page |
+| `alerts` | Thresholds + custom rules (state), the rule engine, the alert log (`useAlertLog`, also feeds the inbox); Alert Config pages (Triggered alerts / Alert rules) |
+| `reports` | Email reports: queries, scoping, the create/edit modal, run history (`ReportRun`); Reports page with Reports / History tabs |
+| `inbox` | A person's inbox: triggered alerts, scheduled report sends and failures, accepted invitations. Per-person read/archived state; a manual "Run now" is history only, never an inbox item |
 | `seats` | Seats and members: queries, `useCurrentSeat`, member panel, modals; Seats and Users pages |
 | `api-access` | API keys; API access page |
 | `connectors` | Sync runs; Connectors page |

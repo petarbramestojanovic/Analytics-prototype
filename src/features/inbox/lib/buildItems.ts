@@ -1,8 +1,8 @@
 import type { TranslateFn } from '@/i18n';
 import { fmtPct, fmtPp } from '@/lib/format';
 import { paths } from '@/config/paths';
-import { alertTriggeredAt, DEFAULT_RULE_ID, type AlertLogRow } from '@/features/alerts';
 import { reportFormatLabel } from '@/features/reports';
+import { alertTriggeredAt, DEFAULT_RULE_ID, type AlertLogRow } from '@/features/alerts';
 import type { InboxEvent } from '@/types';
 import type { InboxItem } from '../types';
 
@@ -38,19 +38,36 @@ export function alertItem(row: AlertLogRow, t: TranslateFn): InboxItem {
 
 export function eventItem(event: InboxEvent, t: TranslateFn, opts: { canManageSeat: boolean }): InboxItem {
   if (event.kind === 'report') {
+    if (event.status === 'failed') {
+      return {
+        id: event.id,
+        kind: 'report',
+        createdAt: event.createdAt,
+        title: t('inbox.report.failedTitle', { name: event.reportName }),
+        summary: `${event.scopeName} · ${event.failureReason ?? ''}`,
+        tone: 'red',
+        facts: [
+          { label: t('inbox.fact.report'), value: event.reportName },
+          { label: t('inbox.fact.reason'), value: event.failureReason ?? '' },
+        ],
+        // The report's history, already searched down to this report.
+        actions: [{ label: t('inbox.action.openReportHistory'), to: paths.reportHistory(event.reportName) }],
+      };
+    }
     return {
       id: event.id,
       kind: 'report',
       createdAt: event.createdAt,
       title: t('inbox.report.title', { name: event.reportName }),
-      summary: t('inbox.report.summary', { count: event.recipientCount, format: reportFormatLabel(t, event.format) }),
+      summary: `${event.scopeName} · ${t('inbox.report.summary', { count: event.recipientCount, format: reportFormatLabel(t, event.format) })}`,
       tone: 'green',
       facts: [
         { label: t('inbox.fact.report'), value: event.reportName },
         { label: t('inbox.fact.recipients'), value: String(event.recipientCount) },
         { label: t('inbox.fact.format'), value: reportFormatLabel(t, event.format) },
       ],
-      actions: [{ label: t('inbox.action.openReports'), to: paths.reports }],
+      reportId: event.reportId,
+      actions: [],
     };
   }
   return {

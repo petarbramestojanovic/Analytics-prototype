@@ -14,6 +14,8 @@ export const paths = {
   campaigns: '/campaigns',
   campaign: (id: string) => `/campaigns/${id}`,
   reports: '/reports',
+  /** The Reports page's History tab, searched down to one report. */
+  reportHistory: (reportName: string) => `/reports?tab=history&q=${encodeURIComponent(reportName)}`,
   inbox: '/inbox',
 
   users: '/users',

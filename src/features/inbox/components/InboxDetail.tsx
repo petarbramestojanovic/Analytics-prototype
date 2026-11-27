@@ -1,6 +1,7 @@
 import { Archive, ArchiveRestore, ArrowLeft, ArrowRight, MailOpen, Mail } from 'lucide-react';
 import { useFormatters, useI18n } from '@/i18n';
 import { Button, ButtonLink, Pill } from '@/components/ui';
+import { ReportSentSummary, useScopedReports } from '@/features/reports';
 import type { InboxEntry } from '../types';
 import { InboxKindIcon } from './inboxKind';
 
@@ -19,6 +20,8 @@ export function InboxDetail({
 }) {
   const { t } = useI18n();
   const { fmtDateLong, fmtTime } = useFormatters();
+  const { reports } = useScopedReports();
+  const sentReport = entry.reportId ? reports.find((r) => r.id === entry.reportId) : undefined;
 
   return (
     <div className="flex h-full flex-col">
@@ -33,7 +36,7 @@ export function InboxDetail({
             {t('inbox.back')}
           </button>
         ) : (
-          <Pill tone={entry.kind === 'alert' ? 'red' : entry.kind === 'report' ? 'green' : 'teal'}>
+          <Pill tone={entry.kind === 'invitation' ? 'teal' : 'red'}>
             {t(`inbox.kind.${entry.kind}`)}
           </Pill>
         )}
@@ -63,14 +66,18 @@ export function InboxDetail({
           </div>
         </div>
 
-        <dl className="mt-6 divide-y divide-gray-100 rounded-xl border border-gray-200 dark:divide-white/5 dark:border-white/10">
+        {!sentReport && (
+          <dl className="mt-6 divide-y divide-gray-100 rounded-xl border border-gray-200 dark:divide-white/5 dark:border-white/10">
           {entry.facts.map((fact) => (
             <div key={fact.label} className="flex items-baseline justify-between gap-6 px-4 py-2.5 text-sm">
               <dt className="flex-shrink-0 text-gray-500 dark:text-gray-400">{fact.label}</dt>
               <dd className="min-w-0 break-words text-right font-medium text-brame-dark dark:text-gray-100">{fact.value}</dd>
             </div>
           ))}
-        </dl>
+          </dl>
+        )}
+
+        {sentReport && <ReportSentSummary report={sentReport} />}
 
         <div className="mt-5 flex flex-wrap gap-2">
           {entry.actions.map((action, i) => (

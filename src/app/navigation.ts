@@ -21,7 +21,7 @@ interface NavItemConfig {
   labelKey: string;
   icon: LucideIcon;
   /** Which live count (if any) the item shows as a badge. */
-  badge?: 'alerts' | 'inbox';
+  badge?: 'inbox';
   /** Narrows the section's access for this one item. */
   access?: Access;
 }
@@ -48,8 +48,8 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     items: [
       { to: paths.overview, labelKey: 'nav.overview', icon: LayoutDashboard },
       { to: paths.campaigns, labelKey: 'nav.campaigns', icon: FolderKanban },
-      { to: paths.reports, labelKey: 'nav.reports', icon: Send },
       { to: paths.benchmarks(), labelKey: 'nav.benchmarks', icon: BarChart3, access: 'internal' },
+      { to: paths.reports, labelKey: 'nav.reports', icon: Send },
     ],
   },
   {
@@ -66,7 +66,7 @@ export const NAV_SECTIONS: NavSectionConfig[] = [
     access: 'internal',
     items: [
       { to: paths.clients, labelKey: 'nav.clients', icon: Users },
-      { to: paths.alerts, labelKey: 'nav.alerts', icon: BellRing, badge: 'alerts' },
+      { to: paths.alerts, labelKey: 'nav.alerts', icon: BellRing },
     ],
   },
   {

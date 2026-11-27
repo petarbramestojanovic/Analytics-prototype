@@ -2,7 +2,7 @@ import { endOfMonth, format, parseISO, startOfMonth, subDays, subMonths } from '
 import { TODAY, YESTERDAY_ISO } from '@/lib/clock';
 import type { Campaign, CreativeDailyPoint, EmailReport, MetricKey, ReportScope } from '@/types';
 import { primarySeries } from '@/features/campaigns';
-import { DEFAULT_REPORT_METRICS, REPORT_METRICS as REPORT_ORDER, type ReportMetric } from './reportMetrics';
+import { DEFAULT_REPORT_METRICS, reportMetrics, REPORT_METRICS as REPORT_ORDER, type ReportMetric } from './reportMetrics';
 
 /** What a report is being built from — the form's live values (or a saved
  *  report), so the preview and the sample show exactly what would be sent. */
@@ -15,6 +15,18 @@ export interface ReportDraft {
   granularity: EmailReport['granularity'];
   cadence: EmailReport['cadence'];
   format: EmailReport['format'];
+}
+
+/** A saved report as the draft the preview and the rendering work from. */
+export function reportDraft(report: EmailReport): ReportDraft {
+  return {
+    scope: report.scope,
+    name: report.name,
+    metrics: reportMetrics(report),
+    granularity: report.granularity,
+    cadence: report.cadence,
+    format: report.format,
+  };
 }
 
 export type MetricValues = Record<ReportMetric, number | null>;

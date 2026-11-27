@@ -16,7 +16,6 @@ import {
 import { BrandMark } from '@/components/display';
 import { hasAccess, useSession, ViewingAsSwitcher } from '@/features/session';
 import { ProfileSettingsModal, useCurrentUser } from '@/features/profile';
-import { useAlertLog } from '@/features/alerts';
 import { useInbox } from '@/features/inbox';
 import { LanguageSwitch, ThemeToggleButton } from '@/features/preferences';
 import { NAV_SECTIONS, NAV_TOP_ITEMS } from '../navigation';
@@ -31,11 +30,10 @@ import { NavGroup, NavItem } from './NavItem';
 export function Sidebar({ collapsed, onToggleCollapsed }: { collapsed: boolean; onToggleCollapsed: () => void }) {
   const session = useSession();
   const { t } = useI18n();
-  // Same log (and same thresholds) the Alerts page itself shows, so the badge
-  // and the page never disagree on how many campaigns need attention.
-  const { investigateCount } = useAlertLog();
+  // The inbox is the one place with an unread count: Alert Config is
+  // configuration, so it carries no badge.
   const { unreadCount } = useInbox();
-  const badges = { alerts: investigateCount, inbox: unreadCount };
+  const badges = { inbox: unreadCount };
 
   const sections = NAV_SECTIONS.filter((s) => hasAccess(session, s.access));
 

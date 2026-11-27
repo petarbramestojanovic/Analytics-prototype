@@ -19,6 +19,7 @@ import {
   companies,
   emailReports,
   inboxEvents,
+  reportRuns,
   seatIdForAccount,
   seatIdForCompany,
   seatMembers,
@@ -48,6 +49,7 @@ import type {
   Clicktag,
   EmailReport,
   InboxEvent,
+  ReportRun,
   Seat,
   SeatMember,
   SeatRole,
@@ -384,21 +386,31 @@ export async function sendSampleEmailReport(request: SampleReportRequest): Promi
   return { to: request.to, sentAt: new Date().toISOString() };
 }
 
-export async function sendTestEmailReport(id: string): Promise<EmailReport> {
+/** Every attempt to deliver a saved report, newest first. */
+export async function fetchReportRuns(): Promise<ReportRun[]> {
+  await delay(200);
+  return [...reportRuns].sort((a, b) => b.ranAt.localeCompare(a.ranAt));
+}
+
+/** "Run now": delivers the report once. Recorded in its history only — the
+ *  person pressing the button already knows, so it never goes to the inbox. */
+export async function sendTestEmailReport(id: string): Promise<ReportRun> {
   await delay(600);
   const report = emailReports.find((r) => r.id === id);
   if (!report) throw new Error(`Unknown email report ${id}`);
   report.lastSentAt = new Date().toISOString();
-  inboxEvents.push({
-    id: `ev-report-${report.id}-${Date.now()}`,
-    kind: 'report',
-    createdAt: TODAY.toISOString(),
+  const run: ReportRun = {
+    id: `run-${report.id}-${Date.now()}`,
     reportId: report.id,
     reportName: report.name,
+    ranAt: TODAY.toISOString(),
+    trigger: 'manual',
+    status: 'sent',
     recipientCount: report.recipients.length,
     format: report.format,
-  });
-  return report;
+  };
+  reportRuns.push(run);
+  return run;
 }
 
 // ---------------------------------------------------------------------------

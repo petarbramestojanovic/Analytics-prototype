@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, FlaskConical, Layers, Save, Send } from 'lucide-react';
 import type { EmailReportInput } from '@/api';
 import { useI18n } from '@/i18n';
-import { Button, Checkbox, Input, Tabs } from '@/components/ui';
+import { cn } from '@/lib/cn';
+import { Button, Input, Tabs } from '@/components/ui';
 import {
   FieldLabel,
   FieldMessage,
@@ -29,6 +30,30 @@ import { reportScopeName } from '../lib/reportScope';
 import type { ReportDraft } from '../lib/reportContent';
 import { useReportRendering } from '../hooks/useReportRendering';
 import { ReportPreviewDialog } from './ReportPreviewDialog';
+
+/** A titled block of the form: a small caps heading over its fields. */
+function FormSection({
+  title,
+  aside,
+  className,
+  children,
+}: {
+  title: string;
+  /** A quiet note on the same line as the heading. */
+  aside?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={cn('space-y-4', className)}>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h3 className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">{title}</h3>
+        {aside && <p className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">{aside}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 function parseRecipients(value: string): string[] {
   return value
@@ -329,9 +354,10 @@ export function EmailReportModal({
         </Button>
       }
     >
-      {/* Two columns so the whole form fits without scrolling. */}
-      <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-        <div className="space-y-4">
+      {/* Two columns that each mean something: what the report is, and how it
+          gets to people. The divider keeps them reading as two steps. */}
+      <div className="grid gap-y-6 md:grid-cols-2">
+        <FormSection title={t('reports.form.sectionReport')} className="md:pr-8">
           {report ? (
             <StaticField label={t('reports.email.level')}>
               {t(`reports.email.level.${report.scope.level}`)} · {reportScopeName(report.scope)}
@@ -396,6 +422,44 @@ export function EmailReportModal({
             {...register('name')}
           />
 
+          <div>
+            <FieldLabel>{t('reports.email.granularity')}</FieldLabel>
+            <Tabs
+              fill
+              size="lg"
+              value={values.granularity}
+              onChange={(v) => setValue('granularity', v, { shouldDirty: true })}
+              options={[
+                { value: 'total', label: t('reports.email.granularity.total') },
+                { value: 'daily', label: t('reports.email.granularity.daily') },
+              ]}
+            />
+          </div>
+
+          <div>
+            <FieldLabel>{t('reports.email.metrics')}</FieldLabel>
+            <div className="flex flex-wrap gap-2">
+              {REPORT_METRICS.map((m) => (
+                <label key={m} className="cursor-pointer">
+                  <input type="checkbox" value={m} className="peer sr-only" {...register('metrics')} />
+                  <span className="inline-flex items-center rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-600 transition-colors hover:border-gray-300 peer-checked:border-brame-teal peer-checked:bg-brame-teal/10 peer-checked:text-brame-teal peer-focus-visible:ring-2 peer-focus-visible:ring-brame-teal/50 dark:border-white/10 dark:text-gray-400 dark:hover:border-white/20 dark:peer-checked:border-brame-lime dark:peer-checked:bg-brame-lime/10 dark:peer-checked:text-brame-lime">
+                    {t(`metric.${m}.label`)}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <FieldMessage error={errors.metrics && t('reports.email.metricsRequired')} />
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+              <Layers size={12} className="flex-shrink-0" />
+              {t('reports.email.creativeNote')}
+            </p>
+          </div>
+        </FormSection>
+
+        <FormSection
+          title={t('reports.form.sectionDelivery')}
+          className="md:border-l md:border-gray-100 md:pl-8 dark:md:border-white/10"
+        >
           <TextField
             label={t('reports.email.recipients')}
             placeholder={t('reports.email.recipientsPlaceholder')}
@@ -404,91 +468,59 @@ export function EmailReportModal({
             {...register('recipients')}
           />
 
-          <div>
-            <FieldLabel>{t('reports.email.metrics')}</FieldLabel>
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {REPORT_METRICS.map((m) => (
-                <Checkbox
-                  key={m}
-                  value={m}
-                  label={t(`metric.${m}.label`)}
-                  className="items-center text-brame-dark dark:text-gray-200"
-                  {...register('metrics')}
-                />
-              ))}
+          {/* Monthly is always "the 1st" and daily has no day to pick (see
+          EmailReport's dayOfWeek doc comment) — the day only exists to
+          disambiguate within a week. */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className={cadence === 'weekly' ? '' : 'col-span-2'}>
+              <SelectField
+                control={control}
+                name="cadence"
+                label={t('reports.email.cadence')}
+                options={[
+                  { value: 'daily', label: t('reports.email.cadenceDaily') },
+                  { value: 'weekly', label: t('reports.email.cadenceWeekly') },
+                  { value: 'monthly', label: t('reports.email.cadenceMonthly') },
+                ]}
+              />
             </div>
-            <FieldMessage error={errors.metrics && t('reports.email.metricsRequired')} />
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-              <Layers size={12} className="flex-shrink-0" />
-              {t('reports.email.creativeNote')}
-            </p>
+            {cadence === 'weekly' && (
+              <SelectField
+                control={control}
+                name="dayOfWeek"
+                label={t('reports.email.dayOfWeek')}
+                options={WEEKDAYS.map((d) => ({ value: d, label: t(`reports.email.day.${d}`) }))}
+              />
+            )}
           </div>
-        </div>
 
-        <div className="space-y-4">
           <SelectField
             control={control}
-            name="granularity"
-            label={t('reports.email.granularity')}
+            name="format"
+            label={t('reports.email.format')}
             options={[
-              { value: 'total', label: t('reports.email.granularity.total') },
-              { value: 'daily', label: t('reports.email.granularity.daily') },
+              { value: 'excel', label: t('reports.email.formatExcel') },
+              { value: 'csv', label: t('reports.email.formatCsv') },
+              { value: 'pdf', label: t('reports.email.formatPdf') },
+              { value: 'email', label: t('reports.email.formatEmailBody') },
             ]}
           />
 
-          <div className="grid grid-cols-2 gap-4">
-            <SelectField
-              control={control}
-              name="cadence"
-              label={t('reports.email.cadence')}
-              options={[
-                { value: 'daily', label: t('reports.email.cadenceDaily') },
-                { value: 'weekly', label: t('reports.email.cadenceWeekly') },
-                { value: 'monthly', label: t('reports.email.cadenceMonthly') },
-              ]}
-            />
-
-            <SelectField
-              control={control}
-              name="format"
-              label={t('reports.email.format')}
-              options={[
-                { value: 'excel', label: t('reports.email.formatExcel') },
-                { value: 'csv', label: t('reports.email.formatCsv') },
-                { value: 'pdf', label: t('reports.email.formatPdf') },
-                { value: 'email', label: t('reports.email.formatEmailBody') },
-              ]}
+          <div className="border-t border-gray-100 pt-4 dark:border-white/5">
+            <SwitchField
+              label={t('reports.email.scheduleEnabled')}
+              hint={t('reports.email.scheduleHint')}
+              checked={watch('enabled')}
+              onChange={(v) => setValue('enabled', v, { shouldDirty: true })}
             />
           </div>
 
-          {/* Monthly is always "the 1st" and daily has no day to pick (see
-          EmailReport's dayOfWeek doc comment) — this field only exists to
-          disambiguate within a week. */}
-          {cadence === 'weekly' && (
-            <SelectField
-              control={control}
-              name="dayOfWeek"
-              label={t('reports.email.dayOfWeek')}
-              options={WEEKDAYS.map((d) => ({ value: d, label: t(`reports.email.day.${d}`) }))}
-            />
-          )}
-
-          <SwitchField
-            label={t('reports.email.scheduleEnabled')}
-            hint={t('reports.email.scheduleHint')}
-            checked={watch('enabled')}
-            onChange={(v) => setValue('enabled', v, { shouldDirty: true })}
-          />
-
-          <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
-            <div className="flex items-center gap-2 text-sm font-medium text-brame-dark dark:text-gray-100">
+          <div className="border-t border-gray-100 pt-4 dark:border-white/5">
+            <FieldLabel>
               <FlaskConical size={14} className="text-brame-teal dark:text-brame-lime" />
               {t('reports.sample.title')}
-            </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('reports.sample.hint')}
-            </p>
-            <div className="mt-2.5 flex gap-2">
+            </FieldLabel>
+            <div className="flex gap-2">
               <Input
                 type="email"
                 value={sampleEmail}
@@ -509,27 +541,21 @@ export function EmailReportModal({
                 }}
                 className="flex-1"
               />
-              <Button
-                type="button"
-                icon={<Send size={13} />}
-                onClick={onSendSample}
-                disabled={sendSample.isPending}
-              >
+              <Button type="button" icon={<Send size={13} />} onClick={onSendSample} disabled={sendSample.isPending}>
                 {sendSample.isPending ? t('reports.sample.sending') : t('reports.sample.send')}
               </Button>
             </div>
-            {sampleError && (
-              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
-                {t('reports.sample.invalid')}
-              </p>
-            )}
+            {sampleError && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{t('reports.sample.invalid')}</p>}
             {sendSample.isSuccess && (
               <p className="mt-1.5 text-xs font-medium text-green-700 dark:text-green-400">
                 {t('reports.sample.sent', { email: sendSample.data.to })}
               </p>
             )}
+            {!sendSample.isSuccess && !sampleError && (
+              <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">{t('reports.sample.hint')}</p>
+            )}
           </div>
-        </div>
+        </FormSection>
       </div>
 
       <ReportPreviewDialog

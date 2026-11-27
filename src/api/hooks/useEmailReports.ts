@@ -3,6 +3,7 @@ import {
   createEmailReport,
   deleteEmailReport,
   fetchEmailReports,
+  fetchReportRuns,
   queryKeys,
   sendSampleEmailReport,
   sendTestEmailReport,
@@ -12,10 +13,16 @@ import {
   type EmailReportInput,
 } from '@/api';
 
-const invalidates = [queryKeys.emailReports.all, queryKeys.inbox.all];
+const invalidates = [queryKeys.emailReports.all, queryKeys.reportRuns.all, queryKeys.inbox.all];
 
 export function useEmailReports() {
   return useQuery({ queryKey: queryKeys.emailReports.all, queryFn: fetchEmailReports });
+}
+
+/** Every delivery attempt of every saved report, newest first — before the
+ *  seat scoping `useScopedReports` applies to the reports themselves. */
+export function useReportRuns() {
+  return useQuery({ queryKey: queryKeys.reportRuns.all, queryFn: fetchReportRuns });
 }
 
 export function useCreateEmailReport() {

@@ -45,3 +45,22 @@ export interface EmailReport {
   lastSentAt: string | null;
 }
 
+
+/**
+ * One attempt to deliver a saved report: on its schedule, or by someone
+ * pressing Run now. This is the report's full history. A run on the schedule
+ * (sent or failed) is also written to the inbox; a run someone started by
+ * hand is only recorded here, since they already know it happened.
+ */
+export interface ReportRun {
+  id: string;
+  reportId: string;
+  reportName: string;
+  ranAt: string;
+  trigger: 'scheduled' | 'manual';
+  status: 'sent' | 'failed';
+  recipientCount: number;
+  format: EmailReport['format'];
+  /** Why a failed run failed; absent when it was sent. */
+  failureReason?: string;
+}

@@ -36,6 +36,7 @@ export const queryKeys = {
     bySeat: (seatId: string) => ['apiKeys', seatId] as const,
   },
   emailReports: { all: ['emailReports'] as const },
+  reportRuns: { all: ['reportRuns'] as const },
   inbox: { all: ['inbox'] as const },
   benchmarks: {
     all: ['benchmarks'] as const,

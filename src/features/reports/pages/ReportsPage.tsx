@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { usePagination } from '@/hooks/usePagination';
+import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { matchesQuery } from '@/lib/text';
 import { Button, Tabs } from '@/components/ui';
 import { ConfirmDialog, PageSkeleton } from '@/components/feedback';
@@ -14,10 +16,12 @@ import type { EmailReport, ReportScope } from '@/types';
 import { useDeleteEmailReport } from '@/api/hooks/useEmailReports';
 import { EmailReportCard } from '../components/EmailReportCard';
 import { EmailReportModal } from '../components/EmailReportModal';
+import { ReportHistory } from '../components/ReportHistory';
 import { useScopedReports } from '../hooks/useScopedReports';
 import { reportScopeName } from '../lib/reportScope';
 
 type StatusFilter = 'all' | 'active' | 'paused';
+type PageTab = 'reports' | 'history';
 type LevelFilter = 'all' | ReportScope['level'];
 
 const PAGE_SIZE = 5;
@@ -37,6 +41,23 @@ export function ReportsPage() {
   const [editing, setEditing] = useState<EmailReport | null>(null);
   const [deleting, setDeleting] = useState<EmailReport | null>(null);
 
+  const [, setParams] = useSearchParams();
+  const [tabParam] = useSearchParamState('tab', 'reports');
+  const tab: PageTab = tabParam === 'history' ? 'history' : 'reports';
+  // The tab and the history's search share one query string, so a tab switch
+  // clears both in one update instead of two that overwrite each other.
+  const switchTab = (next: PageTab) =>
+    setParams(
+      (prev) => {
+        const out = new URLSearchParams(prev);
+        out.delete('q');
+        if (next === 'reports') out.delete('tab');
+        else out.set('tab', next);
+        return out;
+      },
+      { replace: true },
+    );
+
   const [q, setQ] = useState('');
   const [levelFilter, setLevelFilter] = useState<LevelFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -47,9 +68,9 @@ export function ReportsPage() {
         (r) =>
           (levelFilter === 'all' || r.scope.level === levelFilter) &&
           (statusFilter === 'all' || (statusFilter === 'active') === r.enabled) &&
-          matchesQuery(q, r.name, reportScopeName(r.scope), ...r.recipients)
+          matchesQuery(q, r.name, reportScopeName(r.scope), ...r.recipients),
       ),
-    [reports, levelFilter, statusFilter, q]
+    [reports, levelFilter, statusFilter, q],
   );
 
   const { paged, pagination } = usePagination(filtered, PAGE_SIZE, [levelFilter, statusFilter, q]);
@@ -68,47 +89,79 @@ export function ReportsPage() {
         }
       />
 
-      {reports.length > 0 && (
-        <ListToolbar bordered={false} className="mb-5">
-          <SearchInput value={q} onChange={setQ} placeholder={t('reports.search')} className="min-w-56" />
-          {isInternal && (
-            <Tabs
-              value={levelFilter}
-              onChange={setLevelFilter}
-              options={[
-                { value: 'all', label: t('reports.filter.all') },
-                ...(['client', 'account', 'campaign'] as const).map((value) => ({
-                  value,
-                  label: t(`reports.email.level.${value}`),
-                })),
-              ]}
-            />
+      <Tabs
+        fill
+        onPage
+        size="lg"
+        value={tab}
+        onChange={switchTab}
+        groupLabel={t('reports.title')}
+        className="mb-6 w-full max-w-[320px]"
+        options={[
+          { value: 'reports', label: t('reports.tab.reports') },
+          { value: 'history', label: t('reports.tab.history') },
+        ]}
+      />
+
+      {tab === 'history' ? (
+        <ReportHistory reports={reports} />
+      ) : (
+        <>
+          {reports.length > 0 && (
+            <ListToolbar bordered={false} className="mb-5">
+              <SearchInput
+                value={q}
+                onChange={setQ}
+                placeholder={t('reports.search')}
+                className="min-w-56"
+              />
+              {isInternal && (
+                <Tabs
+                  value={levelFilter}
+                  onChange={setLevelFilter}
+                  options={[
+                    { value: 'all', label: t('reports.filter.all') },
+                    ...(['client', 'account', 'campaign'] as const).map((value) => ({
+                      value,
+                      label: t(`reports.email.level.${value}`),
+                    })),
+                  ]}
+                />
+              )}
+              <Tabs
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={[
+                  { value: 'all', label: t('reports.filter.all') },
+                  { value: 'active', label: t('reports.active') },
+                  { value: 'paused', label: t('reports.paused') },
+                ]}
+              />
+            </ListToolbar>
           )}
-          <Tabs
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={[
-              { value: 'all', label: t('reports.filter.all') },
-              { value: 'active', label: t('reports.active') },
-              { value: 'paused', label: t('reports.paused') },
-            ]}
-          />
-        </ListToolbar>
-      )}
 
-      <div className="space-y-3">
-        {paged.map((r) => (
-          <EmailReportCard key={r.id} report={r} onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} />
-        ))}
-        {filtered.length === 0 && (
-          <EmptyCard>{reports.length === 0 ? t('reports.emailEmpty') : t('reports.noMatches')}</EmptyCard>
-        )}
-      </div>
+          <div className="space-y-3">
+            {paged.map((r) => (
+              <EmailReportCard
+                key={r.id}
+                report={r}
+                onEdit={() => setEditing(r)}
+                onDelete={() => setDeleting(r)}
+              />
+            ))}
+            {filtered.length === 0 && (
+              <EmptyCard>
+                {reports.length === 0 ? t('reports.emailEmpty') : t('reports.noMatches')}
+              </EmptyCard>
+            )}
+          </div>
 
-      {filtered.length > 0 && (
-        <div className="mt-5">
-          <Pagination {...pagination} />
-        </div>
+          {filtered.length > 0 && (
+            <div className="mt-5">
+              <Pagination {...pagination} />
+            </div>
+          )}
+        </>
       )}
 
       <EmailReportModal
@@ -129,10 +182,16 @@ export function ReportsPage() {
         onOpenChange={(open) => !open && setDeleting(null)}
         title={t('reports.email.deleteTitle')}
         description={
-          deleting ? t('reports.email.deleteBody', { name: deleting.name, count: deleting.recipients.length }) : ''
+          deleting
+            ? t('reports.email.deleteBody', {
+                name: deleting.name,
+                count: deleting.recipients.length,
+              })
+            : ''
         }
         onConfirm={() => {
-          if (deleting) deleteEmailReport.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
+          if (deleting)
+            deleteEmailReport.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
         }}
         pending={deleteEmailReport.isPending}
       />

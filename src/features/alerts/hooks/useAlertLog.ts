@@ -5,8 +5,7 @@ import { useAlertRules } from '../alertRulesContext';
 import { useAlertThresholds } from '../alertThresholdsContext';
 import { buildAlertLog } from '../lib/alertLog';
 
-/** The live alert log for the whole portfolio, plus how many rows need
- *  investigating (the sidebar badge). */
+/** The live alert log for the whole portfolio. */
 export function useAlertLog() {
   const { t } = useI18n();
   const { data: campaigns, isLoading, isError, refetch } = useCampaigns();
@@ -17,7 +16,6 @@ export function useAlertLog() {
     () => (campaigns ? buildAlertLog(campaigns, thresholds, rules, t) : []),
     [campaigns, thresholds, rules, t]
   );
-  const investigateCount = useMemo(() => rows.filter((r) => r.severity === 'investigate').length, [rows]);
 
-  return { rows, investigateCount, isLoading, isError, refetch };
+  return { rows, isLoading, isError, refetch };
 }

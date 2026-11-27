@@ -7,6 +7,7 @@ import type {
   BenchmarkCreative,
   Campaign,
   InboxEvent,
+  ReportRun,
   DailyPoint,
   EmailReport,
   MetricKey,
@@ -466,7 +467,7 @@ export const emailReports: EmailReport[] = [
     dayOfWeek: 'fri',
     format: 'email',
     enabled: true,
-    // Never sent — the schedule was only just created.
+    // Never sent: its first scheduled run failed (see reportRuns).
     lastSentAt: null,
   },
   {
@@ -712,25 +713,65 @@ export const benchmarkCreatives: BenchmarkCreative[] = campaigns
   );
 
 // ---------------------------------------------------------------------------
-// Inbox events — what the backend would have written for the inbox: finished
-// report runs and accepted invitations. Newest events are appended by the
-// store as people act (a report run, an accepted invite).
+// Report runs — the history of each saved report. Every report that has been
+// sent has one scheduled run at its `lastSentAt`; "Weekly delivery snapshot"
+// has never been sent because its one scheduled run failed. Manual runs are
+// appended by the store.
+// ---------------------------------------------------------------------------
+
+export const reportRuns: ReportRun[] = [
+  ...emailReports
+    .filter((r) => r.lastSentAt)
+    .map((r): ReportRun => ({
+      id: `run-${r.id}`,
+      reportId: r.id,
+      reportName: r.name,
+      ranAt: r.lastSentAt!,
+      trigger: 'scheduled',
+      status: 'sent',
+      recipientCount: r.recipients.length,
+      format: r.format,
+    })),
+  {
+    id: 'run-er-3-failed',
+    reportId: 'er-3',
+    reportName: 'Weekly delivery snapshot',
+    ranAt: '2026-10-23T08:00:00+02:00',
+    trigger: 'scheduled',
+    status: 'failed',
+    recipientCount: 1,
+    format: 'email',
+    failureReason: 'kevin.brandt@swisscom.ch rejected the message',
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Inbox events — what the backend would have written for the inbox: report
+// runs that went out on their schedule (sent or failed) and accepted
+// invitations. Newest events are appended by the store as people act (an
+// accepted invite); a run started by hand is history only, never an event.
 // ---------------------------------------------------------------------------
 
 const memberById = (id: string) => seatMembers.find((m) => m.id === id)!;
 const seatNameById = (id: string) => seats.find((s) => s.id === id)?.name ?? '';
 
+const scopeName = (scope: EmailReport['scope']) =>
+  scope.level === 'client' ? scope.companyName : scope.level === 'account' ? scope.accountName : scope.campaignName;
+
 export const inboxEvents: InboxEvent[] = [
-  ...emailReports
-    .filter((r) => r.lastSentAt)
+  ...reportRuns
+    .filter((r) => r.trigger === 'scheduled')
     .map((r): InboxEvent => ({
       id: `ev-report-${r.id}`,
       kind: 'report',
-      createdAt: r.lastSentAt!,
-      reportId: r.id,
-      reportName: r.name,
-      recipientCount: r.recipients.length,
+      createdAt: r.ranAt,
+      reportId: r.reportId,
+      reportName: r.reportName,
+      scopeName: scopeName(emailReports.find((er) => er.id === r.reportId)!.scope),
+      status: r.status,
+      recipientCount: r.recipientCount,
       format: r.format,
+      failureReason: r.failureReason,
     })),
   ...[
     { memberId: 'u-2b', at: '2026-10-28T07:03:00+01:00' },

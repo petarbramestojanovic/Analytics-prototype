@@ -15,6 +15,9 @@ export interface InboxItem {
   tone: InboxTone;
   /** What the detail pane shows, label then value. */
   facts: { label: string; value: string }[];
+  /** A report that went out: the detail pane shows what it contained, with a
+   *  preview, instead of sending you to the Reports page. */
+  reportId?: string;
   /** Where the detail pane sends you next. */
   actions: { label: string; to: string }[];
 }

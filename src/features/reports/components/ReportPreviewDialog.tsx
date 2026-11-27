@@ -33,11 +33,14 @@ export function ReportPreviewDialog({
   onClose,
   draft,
   recipients,
+  description,
 }: {
   open: boolean;
   onClose: () => void;
   draft: ReportDraft;
   recipients: string[];
+  /** Replaces the "built from this form" note where there is no form. */
+  description?: string;
 }) {
   const { t } = useI18n();
   const { content, name, scopeLabel, period, subject, attachment, csv } = useReportRendering(draft);
@@ -52,7 +55,7 @@ export function ReportPreviewDialog({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>{t('reports.preview.title')}</DialogTitle>
-          <DialogDescription>{t('reports.preview.description')}</DialogDescription>
+          <DialogDescription>{description ?? t('reports.preview.description')}</DialogDescription>
         </DialogHeader>
 
         {format !== 'email' && (

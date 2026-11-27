@@ -67,7 +67,7 @@ export function FormModal({
     >
       {/* A flex column: header and footer stay put, only the fields scroll —
           so Save is never pushed out of view on a short window. */}
-      <DialogContent className={cn('flex flex-col overflow-hidden', wide && 'max-w-4xl')}>
+      <DialogContent className={cn('flex max-h-[92dvh] flex-col overflow-hidden', wide && 'max-w-4xl')}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

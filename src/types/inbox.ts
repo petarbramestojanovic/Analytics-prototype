@@ -1,4 +1,4 @@
-import type { EmailReport } from './report';
+import type { EmailReport, ReportRun } from './report';
 
 /** What kind of thing happened — drives the icon, the filter and which seats
  *  get it. */
@@ -18,8 +18,15 @@ export type InboxEvent =
       createdAt: string;
       reportId: string;
       reportName: string;
+      /** Who it covers (the client, account or campaign) — report names repeat
+       *  across clients, so the list needs this to tell them apart. */
+      scopeName: string;
+      /** A scheduled run lands here whether it worked or not. Someone pressing
+       *  Run now never does — they already know — it is only on the history. */
+      status: ReportRun['status'];
       recipientCount: number;
       format: EmailReport['format'];
+      failureReason?: string;
     }
   | {
       id: string;

@@ -182,7 +182,7 @@ Karsten, on the comparison sources: *"we define thresholds... have alerts in pla
 - **Thresholds are editable** on the Alerts page itself (Watch / Investigate, as percentages), persisted like theme/language (`src/features/alerts/AlertThresholdsProvider.tsx` — a browser-side setting, not a mock-store record; see the file's comment for why).
 - **Default thresholds are 3% (watch, yellow) and 8% (investigate, red)** for a primary source against another source (DSP vs ad server). A value an admin saved earlier still wins.
 - **Rule types** (the *Alert rules* tab, in `lib/ruleEngine.ts`): source difference, KPI trend, fixed limit, decline since start, below another KPI, **falling day after day** (a rate down ≥ X pp on each of N days in a row) and **device split** (mobile or desktop share of impressions against a limit; tablet counts as mobile). Fixed limits and below-another-KPI work on any KPI with a daily value, in its own unit — two KPIs are only compared when they share one (two rates, or two counts). Eight standard rules ship on; the last two are viewability falling 5 days in a row (1 pp) and mobile share below 50%.
-- **Sidebar badge** on the Alerts nav item shows the current investigate-severity count, computed the same way as the page.
+- **Sidebar entry is *Alert Config*, with no badge.** The page is where thresholds and rules are managed and the full log of tripped campaigns lives. An investigate-severity alert also reaches the people its rule notifies as an inbox item, so the inbox carries the only unread count.
 - Klea-internal (Admin and Klea seats) — Karsten's framing was internal monitoring, not something shown to clients.
 
 ## Benchmarks
